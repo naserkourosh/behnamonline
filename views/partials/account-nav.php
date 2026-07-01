@@ -5,6 +5,7 @@ $items = [
     ['/account/orders', 'سفارش‌های من', '📋'],
     ['/account/wishlist', 'لیست علاقه‌مندی‌ها', '♡'],
     ['/account/addresses', 'آدرس‌های من', '📍'],
+    ['/account/tickets', 'تیکت‌های پشتیبانی', '💬'],
     ['/account/profile', 'ویرایش پروفایل', '👤'],
 ];
 $soon = [
@@ -12,7 +13,6 @@ $soon = [
     ['امتیازها و باشگاه مشتریان', '★'],
     ['دیدگاه‌های من', '✎'],
     ['فاکتورها', '🧾'],
-    ['تیکت‌های پشتیبانی', '💬'],
 ];
 ?>
 <div class="overflow-hidden rounded-2xl border border-line2 bg-white">

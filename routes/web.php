@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 use App\Controllers\Storefront\AccountController;
 use App\Controllers\Storefront\AuthController;
+use App\Controllers\Storefront\BlogController;
 use App\Controllers\Storefront\CartController;
 use App\Controllers\Storefront\CategoryController;
 use App\Controllers\Storefront\CheckoutController;
+use App\Controllers\Storefront\FaqController;
 use App\Controllers\Storefront\HomeController;
 use App\Controllers\Storefront\PaymentController;
 use App\Controllers\Storefront\ProductController;
+use App\Controllers\Admin\AccountingController as AdminAccountingController;
 use App\Controllers\Admin\AuthController as AdminAuthController;
+use App\Controllers\Admin\BlogController as AdminBlogController;
 use App\Controllers\Admin\BrandController as AdminBrandController;
+use App\Controllers\Admin\FaqController as AdminFaqController;
+use App\Controllers\Admin\TicketController as AdminTicketController;
 use App\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -40,6 +46,15 @@ return static function (Router $router): void {
         $r->get('/product/{slug}', [ProductController::class, 'show']);
 
         $r->get('/cart', [CartController::class, 'index']);
+
+        // ── Blog / magazine ──
+        $r->get('/blog', [BlogController::class, 'index']);
+        $r->get('/blog/category/{slug}', [BlogController::class, 'index']);
+        $r->post('/blog/{slug}/comment', [BlogController::class, 'comment'], [VerifyCsrf::class]);
+        $r->get('/blog/{slug}', [BlogController::class, 'show']);
+
+        // ── FAQ ──
+        $r->get('/faq', [FaqController::class, 'index']);
 
         // ── Checkout (OTP) ──
         $r->get('/checkout', [CheckoutController::class, 'index']);
@@ -75,6 +90,10 @@ return static function (Router $router): void {
             $a->get('/account/profile', [AccountController::class, 'profile']);
             $a->post('/account/profile', [AccountController::class, 'profileUpdate'], [VerifyCsrf::class]);
             $a->get('/account/wishlist', [AccountController::class, 'wishlist']);
+            $a->get('/account/tickets', [AccountController::class, 'tickets']);
+            $a->post('/account/tickets', [AccountController::class, 'ticketStore'], [VerifyCsrf::class]);
+            $a->get('/account/tickets/{id}', [AccountController::class, 'ticketShow']);
+            $a->post('/account/tickets/{id}/reply', [AccountController::class, 'ticketReply'], [VerifyCsrf::class]);
         });
 
         // ── Admin authentication ──
@@ -134,6 +153,37 @@ return static function (Router $router): void {
             $x->post('/admin/menus', [AdminMenuController::class, 'store'], [VerifyCsrf::class]);
             $x->post('/admin/menus/{id}/items', [AdminMenuController::class, 'addItem'], [VerifyCsrf::class]);
             $x->post('/admin/menus/items/{id}/delete', [AdminMenuController::class, 'deleteItem'], [VerifyCsrf::class]);
+
+            // Blog / magazine
+            $x->get('/admin/blog', [AdminBlogController::class, 'index']);
+            $x->get('/admin/blog/create', [AdminBlogController::class, 'create']);
+            $x->post('/admin/blog', [AdminBlogController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/blog/categories', [AdminBlogController::class, 'categories']);
+            $x->post('/admin/blog/categories', [AdminBlogController::class, 'categoryStore'], [VerifyCsrf::class]);
+            $x->post('/admin/blog/categories/{id}', [AdminBlogController::class, 'categoryStore'], [VerifyCsrf::class]);
+            $x->post('/admin/blog/categories/{id}/delete', [AdminBlogController::class, 'categoryDelete'], [VerifyCsrf::class]);
+            $x->get('/admin/blog/comments', [AdminBlogController::class, 'comments']);
+            $x->post('/admin/blog/comments/{id}/moderate', [AdminBlogController::class, 'commentModerate'], [VerifyCsrf::class]);
+            $x->get('/admin/blog/{id}/edit', [AdminBlogController::class, 'edit']);
+            $x->post('/admin/blog/{id}', [AdminBlogController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/blog/{id}/delete', [AdminBlogController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // FAQ
+            $x->get('/admin/faq', [AdminFaqController::class, 'index']);
+            $x->post('/admin/faq', [AdminFaqController::class, 'store'], [VerifyCsrf::class]);
+            $x->post('/admin/faq/{id}', [AdminFaqController::class, 'store'], [VerifyCsrf::class]);
+            $x->post('/admin/faq/{id}/delete', [AdminFaqController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // Support tickets
+            $x->get('/admin/tickets', [AdminTicketController::class, 'index']);
+            $x->get('/admin/tickets/{id}', [AdminTicketController::class, 'show']);
+            $x->post('/admin/tickets/{id}/reply', [AdminTicketController::class, 'reply'], [VerifyCsrf::class]);
+            $x->post('/admin/tickets/{id}/status', [AdminTicketController::class, 'status'], [VerifyCsrf::class]);
+
+            // Accounting export (Holoo / Mahak)
+            $x->get('/admin/accounting', [AdminAccountingController::class, 'index']);
+            $x->get('/admin/accounting/products.csv', [AdminAccountingController::class, 'exportProducts']);
+            $x->get('/admin/accounting/orders.csv', [AdminAccountingController::class, 'exportOrders']);
 
             // SMS
             $x->get('/admin/sms', [AdminSmsController::class, 'index']);

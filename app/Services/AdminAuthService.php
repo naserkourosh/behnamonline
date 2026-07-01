@@ -18,8 +18,8 @@ final class AdminAuthService
     /** Capabilities per role. 'super' has the '*' wildcard. */
     private const CAPS = [
         'super'   => ['*'],
-        'manager' => ['dashboard', 'products', 'categories', 'brands', 'tags', 'orders', 'customers', 'menus', 'inventory', 'sms', 'settings'],
-        'editor'  => ['dashboard', 'products', 'categories', 'brands', 'tags', 'inventory'],
+        'manager' => ['dashboard', 'products', 'categories', 'brands', 'tags', 'orders', 'customers', 'menus', 'inventory', 'blog', 'support', 'accounting', 'sms', 'settings'],
+        'editor'  => ['dashboard', 'products', 'categories', 'brands', 'tags', 'inventory', 'blog'],
     ];
 
     /** @var array<string,mixed>|null */

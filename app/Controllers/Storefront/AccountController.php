@@ -13,6 +13,7 @@ use App\Core\Validator;
 use App\Repositories\AddressRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\ProductRepository;
+use App\Repositories\TicketRepository;
 use App\Repositories\UserRepository;
 use App\Repositories\WishlistRepository;
 use App\Services\AuthService;
@@ -156,5 +157,72 @@ final class AccountController extends Controller
         return $this->view('storefront/account/wishlist', [
             'products' => (new ProductRepository())->cardsByIds($ids),
         ]);
+    }
+
+    /* ───────────────────────── Support tickets ───────────────────────── */
+
+    public function tickets(Request $request): Response
+    {
+        $userId = (int) AuthService::id();
+        return $this->view('storefront/account/tickets', [
+            'tickets' => (new TicketRepository())->forUser($userId),
+        ]);
+    }
+
+    public function ticketShow(Request $request): Response
+    {
+        $userId = (int) AuthService::id();
+        $repo   = new TicketRepository();
+        $ticket = $repo->findForUser((int) $request->param('id'), $userId);
+        if ($ticket === null) {
+            return $this->notFound();
+        }
+        return $this->view('storefront/account/ticket-show', [
+            'ticket'   => $ticket,
+            'messages' => $repo->messages((int) $ticket['id']),
+        ]);
+    }
+
+    public function ticketStore(Request $request): Response
+    {
+        $userId   = (int) AuthService::id();
+        $subject  = trim((string) $request->input('subject', ''));
+        $body     = trim((string) $request->input('body', ''));
+        $priority = in_array($request->input('priority'), ['low', 'normal', 'high'], true)
+            ? (string) $request->input('priority') : 'normal';
+
+        if (mb_strlen($subject) < 3 || mb_strlen($body) < 3) {
+            Session::flash('error', 'موضوع و متن پیام را کامل وارد کنید.');
+            return $this->redirect(url('/account/tickets'));
+        }
+
+        $repo = new TicketRepository();
+        $id   = $repo->create($userId, mb_substr($subject, 0, 190), $priority);
+        $repo->addMessage($id, 'customer', $userId, mb_substr($body, 0, 3000));
+
+        Session::flash('success', 'تیکت شما ثبت شد. کارشناسان ما به‌زودی پاسخ می‌دهند.');
+        return $this->redirect(url('/account/tickets/' . $id));
+    }
+
+    public function ticketReply(Request $request): Response
+    {
+        $userId = (int) AuthService::id();
+        $repo   = new TicketRepository();
+        $ticket = $repo->findForUser((int) $request->param('id'), $userId);
+        if ($ticket === null) {
+            return $this->notFound();
+        }
+        if ((string) $ticket['status'] === 'closed') {
+            Session::flash('error', 'این تیکت بسته شده است.');
+            return $this->redirect(url('/account/tickets/' . $ticket['id']));
+        }
+        $body = trim((string) $request->input('body', ''));
+        if (mb_strlen($body) < 2) {
+            Session::flash('error', 'متن پاسخ را وارد کنید.');
+            return $this->redirect(url('/account/tickets/' . $ticket['id']));
+        }
+        $repo->addMessage((int) $ticket['id'], 'customer', $userId, mb_substr($body, 0, 3000));
+        Session::flash('success', 'پاسخ شما ثبت شد.');
+        return $this->redirect(url('/account/tickets/' . $ticket['id']));
     }
 }

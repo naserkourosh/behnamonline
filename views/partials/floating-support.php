@@ -17,11 +17,12 @@
             <div class="max-w-[200px] rounded-2xl rounded-bl-sm border border-line bg-white px-3 py-2.5 text-[11.5px] leading-7 text-[#444]">سلام! 🌸 به <?= e($brand) ?> خوش آمدید. چطور می‌توانم کمکتان کنم؟</div>
         </div>
     </div>
-    <div class="flex gap-2 border-t border-line bg-white p-3">
-        <input class="flex-1 rounded-xl border border-line bg-surface px-3 py-2.5 text-[12px] outline-none" placeholder="پیام خود را بنویسید…">
-        <button type="button" class="flex w-9 items-center justify-center rounded-xl bg-secondary text-white" aria-label="ارسال">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="transform:scaleX(-1)"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z" stroke-linejoin="round"/></svg>
-        </button>
+    <div class="flex flex-col gap-2 border-t border-line bg-white p-3">
+        <a href="<?= e(url('/account/tickets')) ?>" class="flex items-center justify-center gap-2 rounded-xl bg-secondary px-3 py-2.5 text-[12px] font-semibold text-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            ارسال تیکت پشتیبانی
+        </a>
+        <a href="<?= e(url('/faq')) ?>" class="flex items-center justify-center gap-2 rounded-xl border border-line bg-surface px-3 py-2.5 text-[12px] font-semibold text-secondary">سوالات متداول</a>
     </div>
 </div>
 <button type="button" class="js-chat-toggle fixed bottom-[90px] left-3.5 z-[55] flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-secondary-light shadow-balloon md:bottom-6" aria-label="پشتیبانی">

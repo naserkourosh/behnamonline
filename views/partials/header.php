@@ -79,9 +79,11 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
                 همه دسته‌بندی‌ها
             </a>
-            <?php foreach (array_slice($menuItems, 0, 7) as $mi): ?>
+            <?php foreach (array_slice($menuItems, 0, 6) as $mi): ?>
                 <a href="<?= e($menuHref($mi['url'])) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary"><?= e($mi['label']) ?></a>
             <?php endforeach; ?>
+            <a href="<?= e(url('/blog')) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary">مجله</a>
+            <a href="<?= e(url('/faq')) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary">سوالات متداول</a>
             <a href="<?= e(url('/category?in_stock=1')) ?>" class="me-auto text-[13px] font-bold text-danger">🔥 حراج ویژه</a>
         </div>
     </div>
@@ -102,6 +104,8 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.7"><path d="M15 6l-6 6 6 6" stroke-linecap="round"/></svg>
             </a>
         <?php endforeach; ?>
+        <a href="<?= e(url('/blog')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">مجله</a>
+        <a href="<?= e(url('/faq')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">سوالات متداول</a>
         <a href="<?= e(url('/cart')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">سبد خرید</a>
         <a href="<?= e($accountUrl) ?>" class="px-5 py-3.5 text-[14px] font-semibold text-secondary"><?= $authUser !== null ? 'حساب کاربری من' : 'ورود / ثبت‌نام' ?></a>
     </nav>
