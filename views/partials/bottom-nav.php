@@ -1,5 +1,14 @@
 <?php
 $path = '/' . trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/', '/');
+
+// These pages have their own fixed bottom action bar (checkout button,
+// add-to-cart, etc.). Hide the bottom nav there so they don't overlap.
+foreach (['/cart', '/checkout', '/product', '/pay'] as $p) {
+    if ($path === $p || str_starts_with($path, $p . '/')) {
+        return;
+    }
+}
+
 $is = static fn (string $p): bool => $p === '/' ? $path === '/' : str_starts_with($path, $p);
 
 $items = [
