@@ -107,4 +107,69 @@ final class OrderRepository extends BaseRepository
     {
         return (int) $this->scalar('SELECT COUNT(*) FROM orders WHERE user_id = ?', [$userId]);
     }
+
+    /* ───────────────────────── Admin ───────────────────────── */
+
+    /**
+     * @param array<string,mixed> $filters  status, payment_status, search
+     * @return list<array<string,mixed>>
+     */
+    public function adminList(array $filters, int $limit, int $offset): array
+    {
+        [$where, $params] = $this->adminWhere($filters);
+        $limit  = max(1, min(100, $limit));
+        $offset = max(0, $offset);
+        return $this->selectAll(
+            "SELECT o.*, (SELECT COUNT(*) FROM order_items i WHERE i.order_id = o.id) AS item_count
+               FROM orders o WHERE {$where} ORDER BY o.id DESC LIMIT {$limit} OFFSET {$offset}",
+            $params
+        );
+    }
+
+    /** @param array<string,mixed> $filters */
+    public function adminCount(array $filters): int
+    {
+        [$where, $params] = $this->adminWhere($filters);
+        return (int) $this->scalar("SELECT COUNT(*) FROM orders o WHERE {$where}", $params);
+    }
+
+    /** @return array<string,mixed>|null */
+    public function findAny(int $id): ?array
+    {
+        return $this->selectOne('SELECT * FROM orders WHERE id = ? LIMIT 1', [$id]);
+    }
+
+    public function adminUpdate(int $id, string $status, string $paymentStatus, ?string $tracking): void
+    {
+        $this->execute(
+            'UPDATE orders SET status = ?, payment_status = ?, tracking_code = ?, updated_at = ? WHERE id = ?',
+            [$status, $paymentStatus, $tracking, date('Y-m-d H:i:s'), $id]
+        );
+    }
+
+    /**
+     * @param array<string,mixed> $filters
+     * @return array{0:string,1:list<mixed>}
+     */
+    private function adminWhere(array $filters): array
+    {
+        $clauses = ['1=1'];
+        $params  = [];
+        if (!empty($filters['status'])) {
+            $clauses[] = 'o.status = ?';
+            $params[]  = (string) $filters['status'];
+        }
+        if (!empty($filters['payment_status'])) {
+            $clauses[] = 'o.payment_status = ?';
+            $params[]  = (string) $filters['payment_status'];
+        }
+        if (!empty($filters['search'])) {
+            $clauses[] = '(o.order_number LIKE ? OR o.mobile LIKE ? OR o.receiver_name LIKE ?)';
+            $term = '%' . $filters['search'] . '%';
+            $params[] = $term;
+            $params[] = $term;
+            $params[] = $term;
+        }
+        return [implode(' AND ', $clauses), $params];
+    }
 }

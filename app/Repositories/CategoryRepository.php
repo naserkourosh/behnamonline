@@ -29,4 +29,54 @@ final class CategoryRepository extends BaseRepository
             [$slug]
         );
     }
+
+    /* ───────────────────────── Admin ───────────────────────── */
+
+    /** @return list<array<string,mixed>> */
+    public function allAdmin(): array
+    {
+        return $this->selectAll(
+            'SELECT c.*, p.name AS parent_name,
+                    (SELECT COUNT(*) FROM products pr WHERE pr.category_id = c.id) AS product_count
+               FROM categories c
+          LEFT JOIN categories p ON p.id = c.parent_id
+              ORDER BY c.sort, c.id'
+        );
+    }
+
+    /** @return array<string,mixed>|null */
+    public function find(int $id): ?array
+    {
+        return $this->selectOne('SELECT * FROM categories WHERE id = ? LIMIT 1', [$id]);
+    }
+
+    /** @param array<string,mixed> $d */
+    public function insert(array $d): int
+    {
+        $this->execute(
+            'INSERT INTO categories (parent_id, name, slug, image, sort, is_active, seo_title, seo_description, created_at)
+             VALUES (?,?,?,?,?,?,?,?,?)',
+            [$d['parent_id'], $d['name'], $d['slug'], $d['image'], $d['sort'], $d['is_active'], $d['seo_title'], $d['seo_description'], date('Y-m-d H:i:s')]
+        );
+        return $this->lastInsertId();
+    }
+
+    /** @param array<string,mixed> $d */
+    public function update(int $id, array $d): void
+    {
+        $this->execute(
+            'UPDATE categories SET parent_id=?, name=?, slug=?, image=?, sort=?, is_active=?, seo_title=?, seo_description=? WHERE id=?',
+            [$d['parent_id'], $d['name'], $d['slug'], $d['image'], $d['sort'], $d['is_active'], $d['seo_title'], $d['seo_description'], $id]
+        );
+    }
+
+    public function delete(int $id): void
+    {
+        $this->execute('DELETE FROM categories WHERE id = ?', [$id]);
+    }
+
+    public function slugExists(string $slug, int $exceptId = 0): bool
+    {
+        return (int) $this->scalar('SELECT COUNT(*) FROM categories WHERE slug = ? AND id <> ?', [$slug, $exceptId]) > 0;
+    }
 }

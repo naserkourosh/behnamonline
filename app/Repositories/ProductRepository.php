@@ -181,6 +181,198 @@ final class ProductRepository extends BaseRepository
         $this->execute('UPDATE products SET view_count = view_count + 1 WHERE id = ?', [$id]);
     }
 
+    /* ───────────────────────── Admin ───────────────────────── */
+
+    /** @return list<array<string,mixed>> All products (active + inactive) for the admin list. */
+    public function adminList(string $search, int $limit, int $offset): array
+    {
+        $limit  = max(1, min(100, $limit));
+        $offset = max(0, $offset);
+        $where  = '1=1';
+        $params = [];
+        if ($search !== '') {
+            $where = '(p.name LIKE ? OR p.sku LIKE ?)';
+            $params = ['%' . $search . '%', '%' . $search . '%'];
+        }
+        return $this->selectAll(
+            "SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock, p.is_active, p.is_new, p.is_featured,
+                    b.name AS brand_name, c.name AS category_name,
+                    (SELECT i.path FROM product_images i WHERE i.product_id = p.id AND i.is_primary = 1 ORDER BY i.sort LIMIT 1) AS image
+               FROM products p
+          LEFT JOIN brands b ON b.id = p.brand_id
+          LEFT JOIN categories c ON c.id = p.category_id
+              WHERE {$where}
+              ORDER BY p.id DESC
+              LIMIT {$limit} OFFSET {$offset}",
+            $params
+        );
+    }
+
+    public function adminCount(string $search): int
+    {
+        if ($search === '') {
+            return (int) $this->scalar('SELECT COUNT(*) FROM products');
+        }
+        return (int) $this->scalar(
+            'SELECT COUNT(*) FROM products WHERE name LIKE ? OR sku LIKE ?',
+            ['%' . $search . '%', '%' . $search . '%']
+        );
+    }
+
+    /** @return array<string,mixed>|null */
+    public function findById(int $id): ?array
+    {
+        return $this->selectOne('SELECT * FROM products WHERE id = ? LIMIT 1', [$id]);
+    }
+
+    /** @param array<string,mixed> $d */
+    public function insert(array $d): int
+    {
+        $now = date('Y-m-d H:i:s');
+        $this->execute(
+            'INSERT INTO products
+                (category_id, brand_id, name, slug, sku, barcode, short_desc, description, aparat_embed,
+                 price, old_price, stock, low_stock_threshold, is_active, is_new, is_featured, on_flash_sale,
+                 expiration_date, seo_title, seo_description, created_at, updated_at)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+            [
+                $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
+                $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
+                $d['stock'], $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
+                $d['on_flash_sale'], $d['expiration_date'], $d['seo_title'], $d['seo_description'], $now, $now,
+            ]
+        );
+        return $this->lastInsertId();
+    }
+
+    /** @param array<string,mixed> $d */
+    public function updateProduct(int $id, array $d): void
+    {
+        $this->execute(
+            'UPDATE products SET category_id=?, brand_id=?, name=?, slug=?, sku=?, barcode=?, short_desc=?,
+                description=?, aparat_embed=?, price=?, old_price=?, stock=?, low_stock_threshold=?,
+                is_active=?, is_new=?, is_featured=?, on_flash_sale=?, expiration_date=?,
+                seo_title=?, seo_description=?, updated_at=?
+              WHERE id=?',
+            [
+                $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
+                $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
+                $d['stock'], $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
+                $d['on_flash_sale'], $d['expiration_date'], $d['seo_title'], $d['seo_description'],
+                date('Y-m-d H:i:s'), $id,
+            ]
+        );
+    }
+
+    public function deleteProduct(int $id): void
+    {
+        $this->execute('DELETE FROM products WHERE id = ?', [$id]);
+    }
+
+    public function slugExists(string $slug, int $exceptId = 0): bool
+    {
+        return (int) $this->scalar('SELECT COUNT(*) FROM products WHERE slug = ? AND id <> ?', [$slug, $exceptId]) > 0;
+    }
+
+    public function addImage(int $productId, string $path, string $alt, string $title, bool $isPrimary, bool $isHover, int $sort): void
+    {
+        $this->execute(
+            'INSERT INTO product_images (product_id, path, alt, title, sort, is_primary, is_hover) VALUES (?,?,?,?,?,?,?)',
+            [$productId, $path, $alt, $title, $sort, $isPrimary ? 1 : 0, $isHover ? 1 : 0]
+        );
+    }
+
+    /** @return array<string,mixed>|null */
+    public function imageById(int $imgId): ?array
+    {
+        return $this->selectOne('SELECT * FROM product_images WHERE id = ? LIMIT 1', [$imgId]);
+    }
+
+    public function deleteImageById(int $imgId): void
+    {
+        $this->execute('DELETE FROM product_images WHERE id = ?', [$imgId]);
+    }
+
+    public function updateImageMeta(int $imgId, string $alt, string $title): void
+    {
+        $this->execute('UPDATE product_images SET alt = ?, title = ? WHERE id = ?', [$alt, $title, $imgId]);
+    }
+
+    public function setPrimaryImage(int $productId, int $imgId): void
+    {
+        $this->execute('UPDATE product_images SET is_primary = 0 WHERE product_id = ?', [$productId]);
+        $this->execute('UPDATE product_images SET is_primary = 1 WHERE id = ? AND product_id = ?', [$imgId, $productId]);
+    }
+
+    /** @return list<array<string,mixed>> All images for admin editing. */
+    public function allImages(int $productId): array
+    {
+        return $this->selectAll(
+            'SELECT * FROM product_images WHERE product_id = ? ORDER BY is_primary DESC, sort, id',
+            [$productId]
+        );
+    }
+
+    /** Make sure exactly one image is primary (first by sort) if any exist. */
+    public function ensurePrimary(int $productId): void
+    {
+        $hasPrimary = (int) $this->scalar('SELECT COUNT(*) FROM product_images WHERE product_id = ? AND is_primary = 1', [$productId]);
+        if ($hasPrimary === 0) {
+            $first = $this->scalar('SELECT id FROM product_images WHERE product_id = ? ORDER BY sort, id LIMIT 1', [$productId]);
+            if ($first) {
+                $this->execute('UPDATE product_images SET is_primary = 1 WHERE id = ?', [(int) $first]);
+            }
+        }
+    }
+
+    /** @param list<array{key:string,value:string}> $pairs */
+    public function replaceAttributes(int $productId, array $pairs): void
+    {
+        $this->execute('DELETE FROM product_attributes WHERE product_id = ?', [$productId]);
+        $i = 0;
+        foreach ($pairs as $p) {
+            if (trim($p['key']) === '' || trim($p['value']) === '') {
+                continue;
+            }
+            $this->execute(
+                'INSERT INTO product_attributes (product_id, attr_key, attr_value, sort) VALUES (?,?,?,?)',
+                [$productId, $p['key'], $p['value'], $i++]
+            );
+        }
+    }
+
+    /** @param list<array{label:string,sku:string,price_override:?int,stock:int}> $variants */
+    public function replaceVariants(int $productId, array $variants): void
+    {
+        $this->execute('DELETE FROM product_variants WHERE product_id = ?', [$productId]);
+        $i = 0;
+        foreach ($variants as $v) {
+            if (trim($v['label']) === '') {
+                continue;
+            }
+            $this->execute(
+                'INSERT INTO product_variants (product_id, label, sku, price_override, stock, sort) VALUES (?,?,?,?,?,?)',
+                [$productId, $v['label'], $v['sku'] ?: null, $v['price_override'], $v['stock'], $i++]
+            );
+        }
+    }
+
+    /** @return list<int> */
+    public function tagIds(int $productId): array
+    {
+        $rows = $this->selectAll('SELECT tag_id FROM product_tags WHERE product_id = ?', [$productId]);
+        return array_map(static fn ($r) => (int) $r['tag_id'], $rows);
+    }
+
+    /** @param list<int> $tagIds */
+    public function syncTags(int $productId, array $tagIds): void
+    {
+        $this->execute('DELETE FROM product_tags WHERE product_id = ?', [$productId]);
+        foreach (array_unique($tagIds) as $tid) {
+            $this->execute('INSERT IGNORE INTO product_tags (product_id, tag_id) VALUES (?,?)', [$productId, (int) $tid]);
+        }
+    }
+
     public function decrementStock(int $productId, int $qty): void
     {
         $this->execute(

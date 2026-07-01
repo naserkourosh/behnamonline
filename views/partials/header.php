@@ -1,5 +1,11 @@
 <?php
 $categories = (new \App\Repositories\CategoryRepository())->allActiveWithCounts();
+// Admin-managed primary menu drives the nav; fall back to categories.
+$menuItems = (new \App\Repositories\MenuRepository())->primaryItems();
+if ($menuItems === []) {
+    $menuItems = array_map(static fn ($c) => ['label' => $c['name'], 'url' => '/category/' . $c['slug']], $categories);
+}
+$menuHref = static fn (string $u): string => str_starts_with($u, 'http') ? $u : url($u);
 $cartCount  = (new \App\Services\CartService())->count();
 $brand      = (string) setting('brand_name', 'بهنام');
 $wordmark   = (string) config('app.wordmark', 'BEHNAM');
@@ -73,8 +79,8 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
                 همه دسته‌بندی‌ها
             </a>
-            <?php foreach (array_slice($categories, 0, 7) as $cat): ?>
-                <a href="<?= e(url('/category/' . $cat['slug'])) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary"><?= e($cat['name']) ?></a>
+            <?php foreach (array_slice($menuItems, 0, 7) as $mi): ?>
+                <a href="<?= e($menuHref($mi['url'])) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary"><?= e($mi['label']) ?></a>
             <?php endforeach; ?>
             <a href="<?= e(url('/category?in_stock=1')) ?>" class="me-auto text-[13px] font-bold text-danger">🔥 حراج ویژه</a>
         </div>
@@ -90,10 +96,10 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
     </div>
     <nav class="flex flex-col py-2">
         <a href="<?= e(url('/')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">خانه</a>
-        <?php foreach ($categories as $cat): ?>
-            <a href="<?= e(url('/category/' . $cat['slug'])) ?>" class="flex items-center justify-between border-b border-line2 px-5 py-3.5 text-[14px] text-ink">
-                <span><?= e($cat['name']) ?></span>
-                <span class="text-[11px] text-mauve nums"><?= fa((int) $cat['product_count']) ?></span>
+        <?php foreach ($menuItems as $mi): ?>
+            <a href="<?= e($menuHref($mi['url'])) ?>" class="flex items-center justify-between border-b border-line2 px-5 py-3.5 text-[14px] text-ink">
+                <span><?= e($mi['label']) ?></span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.7"><path d="M15 6l-6 6 6 6" stroke-linecap="round"/></svg>
             </a>
         <?php endforeach; ?>
         <a href="<?= e(url('/cart')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">سبد خرید</a>

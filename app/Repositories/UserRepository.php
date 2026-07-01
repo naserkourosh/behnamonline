@@ -42,4 +42,37 @@ final class UserRepository extends BaseRepository
     {
         $this->execute('UPDATE users SET last_login_at = ? WHERE id = ?', [date('Y-m-d H:i:s'), $id]);
     }
+
+    /* ───────────────────────── Admin ───────────────────────── */
+
+    /** @return list<array<string,mixed>> */
+    public function adminList(string $search, int $limit, int $offset): array
+    {
+        $limit  = max(1, min(100, $limit));
+        $offset = max(0, $offset);
+        $where  = '1=1';
+        $params = [];
+        if ($search !== '') {
+            $where  = '(mobile LIKE ? OR first_name LIKE ? OR last_name LIKE ?)';
+            $params = ['%' . $search . '%', '%' . $search . '%', '%' . $search . '%'];
+        }
+        return $this->selectAll(
+            "SELECT u.*,
+                    (SELECT COUNT(*) FROM orders o WHERE o.user_id = u.id) AS order_count,
+                    (SELECT COALESCE(SUM(o.total),0) FROM orders o WHERE o.user_id = u.id AND o.payment_status='paid') AS total_spent
+               FROM users u WHERE {$where} ORDER BY u.id DESC LIMIT {$limit} OFFSET {$offset}",
+            $params
+        );
+    }
+
+    public function adminCount(string $search): int
+    {
+        if ($search === '') {
+            return (int) $this->scalar('SELECT COUNT(*) FROM users');
+        }
+        return (int) $this->scalar(
+            'SELECT COUNT(*) FROM users WHERE mobile LIKE ? OR first_name LIKE ? OR last_name LIKE ?',
+            ['%' . $search . '%', '%' . $search . '%', '%' . $search . '%']
+        );
+    }
 }

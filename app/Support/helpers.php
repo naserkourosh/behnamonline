@@ -189,6 +189,45 @@ if (!function_exists('order_status')) {
     }
 }
 
+if (!function_exists('en_num')) {
+    /** Convert Persian/Arabic digits to Latin (for numeric input parsing). */
+    function en_num(string $value): string
+    {
+        $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        $arabic  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        $latin   = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        return str_replace($arabic, $latin, str_replace($persian, $latin, trim($value)));
+    }
+}
+
+if (!function_exists('slugify')) {
+    /** Build a URL slug, preserving Persian letters. */
+    function slugify(string $text, string $fallback = ''): string
+    {
+        $text = trim($text);
+        $text = preg_replace('/[\s\/\\\\_]+/u', '-', $text) ?? $text;
+        $text = preg_replace('/[^\p{L}\p{N}\-]+/u', '', $text) ?? $text;
+        $text = preg_replace('/-+/', '-', $text) ?? $text;
+        $text = trim($text, '-');
+        return $text !== '' ? $text : ($fallback !== '' ? $fallback : 'item-' . substr(md5((string) microtime(true)), 0, 6));
+    }
+}
+
+if (!function_exists('admin')) {
+    /** @return array<string,mixed>|null The current admin user, if any. */
+    function admin(): ?array
+    {
+        return \App\Services\AdminAuthService::user();
+    }
+}
+
+if (!function_exists('admin_can')) {
+    function admin_can(string $capability): bool
+    {
+        return \App\Services\AdminAuthService::can($capability);
+    }
+}
+
 if (!function_exists('discount_percent')) {
     /** Compute the discount % from old/new price (0 when none). */
     function discount_percent(int|float|null $old, int|float $price): int

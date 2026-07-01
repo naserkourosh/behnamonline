@@ -23,9 +23,10 @@ vanilla ES6 + **jQuery/AJAX**. No Node.js runtime, no heavy framework.
 copy .env.example .env
 #    then edit .env if your DB user/password differ (Laragon default: root / empty)
 
-# 2) Create schema + demo data
+# 2) Create schema + demo data + admin account
 & "C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe" database\migrate.php --fresh
 & "C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe" database\seed.php
+& "C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe" database\seed_admin.php
 
 # 3) Build the CSS (standalone Tailwind CLI — no Node needed)
 powershell -ExecutionPolicy Bypass -File tools\build.ps1
@@ -34,7 +35,10 @@ powershell -ExecutionPolicy Bypass -File tools\build.ps1
 powershell -ExecutionPolicy Bypass -File tools\serve.ps1     # http://127.0.0.1:8000
 ```
 
-Open **http://127.0.0.1:8000**.
+Open **http://127.0.0.1:8000** (storefront) and **http://127.0.0.1:8000/admin** (admin panel).
+
+### Admin panel
+WooCommerce-style RTL admin at **`/admin`**. Default login: **`admin` / `admin1234`** (change it after first login). Full CRUD for products (images, specs, variants, tags, flags, SEO), categories, brands, tags, a menu builder that drives the storefront header, order management (status/tracking/payment confirmation with SMS), customers, and site settings. Roles: `super`, `manager`, `editor` (capability-based access).
 
 ### Alternative: Laragon/Apache virtual host
 Point a vhost `behnam.test` at the project's **`public/`** directory (Laragon → Menu → Apache →

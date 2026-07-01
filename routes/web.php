@@ -10,7 +10,18 @@ use App\Controllers\Storefront\CheckoutController;
 use App\Controllers\Storefront\HomeController;
 use App\Controllers\Storefront\PaymentController;
 use App\Controllers\Storefront\ProductController;
+use App\Controllers\Admin\AuthController as AdminAuthController;
+use App\Controllers\Admin\BrandController as AdminBrandController;
+use App\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Controllers\Admin\CustomerController as AdminCustomerController;
+use App\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Controllers\Admin\MenuController as AdminMenuController;
+use App\Controllers\Admin\OrderController as AdminOrderController;
+use App\Controllers\Admin\ProductController as AdminProductController;
+use App\Controllers\Admin\SettingController as AdminSettingController;
+use App\Controllers\Admin\TagController as AdminTagController;
 use App\Core\Router;
+use App\Middleware\RequireAdmin;
 use App\Middleware\RequireAuth;
 use App\Middleware\SecurityHeaders;
 use App\Middleware\VerifyCsrf;
@@ -63,6 +74,68 @@ return static function (Router $router): void {
             $a->get('/account/profile', [AccountController::class, 'profile']);
             $a->post('/account/profile', [AccountController::class, 'profileUpdate'], [VerifyCsrf::class]);
             $a->get('/account/wishlist', [AccountController::class, 'wishlist']);
+        });
+
+        // ── Admin authentication ──
+        $r->get('/admin/login', [AdminAuthController::class, 'showLogin']);
+        $r->post('/admin/login', [AdminAuthController::class, 'login'], [VerifyCsrf::class]);
+        $r->post('/admin/logout', [AdminAuthController::class, 'logout'], [VerifyCsrf::class]);
+
+        // ── Admin panel (auth required) ──
+        $r->group([RequireAdmin::class], static function (Router $x): void {
+            $x->get('/admin', [AdminDashboardController::class, 'index']);
+
+            // Products
+            $x->get('/admin/products', [AdminProductController::class, 'index']);
+            $x->get('/admin/products/create', [AdminProductController::class, 'create']);
+            $x->post('/admin/products', [AdminProductController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/products/{id}/edit', [AdminProductController::class, 'edit']);
+            $x->post('/admin/products/{id}', [AdminProductController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/products/{id}/delete', [AdminProductController::class, 'destroy'], [VerifyCsrf::class]);
+            $x->post('/admin/products/{id}/images', [AdminProductController::class, 'uploadImages'], [VerifyCsrf::class]);
+            $x->post('/admin/products/images/{img}/delete', [AdminProductController::class, 'deleteImage'], [VerifyCsrf::class]);
+
+            // Categories
+            $x->get('/admin/categories', [AdminCategoryController::class, 'index']);
+            $x->get('/admin/categories/create', [AdminCategoryController::class, 'create']);
+            $x->post('/admin/categories', [AdminCategoryController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/categories/{id}/edit', [AdminCategoryController::class, 'edit']);
+            $x->post('/admin/categories/{id}', [AdminCategoryController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/categories/{id}/delete', [AdminCategoryController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // Brands
+            $x->get('/admin/brands', [AdminBrandController::class, 'index']);
+            $x->get('/admin/brands/create', [AdminBrandController::class, 'create']);
+            $x->post('/admin/brands', [AdminBrandController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/brands/{id}/edit', [AdminBrandController::class, 'edit']);
+            $x->post('/admin/brands/{id}', [AdminBrandController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/brands/{id}/delete', [AdminBrandController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // Tags
+            $x->get('/admin/tags', [AdminTagController::class, 'index']);
+            $x->post('/admin/tags', [AdminTagController::class, 'store'], [VerifyCsrf::class]);
+            $x->post('/admin/tags/{id}', [AdminTagController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/tags/{id}/delete', [AdminTagController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // Orders
+            $x->get('/admin/orders', [AdminOrderController::class, 'index']);
+            $x->get('/admin/orders/{id}', [AdminOrderController::class, 'show']);
+            $x->post('/admin/orders/{id}/update', [AdminOrderController::class, 'update'], [VerifyCsrf::class]);
+
+            // Customers
+            $x->get('/admin/customers', [AdminCustomerController::class, 'index']);
+            $x->get('/admin/customers/{id}', [AdminCustomerController::class, 'show']);
+
+            // Menus
+            $x->get('/admin/menus', [AdminMenuController::class, 'index']);
+            $x->get('/admin/menus/{id}', [AdminMenuController::class, 'edit']);
+            $x->post('/admin/menus', [AdminMenuController::class, 'store'], [VerifyCsrf::class]);
+            $x->post('/admin/menus/{id}/items', [AdminMenuController::class, 'addItem'], [VerifyCsrf::class]);
+            $x->post('/admin/menus/items/{id}/delete', [AdminMenuController::class, 'deleteItem'], [VerifyCsrf::class]);
+
+            // Settings
+            $x->get('/admin/settings', [AdminSettingController::class, 'index']);
+            $x->post('/admin/settings', [AdminSettingController::class, 'update'], [VerifyCsrf::class]);
         });
     });
 };
