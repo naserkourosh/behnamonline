@@ -53,6 +53,8 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
 
     <?php $this->partial('header'); ?>
 
+    <?php $this->partial('flash'); ?>
+
     <main id="main">
         <?= $content ?>
     </main>

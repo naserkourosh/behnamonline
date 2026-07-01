@@ -88,7 +88,7 @@ $items = $summary['items'];
                         <span class="text-[14px] font-bold text-[#333]">مبلغ قابل پرداخت</span>
                         <span><span class="js-sum-total text-[18px] font-extrabold text-secondary nums"><?= money((int) $summary['total']) ?></span> <span class="text-[11px] text-[#999]">تومان</span></span>
                     </div>
-                    <a href="<?= e(url('/cart')) ?>" class="btn-primary mt-5 hidden w-full py-3.5 text-[14px] md:flex">ادامه و ثبت سفارش</a>
+                    <a href="<?= e(url('/checkout')) ?>" class="btn-primary mt-5 hidden w-full py-3.5 text-[14px] md:flex">ادامه و ثبت سفارش</a>
                 </div>
             </aside>
         </div>
@@ -114,6 +114,6 @@ $items = $summary['items'];
         <div class="text-[9.5px] text-[#999]">قابل پرداخت</div>
         <div class="js-sum-total-mobile text-[16px] font-extrabold text-secondary nums"><?= money((int) $summary['total']) ?></div>
     </div>
-    <a href="<?= e(url('/cart')) ?>" class="btn-primary flex-1 py-3.5 text-[14px]">ادامه و ثبت سفارش</a>
+    <a href="<?= e(url('/checkout')) ?>" class="btn-primary flex-1 py-3.5 text-[14px]">ادامه و ثبت سفارش</a>
 </div>
 <?php endif; ?>

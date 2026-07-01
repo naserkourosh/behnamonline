@@ -152,7 +152,7 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
 
             <!-- desktop inline add-to-cart -->
             <div class="mt-5 hidden items-center gap-3 md:flex">
-                <button type="button" class="js-wishlist flex h-12 w-12 flex-none items-center justify-center rounded-xl2 border border-primary text-secondary" aria-label="علاقه‌مندی">
+                <button type="button" class="js-wishlist flex h-12 w-12 flex-none items-center justify-center rounded-xl2 border border-primary text-secondary" data-id="<?= (int) $p['id'] ?>" aria-label="علاقه‌مندی">
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.4-9.4-8.6C1 9.3 2.6 5.6 6 5.6c2 0 3 1.1 4 2.6 1-1.5 2-2.6 4-2.6 3.4 0 5 3.7 3.4 6.8C19 16.6 12 21 12 21z"/></svg>
                 </button>
                 <div class="flex flex-none items-center overflow-hidden rounded-xl2 bg-surface">

@@ -21,7 +21,7 @@ $href       = url('/product/' . $p['slug']);
         <?php elseif ($isNew): ?>
             <span class="badge-new absolute right-2.5 top-2.5">جدید</span>
         <?php endif; ?>
-        <button type="button" class="js-wishlist absolute left-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-secondary" aria-label="افزودن به علاقه‌مندی">
+        <button type="button" class="js-wishlist absolute left-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-secondary" data-id="<?= (int) $p['id'] ?>" aria-label="افزودن به علاقه‌مندی">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.4-9.4-8.6C1 9.3 2.6 5.6 6 5.6c2 0 3 1.1 4 2.6 1-1.5 2-2.6 4-2.6 3.4 0 5 3.7 3.4 6.8C19 16.6 12 21 12 21z"/></svg>
         </button>
     </a>

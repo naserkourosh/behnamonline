@@ -3,6 +3,9 @@ $categories = (new \App\Repositories\CategoryRepository())->allActiveWithCounts(
 $cartCount  = (new \App\Services\CartService())->count();
 $brand      = (string) setting('brand_name', 'بهنام');
 $wordmark   = (string) config('app.wordmark', 'BEHNAM');
+$authUser   = auth();
+$accountUrl = $authUser !== null ? url('/account') : url('/login');
+$accountLbl = $authUser !== null ? \App\Services\AuthService::displayName() : 'ورود / ثبت‌نام';
 
 $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
     . '<div class="text-[22px] font-extrabold text-secondary md:text-[30px]">' . e($brand) . '<span class="text-gold">.</span></div>'
@@ -58,9 +61,9 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
                     <span class="text-[10px] text-[#8a7080]">سبد خرید</span>
                     <span class="js-cart-count absolute -top-1.5 left-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[9px] font-bold text-white <?= $cartCount > 0 ? '' : 'hidden' ?>"><?= fa($cartCount) ?></span>
                 </a>
-                <a href="<?= e(url('/category')) ?>" class="flex items-center gap-2 rounded-xl2 bg-secondary px-4 py-2.5 text-white">
+                <a href="<?= e($accountUrl) ?>" class="flex items-center gap-2 rounded-xl2 bg-secondary px-4 py-2.5 text-white">
                     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
-                    <span class="text-[12.5px] font-semibold">ورود / ثبت‌نام</span>
+                    <span class="max-w-[120px] truncate text-[12.5px] font-semibold"><?= e($accountLbl) ?></span>
                 </a>
             </div>
         </div>
@@ -93,6 +96,7 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
                 <span class="text-[11px] text-mauve nums"><?= fa((int) $cat['product_count']) ?></span>
             </a>
         <?php endforeach; ?>
-        <a href="<?= e(url('/cart')) ?>" class="px-5 py-3.5 text-[14px] text-ink">سبد خرید</a>
+        <a href="<?= e(url('/cart')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">سبد خرید</a>
+        <a href="<?= e($accountUrl) ?>" class="px-5 py-3.5 text-[14px] font-semibold text-secondary"><?= $authUser !== null ? 'حساب کاربری من' : 'ورود / ثبت‌نام' ?></a>
     </nav>
 </aside>

@@ -81,4 +81,9 @@ final class CartRepository extends BaseRepository
     {
         $this->execute('UPDATE carts SET updated_at = ? WHERE id = ?', [date('Y-m-d H:i:s'), $cartId]);
     }
+
+    public function clear(int $cartId): void
+    {
+        $this->execute('DELETE FROM cart_items WHERE cart_id = ?', [$cartId]);
+    }
 }

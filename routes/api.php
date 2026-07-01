@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\Api\CartApiController;
 use App\Controllers\Api\SearchApiController;
+use App\Controllers\Api\WishlistApiController;
 use App\Core\Router;
 use App\Middleware\SecurityHeaders;
 use App\Middleware\ThrottleRequests;
@@ -21,5 +22,7 @@ return static function (Router $router): void {
         $r->post('/api/cart/remove', [CartApiController::class, 'remove'], [VerifyCsrf::class]);
 
         $r->get('/api/search', [SearchApiController::class, 'suggest']);
+
+        $r->post('/api/wishlist', [WishlistApiController::class, 'toggle'], [VerifyCsrf::class]);
     });
 };

@@ -181,6 +181,22 @@ final class ProductRepository extends BaseRepository
         $this->execute('UPDATE products SET view_count = view_count + 1 WHERE id = ?', [$id]);
     }
 
+    public function decrementStock(int $productId, int $qty): void
+    {
+        $this->execute(
+            'UPDATE products SET stock = GREATEST(0, stock - ?) WHERE id = ?',
+            [$qty, $productId]
+        );
+    }
+
+    public function decrementVariantStock(int $variantId, int $qty): void
+    {
+        $this->execute(
+            'UPDATE product_variants SET stock = GREATEST(0, stock - ?) WHERE id = ?',
+            [$qty, $variantId]
+        );
+    }
+
     /**
      * Build the WHERE clause and positional params from a filter array.
      * @param array<string,mixed> $filters

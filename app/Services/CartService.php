@@ -172,6 +172,15 @@ final class CartService
         return (int) $summary['count'];
     }
 
+    /** Empty the current cart (after a successful checkout). */
+    public function clear(): void
+    {
+        $cartId = $this->resolveCartId(false);
+        if ($cartId !== 0) {
+            $this->carts->clear($cartId);
+        }
+    }
+
     /**
      * Resolve the current cart id from the cookie. When $create is true a
      * new cart + cookie are issued if none exists. Returns 0 when absent.

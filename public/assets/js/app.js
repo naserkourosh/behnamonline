@@ -78,13 +78,23 @@
     addToCart($b.data("id"), 0, 1, $b);
   });
 
-  /* ── wishlist (visual toggle; persistence in Phase 2) ─────── */
+  /* ── wishlist (persisted for logged-in customers) ────────── */
   $(document).on("click", ".js-wishlist", function (e) {
     e.preventDefault();
-    var $svg = $(this).find("svg");
-    var on = $svg.attr("fill") !== "none" && $svg.attr("fill");
-    $svg.attr("fill", on ? "none" : "#E8C5C8");
-    toast(on ? "از علاقه‌مندی‌ها حذف شد." : "به علاقه‌مندی‌ها اضافه شد.");
+    var $btn = $(this);
+    var id = $btn.data("id");
+    if (!id) { return; }
+    api("POST", "/api/wishlist", { product_id: id }).done(function (res) {
+      if (res.auth === false) {
+        toast(res.message, "error");
+        setTimeout(function () { window.location.href = "/login?redirect=" + encodeURIComponent(window.location.pathname); }, 1200);
+        return;
+      }
+      if (res.ok) {
+        $btn.find("svg").attr("fill", res.active ? "#E8C5C8" : "none");
+        toast(res.message);
+      }
+    });
   });
 
   /* ── mobile menu ─────────────────────────────────────────── */
@@ -310,4 +320,190 @@
     e.preventDefault();
     toast("کد تخفیف نامعتبر است.", "error");
   });
+
+  /* ── shared OTP + geo helpers (Phase 2) ──────────────────── */
+  function toEn(s) {
+    return String(s).replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); });
+  }
+  function bindOtpBoxes($scope) {
+    var $boxes = $scope.find(".js-otp-box");
+    $boxes.on("input", function () {
+      this.value = toEn(this.value).replace(/[^0-9]/g, "").slice(0, 1);
+      if (this.value && this.nextElementSibling) { $(this.nextElementSibling).trigger("focus"); }
+    });
+    $boxes.on("keydown", function (e) {
+      if (e.key === "Backspace" && !this.value && this.previousElementSibling) { $(this.previousElementSibling).trigger("focus"); }
+    });
+    return {
+      value: function () { var c = ""; $boxes.each(function () { c += this.value || ""; }); return c; },
+      fill: function (code) { $boxes.each(function (i) { this.value = code[i] || ""; }); },
+      clear: function () { $boxes.val(""); $boxes.first().trigger("focus"); },
+    };
+  }
+  function startResend($el, seconds) {
+    var t = seconds;
+    function tick() {
+      if (t > 0) { $el.text("ارسال مجدد کد تا " + toFa(t) + " ثانیه دیگر"); t--; }
+      else { clearInterval(iv); $el.html('<button type="button" class="js-resend font-bold text-secondary">ارسال مجدد کد</button>'); }
+    }
+    tick();
+    var iv = setInterval(tick, 1000);
+    return function () { clearInterval(iv); };
+  }
+  function populateCities($province, $city, geo, selected) {
+    var cities = geo[$province.val()] || [];
+    $city.empty();
+    if (!cities.length) { $city.append('<option value="">ابتدا استان</option>'); return; }
+    cities.forEach(function (c) {
+      $city.append('<option value="' + c + '"' + (c === selected ? " selected" : "") + ">" + c + "</option>");
+    });
+  }
+
+  /* ── checkout ────────────────────────────────────────────── */
+  var $ck = $("#checkout-page");
+  if ($ck.length) {
+    var ckCfg = JSON.parse($("#checkout-config").text());
+    var $prov = $("#ck-province"), $city = $("#ck-city");
+    var shipCost = 0;
+
+    function renderShipping() {
+      var city = $city.val(), opts = [], html = "";
+      if (ckCfg.cityRules[city]) {
+        var r = ckCfg.cityRules[city];
+        opts.push({ key: "courier", label: r.method, desc: "ویژه " + city + " · " + (r.note || ""), cost: r.cost });
+      } else if (city) {
+        var free = ckCfg.net >= ckCfg.freeThreshold;
+        opts.push({ key: "post", label: "پست پیشتاز", desc: "۲ تا ۳ روز کاری", cost: free ? 0 : ckCfg.defaultCost });
+        opts.push({ key: "tipax", label: "تیپاکس (سریع)", desc: "۱ روز کاری", cost: 45000 });
+      }
+      if (!opts.length) {
+        $("#ck-shipping").html('<p class="text-[12px] text-[#999]">برای نمایش روش‌های ارسال، استان و شهر را انتخاب کنید.</p>');
+        shipCost = 0; updateTotal(); return;
+      }
+      opts.forEach(function (o, i) {
+        html += '<label class="flex cursor-pointer items-center gap-3 rounded-xl2 border p-3 ' + (i === 0 ? "border-secondary bg-pink" : "border-line") + '">' +
+          '<input type="radio" name="ship_opt" value="' + o.key + '" data-cost="' + o.cost + '" class="accent-secondary" ' + (i === 0 ? "checked" : "") + ">" +
+          '<div class="flex-1"><div class="text-[13px] font-bold text-secondary">' + o.label + '</div><div class="text-[10.5px] text-[#999]">' + o.desc + "</div></div>" +
+          '<span class="text-[12px] font-bold ' + (o.cost === 0 ? "text-success" : "text-secondary") + '">' + (o.cost === 0 ? "رایگان" : money(o.cost) + " ت") + "</span></label>";
+      });
+      $("#ck-shipping").html(html);
+      shipCost = opts[0].cost; updateTotal();
+    }
+    function updateTotal() {
+      $(".js-ck-total").text(money(ckCfg.net + shipCost));
+      $(".js-ck-ship-cost").html(shipCost === 0 ? '<span class="text-success">رایگان</span>' : money(shipCost) + " تومان");
+    }
+    $prov.on("change", function () { populateCities($prov, $city, ckCfg.geo, ""); renderShipping(); });
+    $city.on("change", renderShipping);
+    $ck.on("change", 'input[name="ship_opt"]', function () { shipCost = parseInt($(this).data("cost"), 10) || 0; updateTotal(); });
+    if ($prov.val()) { populateCities($prov, $city, ckCfg.geo, ckCfg.prefillCity || ""); }
+    renderShipping();
+
+    var ckOtp = bindOtpBoxes($ck), ckStop;
+    function ckStep(n) {
+      $(".js-step-dot").each(function () {
+        var s = $(this).data("step");
+        $(this).toggleClass("bg-secondary text-white border-transparent", s <= n).toggleClass("bg-white text-[#bbb] border-[#E0CDD3]", s > n);
+      });
+      $("#ck-step-info, #ck-info-bar").toggleClass("hidden", n !== 0);
+      $("#ck-step-otp").toggleClass("hidden", n !== 1);
+      $("#ck-step-done").toggleClass("hidden", n !== 2);
+      window.scrollTo(0, 0);
+    }
+    function ckPayload() {
+      var data = {};
+      $("#ck-form").serializeArray().forEach(function (f) { data[f.name] = f.value; });
+      data.shipping_method = $('input[name="ship_opt"]:checked').val() || "";
+      return data;
+    }
+    function ckSend($btn) {
+      $btn && $btn.prop("disabled", true);
+      var data = ckPayload();
+      return api("POST", "/checkout/send-otp", data).done(function (res) {
+        if (!res.ok) { toast(res.error || "خطا", "error"); return; }
+        $(".js-ck-mobile").text(data.mobile);
+        ckStep(1);
+        if (res.dev_code) { ckOtp.fill(res.dev_code); toast("کد تست: " + res.dev_code); }
+        if (ckStop) ckStop();
+        ckStop = startResend($(".js-ck-resend"), res.resend_wait || 90);
+      }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا در ارسال کد", "error"); })
+        .always(function () { $btn && $btn.prop("disabled", false); });
+    }
+    $(document).on("click", ".js-ck-send", function () { ckSend($(this)); });
+    $(document).on("click", "#checkout-page .js-resend", function () { ckSend(); toast("کد مجدد ارسال شد."); });
+    $(document).on("click", ".js-ck-change", function () { ckStep(0); });
+    $(document).on("click", ".js-ck-verify", function () {
+      var code = ckOtp.value();
+      if (code.length < 5) { toast("کد ۵ رقمی را کامل وارد کنید.", "error"); return; }
+      var $btn = $(this).prop("disabled", true);
+      api("POST", "/checkout/verify", { code: code }).done(function (res) {
+        if (!res.ok) { toast(res.error || "کد نادرست است.", "error"); ckOtp.clear(); return; }
+        $(".js-done-number").text(res.order.number);
+        $(".js-done-total").text(money(res.order.total) + " تومان");
+        updateCount(0);
+        ckStep(2);
+      }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا", "error"); })
+        .always(function () { $btn.prop("disabled", false); });
+    });
+  }
+
+  /* ── login ───────────────────────────────────────────────── */
+  var $lg = $("#login-page");
+  if ($lg.length) {
+    var lgOtp = bindOtpBoxes($lg), lgStop;
+    var lgRedirect = $lg.data("redirect") || "/account";
+    function lgSend($btn) {
+      var mobile = toEn($("#lg-mobile").val()).replace(/[^0-9]/g, "");
+      if (!/^09\d{9}$/.test(mobile)) { toast("شماره موبایل معتبر نیست.", "error"); return; }
+      $btn && $btn.prop("disabled", true);
+      api("POST", "/login/send-otp", { mobile: mobile }).done(function (res) {
+        if (!res.ok) { toast(res.error || "خطا", "error"); return; }
+        $(".js-lg-mobile").text(mobile);
+        $("#lg-step-mobile").addClass("hidden");
+        $("#lg-step-otp").removeClass("hidden");
+        if (res.dev_code) { lgOtp.fill(res.dev_code); toast("کد تست: " + res.dev_code); }
+        if (lgStop) lgStop();
+        lgStop = startResend($(".js-lg-resend"), res.resend_wait || 90);
+      }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا", "error"); })
+        .always(function () { $btn && $btn.prop("disabled", false); });
+    }
+    $(document).on("click", ".js-lg-send", function () { lgSend($(this)); });
+    $(document).on("click", "#login-page .js-resend", function () { lgSend(); });
+    $(document).on("click", ".js-lg-change", function () { $("#lg-step-otp").addClass("hidden"); $("#lg-step-mobile").removeClass("hidden"); });
+    $(document).on("click", ".js-lg-verify", function () {
+      var code = lgOtp.value();
+      if (code.length < 5) { toast("کد ۵ رقمی را کامل وارد کنید.", "error"); return; }
+      var $btn = $(this).prop("disabled", true);
+      api("POST", "/login/verify", { code: code, redirect: lgRedirect }).done(function (res) {
+        if (res.ok) { window.location.href = res.redirect; }
+        else { toast(res.error || "کد نادرست", "error"); lgOtp.clear(); }
+      }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا", "error"); })
+        .always(function () { $btn.prop("disabled", false); });
+    });
+  }
+
+  /* ── addresses (province→city + inline edit) ─────────────── */
+  var $addr = $("#addresses-page");
+  if ($addr.length) {
+    var addrGeo = JSON.parse($("#addr-geo").text());
+    var $ap = $("#addr-province"), $ac = $("#addr-city");
+    $ap.on("change", function () { populateCities($ap, $ac, addrGeo, ""); });
+    $(document).on("click", ".js-addr-edit", function () {
+      var a = $(this).closest("[data-addr]").data("addr");
+      $("#addr-id").val(a.id);
+      $("#addr-receiver").val(a.receiver_name);
+      $("#addr-mobile").val(a.mobile);
+      $("#addr-address").val(a.address);
+      $("#addr-postal").val(a.postal_code || "");
+      $("#addr-default").prop("checked", String(a.is_default) === "1");
+      $ap.val(a.province); populateCities($ap, $ac, addrGeo, a.city);
+      $("#addr-form-title").text("ویرایش آدرس");
+      $(".js-addr-reset").removeClass("hidden");
+      $("html,body").animate({ scrollTop: $("#addr-form").offset().top - 80 }, 300);
+    });
+    $(document).on("click", ".js-addr-reset", function () {
+      $("#addr-form")[0].reset(); $("#addr-id").val(""); $ac.html('<option value="">ابتدا استان</option>');
+      $("#addr-form-title").text("افزودن آدرس جدید"); $(this).addClass("hidden");
+    });
+  }
 })(jQuery);

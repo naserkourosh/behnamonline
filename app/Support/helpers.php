@@ -44,6 +44,17 @@ if (!function_exists('money')) {
     }
 }
 
+if (!function_exists('en_num')) {
+    /** Convert Persian/Arabic digits in a string to ASCII (for mobile, OTP, postal codes). */
+    function en_num(string $value): string
+    {
+        $persian = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+        $arabic  = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+        $latin   = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        return str_replace($arabic, $latin, str_replace($persian, $latin, trim($value)));
+    }
+}
+
 if (!function_exists('config')) {
     function config(string $key, mixed $default = null): mixed
     {
@@ -142,6 +153,14 @@ if (!function_exists('view')) {
     }
 }
 
+if (!function_exists('auth')) {
+    /** Current authenticated customer (or null). @return array<string,mixed>|null */
+    function auth(): ?array
+    {
+        return \App\Services\AuthService::user();
+    }
+}
+
 if (!function_exists('old')) {
     function old(string $key, mixed $default = ''): mixed
     {
@@ -150,6 +169,23 @@ if (!function_exists('old')) {
             return $old[$key];
         }
         return $default;
+    }
+}
+
+if (!function_exists('order_status')) {
+    /**
+     * Persian label + Tailwind color classes for an order status.
+     * @return array{label:string,text:string,bg:string}
+     */
+    function order_status(string $status): array
+    {
+        return match ($status) {
+            'processing' => ['label' => 'در حال پردازش', 'text' => 'text-secondary', 'bg' => 'bg-pink'],
+            'shipped'    => ['label' => 'در حال ارسال', 'text' => 'text-warning', 'bg' => 'bg-[#FFF6E6]'],
+            'delivered'  => ['label' => 'تحویل شده', 'text' => 'text-success', 'bg' => 'bg-[#E7F7F0]'],
+            'canceled'   => ['label' => 'لغو شده', 'text' => 'text-danger', 'bg' => 'bg-[#FDECEC]'],
+            default      => ['label' => 'در انتظار', 'text' => 'text-mauve', 'bg' => 'bg-surface'],
+        };
     }
 }
 
