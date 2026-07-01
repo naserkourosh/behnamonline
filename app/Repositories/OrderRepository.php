@@ -42,6 +42,24 @@ final class OrderRepository extends BaseRepository
         );
     }
 
+    /** Settle a paid order: mark paid, advance to processing, attach tracking. */
+    public function finalizePaid(int $id, string $trackingCode): void
+    {
+        $this->execute(
+            'UPDATE orders SET payment_status = ?, status = ?, tracking_code = ?, updated_at = ?
+              WHERE id = ? AND payment_status <> ?',
+            ['paid', 'processing', $trackingCode, date('Y-m-d H:i:s'), $id, 'paid']
+        );
+    }
+
+    public function setStatus(int $id, string $status): void
+    {
+        $this->execute(
+            'UPDATE orders SET status = ?, updated_at = ? WHERE id = ?',
+            [$status, date('Y-m-d H:i:s'), $id]
+        );
+    }
+
     /** @param array<string,mixed> $item */
     public function addItem(int $orderId, array $item): void
     {

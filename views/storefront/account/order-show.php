@@ -54,6 +54,11 @@ $st = order_status((string) $order['status']);
                 <div class="mb-2 flex justify-between"><span>روش پرداخت</span><span><?= e($order['payment_method']) ?></span></div>
                 <div class="flex justify-between"><span>کد رهگیری</span><span class="<?= empty($order['tracking_code']) ? 'text-warning' : 'text-secondary font-bold nums' ?>" dir="ltr"><?= !empty($order['tracking_code']) ? e($order['tracking_code']) : 'پس از ارسال' ?></span></div>
             </div>
+            <?php if ($order['payment_status'] !== 'paid'): ?>
+                <a href="<?= e(url('/pay/' . $order['id'])) ?>" class="btn-primary w-full py-3 text-[13px]">پرداخت سفارش</a>
+            <?php else: ?>
+                <a href="<?= e(url('/account/orders/' . $order['id'] . '/invoice')) ?>" class="btn-outline w-full py-3 text-[13px]">چاپ فاکتور</a>
+            <?php endif; ?>
         </div>
     </div>
 </div>

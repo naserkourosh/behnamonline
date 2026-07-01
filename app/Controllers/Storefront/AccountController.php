@@ -133,6 +133,22 @@ final class AccountController extends Controller
         return $this->redirect(url('/account/profile'));
     }
 
+    public function invoice(Request $request): Response
+    {
+        $userId = (int) AuthService::id();
+        $orders = new OrderRepository();
+        $order  = $orders->find((int) $request->param('id'), $userId);
+        if ($order === null) {
+            return $this->notFound();
+        }
+        // Standalone print-optimized layout (no store chrome).
+        return $this->view('storefront/account/invoice', [
+            'order' => $order,
+            'items' => $orders->items((int) $order['id']),
+            'user'  => AuthService::user(),
+        ], null);
+    }
+
     public function wishlist(Request $request): Response
     {
         $userId = (int) AuthService::id();

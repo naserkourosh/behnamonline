@@ -438,10 +438,9 @@
       var $btn = $(this).prop("disabled", true);
       api("POST", "/checkout/verify", { code: code }).done(function (res) {
         if (!res.ok) { toast(res.error || "کد نادرست است.", "error"); ckOtp.clear(); return; }
-        $(".js-done-number").text(res.order.number);
-        $(".js-done-total").text(money(res.order.total) + " تومان");
         updateCount(0);
-        ckStep(2);
+        // Hand off to the payment gateway (or card-to-card page).
+        window.location.href = res.payment_url;
       }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا", "error"); })
         .always(function () { $btn.prop("disabled", false); });
     });

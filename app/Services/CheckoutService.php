@@ -46,10 +46,12 @@ final class CheckoutService
         $subtotal = (int) $summary['subtotal'];
         $total    = $subtotal + $ship['cost'];
 
+        // Create the order as PENDING/UNPAID. Stock is decremented and the
+        // order settled only after the payment gateway confirms (PaymentService).
         $orderId = $this->orders->create([
             'order_number'   => 'BH-TMP',
             'user_id'        => $userId,
-            'status'         => 'processing',
+            'status'         => 'pending',
             'subtotal'       => $subtotal,
             'discount'       => (int) $summary['savings'],
             'shipping_cost'  => $ship['cost'],
@@ -77,15 +79,10 @@ final class CheckoutService
                 'unit_price'    => $item['unit_price'],
                 'line_total'    => $item['line_total'],
             ]);
-
-            if ($item['variant_id'] !== null) {
-                $this->products->decrementVariantStock((int) $item['variant_id'], (int) $item['qty']);
-            }
-            $this->products->decrementStock((int) $item['product_id'], (int) $item['qty']);
         }
 
-        // Mock payment gateway — auto-approve.
-        $this->orders->markPaid($orderId);
+        // The cart has been converted into an order; clear it. Payment retries
+        // operate on the order, not the cart.
         $this->cart->clear();
 
         return [

@@ -137,12 +137,10 @@ final class CheckoutController extends Controller
         AuthService::login($userId);
         Session::forget('checkout');
 
+        // Hand off to the payment step (gateway redirect or card-to-card page).
         return $this->json([
-            'ok'    => true,
-            'order' => [
-                'number' => $result['order']['number'],
-                'total'  => $result['order']['total'],
-            ],
+            'ok'          => true,
+            'payment_url' => url('/pay/' . $result['order']['id']),
         ]);
     }
 
