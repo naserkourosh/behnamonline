@@ -15,7 +15,7 @@ return [
     'gateways' => [
         'zarinpal' => [
             'merchant_id' => (string) Env::get('ZARINPAL_MERCHANT_ID', ''),
-            'sandbox'     => true,
+            'sandbox'     => (bool) Env::get('ZARINPAL_SANDBOX', true),
         ],
         'card_to_card' => [
             'number' => (string) Env::get('CARD_NUMBER', '6037-9911-2233-4455'),
