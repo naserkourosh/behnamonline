@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; font-family:'Vazirmatn', sans-serif; -webkit-font-smoothing:antialiased; background:#EBE3DA; }
+  *::-webkit-scrollbar { display:none; }
+  @keyframes pop { 0%{transform:scale(.3);opacity:0} 60%{transform:scale(1.08)} 100%{transform:scale(1);opacity:1} }
+</style>
+</helmet>
+
+<div dir="rtl" style="width:390px; margin:0 auto; min-height:844px; background:#FAF6F0; color:#222; position:relative; padding-bottom:96px;">
+
+  <!-- header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background:#fff; border-bottom:1px solid #F0E6DC; position:sticky; top:0; z-index:20;">
+    <a href="RozGold%20Cart.dc.html" style="color:#5C2D46;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <div style="font-size:15px; font-weight:700; color:#5C2D46;">تکمیل سفارش</div>
+    <span style="width:22px;"></span>
+  </div>
+
+  <!-- stepper -->
+  <div style="display:flex; align-items:center; justify-content:center; gap:6px; padding:18px 24px;">
+    <sc-for list="{{ steps }}" as="st" hint-placeholder-count="3">
+      <div style="display:flex; align-items:center; gap:7px;">
+        <div style="width:26px; height:26px; border-radius:50%; background:{{ st.bg }}; color:{{ st.fg }}; border:1.5px solid {{ st.border }}; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; font-variant-numeric:tabular-nums;">{{ st.n }}</div>
+        <span style="font-size:11px; font-weight:600; color:{{ st.label }};">{{ st.text }}</span>
+      </div>
+      <sc-if value="{{ st.line }}" hint-placeholder-val="{{ true }}"><span style="width:18px; height:1.5px; background:#E0CDD3;"></span></sc-if>
+    </sc-for>
+  </div>
+
+  <!-- STEP 0 — shipping info -->
+  <sc-if value="{{ isInfo }}" hint-placeholder-val="{{ true }}">
+    <div style="padding:0 16px;">
+      <div style="background:#fff; border-radius:18px; padding:18px; border:1px solid #F2EBE3;">
+        <div style="font-size:14px; font-weight:700; color:#5C2D46; margin-bottom:16px;">اطلاعات ارسال</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:11px;">
+          <div><label style="font-size:11px; color:#888; display:block; margin-bottom:6px;">نام</label><input style="width:100%; box-sizing:border-box; background:#FAF6F0; border:1px solid #F0E6DC; border-radius:11px; outline:none; font-family:inherit; font-size:13px; padding:11px 12px; color:#333;" placeholder="نام"></div>
+          <div><label style="font-size:11px; color:#888; display:block; margin-bottom:6px;">نام خانوادگی</label><input style="width:100%; box-sizing:border-box; background:#FAF6F0; border:1px solid #F0E6DC; border-radius:11px; outline:none; font-family:inherit; font-size:13px; padding:11px 12px; color:#333;" placeholder="نام خانوادگی"></div>
+        </div>
+        <div style="margin-bottom:11px;"><label style="font-size:11px; color:#888; display:block; margin-bottom:7px;">استان و شهر</label>
+          <div style="display:flex; flex-wrap:wrap; gap:7px;">
+            <sc-for list="{{ cities }}" as="c" hint-placeholder-count="4">
+              <div onClick="{{ c.go }}" style="padding:9px 15px; border-radius:11px; border:1.5px solid {{ c.border }}; background:{{ c.bg }}; color:{{ c.color }}; font-size:12px; font-weight:600; cursor:pointer;">{{ c.label }}</div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="margin-bottom:11px;"><label style="font-size:11px; color:#888; display:block; margin-bottom:6px;">آدرس کامل</label><textarea style="width:100%; box-sizing:border-box; background:#FAF6F0; border:1px solid #F0E6DC; border-radius:11px; outline:none; font-family:inherit; font-size:13px; padding:11px 12px; color:#333; resize:none; height:64px;" placeholder="خیابان، کوچه، پلاک، واحد"></textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:11px;">
+          <div><label style="font-size:11px; color:#888; display:block; margin-bottom:6px;">کد پستی <span style="color:#bbb;">(اختیاری)</span></label><input style="width:100%; box-sizing:border-box; background:#FAF6F0; border:1px solid #F0E6DC; border-radius:11px; outline:none; font-family:inherit; font-size:13px; padding:11px 12px; color:#333;" placeholder="۱۰ رقم"></div>
+          <div><label style="font-size:11px; color:#888; display:block; margin-bottom:6px;">تلفن همراه</label><input value="{{ mobile }}" onInput="{{ setMobile }}" style="width:100%; box-sizing:border-box; background:#FAF6F0; border:1px solid #F0E6DC; border-radius:11px; outline:none; font-family:inherit; font-size:13px; padding:11px 12px; color:#333; direction:ltr; text-align:left;" placeholder="09xxxxxxxxx"></div>
+        </div>
+      </div>
+
+      <!-- shipping method (city aware) -->
+      <div style="background:#fff; border-radius:18px; padding:18px; border:1px solid #F2EBE3; margin-top:13px;">
+        <div style="font-size:14px; font-weight:700; color:#5C2D46; margin-bottom:14px;">روش ارسال</div>
+        <sc-if value="{{ isGorgan }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex; align-items:center; gap:12px; padding:13px; border:1.5px solid #5C2D46; background:#FAF0F1; border-radius:13px;">
+            <div style="width:40px; height:40px; border-radius:11px; background:#5C2D46; display:flex; align-items:center; justify-content:center; color:#fff;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M9 18h6M6 18l3-9h5l3 6"/></svg></div>
+            <div style="flex:1;"><div style="font-size:13px; font-weight:700; color:#5C2D46;">ارسال توسط پیک موتوری</div><div style="font-size:10.5px; color:#8a6575; margin-top:3px;">ویژه گرگان · تحویل امروز</div></div>
+            <span style="font-size:12px; font-weight:700; color:#10B981;">۳۵٬۰۰۰ ت</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ isNormal }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:flex; align-items:center; gap:12px; padding:13px; border:1.5px solid #5C2D46; background:#FAF0F1; border-radius:13px;">
+              <div style="width:40px; height:40px; border-radius:11px; background:#5C2D46; display:flex; align-items:center; justify-content:center; color:#fff;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+              <div style="flex:1;"><div style="font-size:13px; font-weight:700; color:#5C2D46;">پست پیشتاز</div><div style="font-size:10.5px; color:#999; margin-top:3px;">۲ تا ۳ روز کاری</div></div>
+              <span style="font-size:12px; font-weight:700; color:#10B981;">رایگان</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px; padding:13px; border:1.5px solid #F0E6DC; border-radius:13px;">
+              <div style="width:40px; height:40px; border-radius:11px; background:#FAF6F0; display:flex; align-items:center; justify-content:center; color:#5C2D46;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></div>
+              <div style="flex:1;"><div style="font-size:13px; font-weight:700; color:#444;">تیپاکس (سریع)</div><div style="font-size:10.5px; color:#999; margin-top:3px;">۱ روز کاری</div></div>
+              <span style="font-size:12px; font-weight:700; color:#5C2D46;">۴۵٬۰۰۰ ت</span>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- payment method -->
+      <div style="background:#fff; border-radius:18px; padding:18px; border:1px solid #F2EBE3; margin-top:13px;">
+        <div style="font-size:14px; font-weight:700; color:#5C2D46; margin-bottom:14px;">روش پرداخت</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <sc-for list="{{ pays }}" as="pm" hint-placeholder-count="4">
+            <div onClick="{{ pm.go }}" style="padding:13px; border-radius:13px; border:1.5px solid {{ pm.border }}; background:{{ pm.bg }}; cursor:pointer; display:flex; align-items:center; gap:9px;">
+              <span style="width:16px; height:16px; border-radius:50%; border:1.5px solid {{ pm.dot }}; display:flex; align-items:center; justify-content:center;"><span style="width:8px; height:8px; border-radius:50%; background:{{ pm.fill }};"></span></span>
+              <span style="font-size:12px; font-weight:600; color:#444;">{{ pm.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="font-size:10.5px; color:#999; text-align:center; padding:16px 24px 0; line-height:1.9;">با ثبت سفارش، کد تایید به شماره موبایل شما پیامک می‌شود و حساب کاربری‌تان به‌صورت خودکار ساخته خواهد شد.</div>
+    </div>
+
+    <div style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:390px; display:flex; align-items:center; gap:12px; padding:13px 16px 18px; background:#fff; border-top:1px solid #F0E6DC; box-shadow:0 -6px 20px rgba(92,45,70,.1); z-index:50;">
+      <div><div style="font-size:9.5px; color:#999;">قابل پرداخت</div><div style="font-size:16px; font-weight:800; color:#5C2D46; font-variant-numeric:tabular-nums;">۷۷۰٬۰۰۰</div></div>
+      <button onClick="{{ goOtp }}" style="flex:1; border:none; background:#5C2D46; color:#fff; font-weight:700; font-size:14px; padding:15px; border-radius:14px; cursor:pointer; font-family:inherit;">ارسال کد تایید</button>
+    </div>
+  </sc-if>
+
+  <!-- STEP 1 — OTP -->
+  <sc-if value="{{ isOtp }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:10px 24px;">
+      <div style="background:#fff; border-radius:20px; padding:26px 22px; border:1px solid #F2EBE3; text-align:center;">
+        <div style="width:64px; height:64px; border-radius:50%; background:#FAF0F1; display:flex; align-items:center; justify-content:center; margin:0 auto 18px; color:#5C2D46;"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/></svg></div>
+        <div style="font-size:17px; font-weight:700; color:#333; margin-bottom:9px;">کد تایید را وارد کنید</div>
+        <div style="font-size:12px; color:#888; line-height:1.9; margin-bottom:6px;">کد ۵ رقمی به شماره زیر ارسال شد</div>
+        <div style="font-size:14px; font-weight:700; color:#5C2D46; direction:ltr; margin-bottom:22px;">{{ mobile }}</div>
+        <div style="display:flex; gap:9px; justify-content:center; direction:ltr; margin-bottom:22px;">
+          <sc-for list="{{ otpBoxes }}" as="o" hint-placeholder-count="5">
+            <div style="width:48px; height:56px; border-radius:13px; border:1.5px solid {{ o.border }}; background:{{ o.bg }}; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:700; color:#5C2D46;">{{ o.v }}</div>
+          </sc-for>
+        </div>
+        <div style="font-size:12px; color:#999; margin-bottom:6px;">{{ resendMsg }}</div>
+        <div style="font-size:12px;"><span onClick="{{ backInfo }}" style="color:#B58CA0; cursor:pointer;">تغییر شماره موبایل</span></div>
+      </div>
+      <button onClick="{{ verify }}" style="width:100%; border:none; background:#5C2D46; color:#fff; font-weight:700; font-size:14px; padding:16px; border-radius:14px; cursor:pointer; font-family:inherit; margin-top:18px;">تایید و پرداخت</button>
+    </div>
+  </sc-if>
+
+  <!-- STEP 2 — success -->
+  <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:30px 24px; text-align:center;">
+      <div style="width:88px; height:88px; border-radius:50%; background:#E7F7F0; display:flex; align-items:center; justify-content:center; margin:10px auto 22px; animation:pop .5s ease-out;"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div style="font-size:20px; font-weight:800; color:#333; margin-bottom:10px;">سفارش شما ثبت شد!</div>
+      <div style="font-size:12.5px; color:#888; line-height:2; margin-bottom:22px;">پرداخت با موفقیت انجام شد و حساب کاربری شما<br>به‌صورت خودکار ساخته شد. ✨</div>
+      <div style="background:#fff; border-radius:16px; padding:18px; border:1px solid #F2EBE3; text-align:right;">
+        <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:12px;"><span style="color:#999;">شماره سفارش</span><span style="color:#333; font-weight:700; font-variant-numeric:tabular-nums;">RG-۲۴۸۹۱</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:12px;"><span style="color:#999;">مبلغ پرداختی</span><span style="color:#5C2D46; font-weight:700; font-variant-numeric:tabular-nums;">۷۷۰٬۰۰۰ تومان</span></div>
+        <div style="display:flex; justify-content:space-between; font-size:12.5px;"><span style="color:#999;">کد رهگیری</span><span style="color:#F59E0B; font-weight:600;">پس از ارسال پیامک می‌شود</span></div>
+      </div>
+      <a href="RozGold%20Account.dc.html" style="display:block; background:#5C2D46; color:#fff; font-weight:700; font-size:14px; padding:16px; border-radius:14px; text-decoration:none; margin-top:20px;">مشاهده سفارش‌های من</a>
+      <a href="RozGold%20Homepage.dc.html" style="display:block; color:#5C2D46; font-weight:600; font-size:13px; padding:14px; text-decoration:none;">بازگشت به فروشگاه</a>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { step: 0, city: 0, pay: 0, mobile: '۰۹۱۲۳۴۵۶۷۸۹', timer: 90, otp: '۸۲۵۳۱' };
+
+  componentDidMount() {
+    this._t = setInterval(() => {
+      if (this.state.step === 1 && this.state.timer > 0) this.setState(s => ({ timer: s.timer - 1 }));
+    }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+  fa(n) { return String(n).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]); }
+
+  renderVals() {
+    const step = this.state.step, city = this.state.city, pay = this.state.pay;
+    const stepData = ['اطلاعات', 'تایید', 'پرداخت'].map((t, i) => ({
+      n: this.fa(i + 1), text: t,
+      bg: i < step ? '#10B981' : (i === step ? '#5C2D46' : '#fff'),
+      fg: i <= step ? '#fff' : '#bbb',
+      border: i <= step ? 'transparent' : '#E0CDD3',
+      label: i === step ? '#5C2D46' : '#bbb',
+      line: i < 2,
+    }));
+    const t = this.state.timer;
+    return {
+      steps: stepData,
+      isInfo: step === 0, isOtp: step === 1, isDone: step === 2,
+      cities: ['تهران', 'گرگان', 'مشهد', 'اصفهان'].map((l, i) => ({
+        label: l,
+        border: i === city ? '#5C2D46' : '#F0E6DC',
+        bg: i === city ? '#5C2D46' : '#fff',
+        color: i === city ? '#fff' : '#5C2D46',
+        go: () => this.setState({ city: i }),
+      })),
+      isGorgan: city === 1,
+      isNormal: city !== 1,
+      pays: ['زرین‌پال', 'کارت به کارت', 'اسنپ‌پی', 'دیجی‌پی'].map((l, i) => ({
+        label: l,
+        border: i === pay ? '#5C2D46' : '#F0E6DC',
+        bg: i === pay ? '#FAF0F1' : '#fff',
+        dot: i === pay ? '#5C2D46' : '#ccc',
+        fill: i === pay ? '#5C2D46' : 'transparent',
+        go: () => this.setState({ pay: i }),
+      })),
+      mobile: this.state.mobile,
+      setMobile: (e) => this.setState({ mobile: e.target.value }),
+      goOtp: () => this.setState({ step: 1, timer: 90 }),
+      backInfo: () => this.setState({ step: 0 }),
+      verify: () => this.setState({ step: 2 }),
+      otpBoxes: this.state.otp.split('').map(v => ({ v, border: '#5C2D46', bg: '#FAF0F1' })),
+      resendMsg: t > 0 ? `ارسال مجدد کد تا ${this.fa(t)} ثانیه دیگر` : 'ارسال مجدد کد',
+    };
+  }
+}
+</script>
+</body>
+</html>

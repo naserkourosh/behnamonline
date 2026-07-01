@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; font-family:'Vazirmatn', sans-serif; -webkit-font-smoothing:antialiased; background:#EBE3DA; }
+  *::-webkit-scrollbar { display:none; }
+  .hscroll { scrollbar-width:none; }
+</style>
+</helmet>
+
+<div dir="rtl" style="width:390px; margin:0 auto; min-height:844px; background:#fff; color:#222; position:relative; padding-bottom:78px;">
+
+  <!-- header -->
+  <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px; position:sticky; top:0; background:rgba(255,255,255,.92); backdrop-filter:blur(8px); z-index:20; border-bottom:1px solid #F4EEE7;">
+    <a href="RozGold%20Category.dc.html" style="color:#5C2D46;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <div style="font-size:13px; font-weight:600; color:#5C2D46;">جزئیات محصول</div>
+    <div style="display:flex; gap:14px; color:#5C2D46;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12v8h16v-8M16 6l-4-4-4 4M12 2v13" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <a href="RozGold%20Cart.dc.html" style="color:#5C2D46;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg></a>
+    </div>
+  </div>
+
+  <!-- gallery -->
+  <div style="padding:8px 18px 0;">
+    <div style="position:relative; height:330px; border-radius:20px; background:#F3EBE2; background-image:repeating-linear-gradient(135deg,#EBDFD2 0 1px,transparent 1px 9px); display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:11px; color:#B8A593;">
+      {{ mainLabel }}
+      <span style="position:absolute; top:14px; right:14px; background:#EF4444; color:#fff; font-size:11px; font-weight:700; padding:4px 9px; border-radius:9px;">٪۱۱</span>
+      <span style="position:absolute; bottom:14px; left:14px; width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.92); display:flex; align-items:center; justify-content:center; color:#5C2D46;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4M11 8v6M8 11h6" stroke-linecap="round"/></svg></span>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:12px;">
+      <sc-for list="{{ thumbs }}" as="t" hint-placeholder-count="4">
+        <div onClick="{{ t.go }}" style="flex:1; height:64px; border-radius:13px; background:#F3EBE2; background-image:repeating-linear-gradient(135deg,#EBDFD2 0 1px,transparent 1px 7px); border:2px solid {{ t.border }}; display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:8px; color:#B8A593; cursor:pointer;">{{ t.n }}</div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- title block -->
+  <div style="padding:20px 20px 0;">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <span style="font-size:11px; color:#B58CA0; font-weight:500;">گلوسی‌لب</span>
+      <span style="font-size:10px; color:#10B981; background:#E7F7F0; padding:4px 9px; border-radius:8px;">اصل · دارای کد رهگیری</span>
+    </div>
+    <h1 style="font-size:20px; font-weight:700; color:#2a2a2a; line-height:1.6; margin:10px 0 8px;">سرم روشن‌کننده ویتامین C ۲۰٪</h1>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="color:#F0A93B; font-size:13px;">★★★★★</span>
+      <span style="font-size:11px; color:#888; font-variant-numeric:tabular-nums;">۴.۸</span>
+      <span style="font-size:11px; color:#B58CA0;">(۲۴۶ دیدگاه)</span>
+    </div>
+  </div>
+
+  <!-- shade selector -->
+  <div style="padding:18px 20px 0;">
+    <div style="font-size:12px; color:#666; margin-bottom:10px;">حجم:</div>
+    <div style="display:flex; gap:9px;">
+      <sc-for list="{{ sizes }}" as="z" hint-placeholder-count="3">
+        <div onClick="{{ z.go }}" style="padding:9px 16px; border-radius:12px; border:1.5px solid {{ z.border }}; background:{{ z.bg }}; color:{{ z.color }}; font-size:12px; font-weight:600; cursor:pointer; font-variant-numeric:tabular-nums;">{{ z.label }}</div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- price + stock -->
+  <div style="margin:20px 20px 0; padding:16px; background:#FAF6F0; border-radius:16px; display:flex; align-items:center; justify-content:space-between;">
+    <div>
+      <div style="font-size:11px; color:#bbb; text-decoration:line-through; font-variant-numeric:tabular-nums;">۳۲۰٬۰۰۰ تومان</div>
+      <div><span style="font-size:22px; font-weight:800; color:#5C2D46; font-variant-numeric:tabular-nums;">۲۸۵٬۰۰۰</span> <span style="font-size:11px; color:#999;">تومان</span></div>
+    </div>
+    <div style="text-align:left;">
+      <div style="font-size:12px; font-weight:700; color:#F59E0B;">تنها ۲ عدد در انبار</div>
+      <div style="font-size:10px; color:#999; margin-top:4px;">برای ارسال امروز سفارش دهید</div>
+    </div>
+  </div>
+
+  <!-- aparat video -->
+  <div style="padding:22px 20px 0;">
+    <div style="font-size:14px; font-weight:700; color:#5C2D46; margin-bottom:12px;">ویدیو معرفی محصول</div>
+    <div style="position:relative; height:190px; border-radius:16px; background:#2a2230; background-image:repeating-linear-gradient(135deg,#352b3c 0 1px,transparent 1px 10px); display:flex; align-items:center; justify-content:center;">
+      <div style="width:54px; height:54px; border-radius:50%; background:rgba(255,255,255,.92); display:flex; align-items:center; justify-content:center;"><svg width="22" height="22" viewBox="0 0 24 24" fill="#5C2D46"><path d="M8 5v14l11-7z"/></svg></div>
+      <span style="position:absolute; bottom:12px; right:14px; font-family:monospace; font-size:9px; color:#b9a3c4;">[ embed · aparat.com ]</span>
+    </div>
+  </div>
+
+  <!-- description / specs accordion -->
+  <div style="padding:22px 20px 0;">
+    <div style="display:flex; gap:8px; margin-bottom:14px;">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="2">
+        <div onClick="{{ tb.go }}" style="font-size:12.5px; font-weight:600; padding:8px 4px; color:{{ tb.color }}; border-bottom:2px solid {{ tb.border }}; cursor:pointer;">{{ tb.label }}</div>
+      </sc-for>
+    </div>
+    <sc-if value="{{ showDesc }}" hint-placeholder-val="{{ true }}">
+      <div style="font-size:12.5px; color:#666; line-height:2.1;">سرم روشن‌کننده‌ی ویتامین C با غلظت ۲۰٪، حاوی هیالورونیک اسید و ویتامین E. مناسب برای روشن‌سازی پوست، کاهش لک و افزایش شفافیت. فاقد پارابن و مناسب انواع پوست.</div>
+    </sc-if>
+    <sc-if value="{{ showSpecs }}" hint-placeholder-val="{{ false }}">
+      <div style="border:1px solid #F0E6DC; border-radius:14px; overflow:hidden;">
+        <sc-for list="{{ specs }}" as="sp" hint-placeholder-count="5">
+          <div style="display:flex; justify-content:space-between; padding:12px 14px; background:{{ sp.bg }}; font-size:12px;">
+            <span style="color:#999;">{{ sp.k }}</span>
+            <span style="color:#333; font-weight:600;">{{ sp.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- frequently bought together -->
+  <div style="margin:24px 0 0; padding:20px; background:#FAF6F0;">
+    <div style="font-size:14px; font-weight:700; color:#5C2D46; margin-bottom:14px;">معمولاً با هم خریداری می‌شوند</div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px;">
+      <sc-for list="{{ fbt }}" as="f" hint-placeholder-count="3">
+        <div style="flex:1; text-align:center;">
+          <div style="height:74px; border-radius:12px; background:#fff; background-image:repeating-linear-gradient(135deg,#EBDFD2 0 1px,transparent 1px 8px); display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:8px; color:#B8A593;">{{ f.img }}</div>
+          <div style="font-size:10px; color:#5C2D46; font-weight:700; margin-top:6px; font-variant-numeric:tabular-nums;">{{ f.price }}</div>
+        </div>
+        <sc-if value="{{ f.plus }}" hint-placeholder-val="{{ true }}"><span style="color:#B58CA0; font-size:18px; font-weight:300;">+</span></sc-if>
+      </sc-for>
+    </div>
+    <button style="width:100%; border:none; background:#5C2D46; color:#fff; font-family:inherit; font-weight:700; font-size:13px; padding:13px; border-radius:13px; cursor:pointer;">افزودن هر سه به سبد · ۵۲۸٬۰۰۰ تومان</button>
+  </div>
+
+  <!-- related -->
+  <div style="padding:24px 0 4px;">
+    <div style="font-size:15px; font-weight:700; color:#5C2D46; padding:0 20px 14px;">محصولات مرتبط</div>
+    <div class="hscroll" style="display:flex; gap:13px; overflow-x:auto; padding:0 20px 6px;">
+      <sc-for list="{{ related }}" as="p" hint-placeholder-count="4">
+        <a href="RozGold%20Product.dc.html" style="flex:0 0 auto; width:140px; text-decoration:none; background:#fff; border:1px solid #F2EBE3; border-radius:16px; overflow:hidden;">
+          <div style="height:128px; background:#F3EBE2; background-image:repeating-linear-gradient(135deg,#EBDFD2 0 1px,transparent 1px 8px); display:flex; align-items:center; justify-content:center; font-family:monospace; font-size:9px; color:#B8A593;">product</div>
+          <div style="padding:10px 11px 12px;">
+            <div style="font-size:11.5px; font-weight:600; color:#333; line-height:1.5; height:34px; overflow:hidden;">{{ p.name }}</div>
+            <div style="display:flex; align-items:center; gap:3px; margin:5px 0 7px;"><span style="color:#F0A93B; font-size:10px;">★</span><span style="font-size:10px; color:#888;">{{ p.rating }}</span></div>
+            <div><span style="font-size:13px; font-weight:800; color:#5C2D46; font-variant-numeric:tabular-nums;">{{ p.price }}</span> <span style="font-size:8px; color:#999;">ت</span></div>
+          </div>
+        </a>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- reviews -->
+  <div style="padding:24px 20px 10px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+      <div style="font-size:15px; font-weight:700; color:#5C2D46;">دیدگاه مشتریان</div>
+      <div style="display:flex; align-items:center; gap:6px;"><span style="font-size:20px; font-weight:800; color:#5C2D46; font-variant-numeric:tabular-nums;">۴.۸</span><span style="color:#F0A93B; font-size:12px;">★★★★★</span></div>
+    </div>
+    <sc-for list="{{ reviews }}" as="r" hint-placeholder-count="2">
+      <div style="border:1px solid #F2EBE3; border-radius:16px; padding:15px; margin-bottom:12px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:#F3EBE2; background-image:repeating-linear-gradient(135deg,#EBDFD2 0 1px,transparent 1px 7px);"></div>
+          <div style="flex:1;"><div style="font-size:12.5px; font-weight:700; color:#333;">{{ r.name }}</div><div style="color:#F0A93B; font-size:11px;">{{ r.stars }}</div></div>
+          <span style="font-size:9px; color:#10B981; background:#E7F7F0; padding:3px 7px; border-radius:7px;">خرید تاییدشده</span>
+        </div>
+        <div style="font-size:12px; color:#666; line-height:1.9; margin-bottom:10px;">{{ r.text }}</div>
+        <div style="display:flex; gap:7px;">
+          <div style="width:48px; height:48px; border-radius:10px; background:#F3EBE2; background-image:repeating-linear-gradient(135deg,#EBDFD2 0 1px,transparent 1px 6px);"></div>
+          <div style="width:48px; height:48px; border-radius:10px; background:#F3EBE2; background-image:repeating-linear-gradient(135deg,#EBDFD2 0 1px,transparent 1px 6px);"></div>
+        </div>
+      </div>
+    </sc-for>
+    <button style="width:100%; border:1px solid #E8C5C8; background:#fff; color:#5C2D46; font-family:inherit; font-weight:600; font-size:12.5px; padding:12px; border-radius:13px; cursor:pointer;">مشاهده همه ۲۴۶ دیدگاه</button>
+  </div>
+
+  <!-- sticky add to cart -->
+  <div style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:390px; display:flex; align-items:center; gap:12px; padding:12px 16px 16px; background:#fff; border-top:1px solid #F0E6DC; box-shadow:0 -6px 20px rgba(92,45,70,.08); z-index:50;">
+    <button onClick="{{ toggleFav }}" style="width:48px; height:48px; flex:0 0 auto; border:1.5px solid #E8C5C8; background:#fff; border-radius:14px; display:flex; align-items:center; justify-content:center; cursor:pointer;"><svg width="22" height="22" viewBox="0 0 24 24" fill="{{ favFill }}" stroke="#5C2D46" stroke-width="1.6"><path d="M12 21s-7-4.4-9.4-8.6C1 9.3 2.6 5.6 6 5.6c2 0 3 1.1 4 2.6 1-1.5 2-2.6 4-2.6 3.4 0 5 3.7 3.4 6.8C19 16.6 12 21 12 21z"/></svg></button>
+    <div style="display:flex; align-items:center; background:#FAF6F0; border-radius:14px; overflow:hidden; flex:0 0 auto;">
+      <span onClick="{{ dec }}" style="width:38px; height:48px; display:flex; align-items:center; justify-content:center; color:#5C2D46; font-size:20px; cursor:pointer;">−</span>
+      <span style="width:30px; text-align:center; font-weight:700; color:#333; font-variant-numeric:tabular-nums;">{{ qty }}</span>
+      <span onClick="{{ inc }}" style="width:38px; height:48px; display:flex; align-items:center; justify-content:center; color:#5C2D46; font-size:20px; cursor:pointer;">+</span>
+    </div>
+    <a href="RozGold%20Cart.dc.html" style="flex:1; text-align:center; background:#5C2D46; color:#fff; font-weight:700; font-size:14px; padding:15px; border-radius:14px; text-decoration:none;">افزودن به سبد</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  state = { img: 0, qty: 1, size: 1, tab: 0, fav: false };
+  renderVals() {
+    const img = this.state.img, size = this.state.size, tab = this.state.tab;
+    const fa = n => String(n).replace(/[0-9]/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+    return {
+      mainLabel: 'تصویر ' + fa(img + 1) + ' · product shot',
+      thumbs: [0,1,2,3].map(i => ({ n: fa(i+1), border: i===img ? '#5C2D46' : 'transparent', go: () => this.setState({ img: i }) })),
+      sizes: [{label:'۱۵ml'},{label:'۳۰ml'},{label:'۵۰ml'}].map((z,i) => ({
+        label: z.label,
+        border: i===size ? '#5C2D46' : '#F0E6DC',
+        bg: i===size ? '#5C2D46' : '#fff',
+        color: i===size ? '#fff' : '#5C2D46',
+        go: () => this.setState({ size: i }),
+      })),
+      tabs: [{label:'توضیحات'},{label:'مشخصات فنی'}].map((t,i) => ({
+        label: t.label,
+        color: i===tab ? '#5C2D46' : '#bbb',
+        border: i===tab ? '#5C2D46' : 'transparent',
+        go: () => this.setState({ tab: i }),
+      })),
+      showDesc: tab === 0,
+      showSpecs: tab === 1,
+      specs: [
+        { k: 'برند', v: 'گلوسی‌لب' },
+        { k: 'کد کالا (SKU)', v: 'GL-VC20-30' },
+        { k: 'بارکد', v: '۶۲۶۰۱۲۳۴۵۶۷۸' },
+        { k: 'حجم', v: '۳۰ میلی‌لیتر' },
+        { k: 'تاریخ انقضا', v: '۱۴۰۶/۰۸' },
+        { k: 'موجودی', v: '۲ عدد' },
+        { k: 'مناسب', v: 'انواع پوست' },
+      ].map((s,i) => ({ ...s, bg: i%2 ? '#FAF6F0' : '#fff' })),
+      fbt: [
+        { img: 'product', price: '۲۸۵٬۰۰۰', plus: true },
+        { img: 'product', price: '۱۹۸٬۰۰۰', plus: true },
+        { img: 'product', price: '۴۵٬۰۰۰', plus: false },
+      ],
+      related: [
+        { name: 'کرم آبرسان روزانه', price: '۱۹۸٬۰۰۰', rating: '۴.۶' },
+        { name: 'تونر پاک‌کننده ملایم', price: '۱۳۵٬۰۰۰', rating: '۴.۵' },
+        { name: 'ماسک ورقه‌ای آبرسان', price: '۴۵٬۰۰۰', rating: '۴.۷' },
+        { name: 'کرم ضد آفتاب SPF50', price: '۱۷۵٬۰۰۰', rating: '۴.۸' },
+      ],
+      reviews: [
+        { name: 'مریم احمدی', stars: '★★★★★', text: 'بعد از دو هفته استفاده پوستم واقعاً شفاف‌تر شده. بسته‌بندی هم خیلی شیک بود.' },
+        { name: 'سارا کریمی', stars: '★★★★★', text: 'اصل بودنش با کد رهگیری تایید شد. بوی ملایمی داره و جذب پوست سریع.' },
+      ],
+      qty: fa(this.state.qty),
+      inc: () => this.setState(s => ({ qty: s.qty + 1 })),
+      dec: () => this.setState(s => ({ qty: Math.max(1, s.qty - 1) })),
+      fav: this.state.fav,
+      favFill: this.state.fav ? '#E8C5C8' : 'none',
+      toggleFav: () => this.setState(s => ({ fav: !s.fav })),
+    };
+  }
+}
+</script>
+</body>
+</html>

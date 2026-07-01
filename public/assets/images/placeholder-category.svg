@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="دسته‌بندی">
+  <defs>
+    <pattern id="hatchc" width="11" height="11" patternTransform="rotate(135)" patternUnits="userSpaceOnUse">
+      <rect width="11" height="11" fill="#FAF6F0"/>
+      <line x1="0" y1="0" x2="0" y2="11" stroke="#F0E6DC" stroke-width="1.2"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#hatchc)"/>
+  <circle cx="100" cy="100" r="34" fill="none" stroke="#E8C5C8" stroke-width="3"/>
+</svg>

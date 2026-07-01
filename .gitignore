@@ -1,0 +1,25 @@
+# Environment & secrets
+.env
+
+# Dependencies (optional Composer)
+/vendor/
+
+# Runtime storage
+/storage/logs/*.log
+/storage/cache/*
+/storage/sessions/*
+!/storage/**/.gitkeep
+
+# Uploads (keep dir, ignore files)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Tools (large binary — downloaded per machine)
+/tools/tailwindcss.exe
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/
+*.log

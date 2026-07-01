@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; font-family:'Vazirmatn', sans-serif; -webkit-font-smoothing:antialiased; background:#EBE3DA; }
+  *::-webkit-scrollbar { display:none; }
+  .hscroll { scrollbar-width:none; }
+</style>
+</helmet>
+
+<div dir="rtl" style="width:390px; margin:0 auto; min-height:844px; background:#F4F2F4; color:#222; position:relative; padding-bottom:78px;">
+
+  <!-- header -->
+  <div style="background:#fff; padding:16px 18px 14px; border-bottom:1px solid #EEE; position:sticky; top:0; z-index:20;">
+    <div style="display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:11px;">
+        <div style="width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#5C2D46,#7c4862); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:16px;">ر</div>
+        <div><div style="font-size:11px; color:#999;">پنل مدیریت رُزگلد</div><div style="font-size:14px; font-weight:700; color:#333;">سلام، مدیر 👋</div></div>
+      </div>
+      <div style="position:relative; color:#5C2D46;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg><span style="position:absolute; top:-3px; left:-3px; width:9px; height:9px; background:#EF4444; border-radius:50%; border:2px solid #fff;"></span></div>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div style="padding:16px 16px 0; display:grid; grid-template-columns:1fr 1fr; gap:11px;">
+    <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+      <div style="background:#fff; border-radius:16px; padding:15px; border:1px solid #EEE;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <span style="width:34px; height:34px; border-radius:10px; background:{{ k.tint }}; display:flex; align-items:center; justify-content:center; font-size:15px;">{{ k.icon }}</span>
+          <span style="font-size:10.5px; font-weight:700; color:{{ k.trendColor }};">{{ k.trend }}</span>
+        </div>
+        <div style="font-size:18px; font-weight:800; color:#333; font-variant-numeric:tabular-nums;">{{ k.value }}</div>
+        <div style="font-size:10.5px; color:#999; margin-top:3px;">{{ k.label }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- sales chart -->
+  <div style="margin:16px 16px 0; background:#fff; border-radius:18px; padding:18px; border:1px solid #EEE;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+      <div><div style="font-size:14px; font-weight:700; color:#333;">فروش هفته</div><div style="font-size:11px; color:#999; margin-top:3px;">۷ روز اخیر</div></div>
+      <div style="text-align:left;"><div style="font-size:16px; font-weight:800; color:#5C2D46; font-variant-numeric:tabular-nums;">۳۸٬۲۰۰٬۰۰۰</div><div style="font-size:10px; color:#10B981;">↑ ٪۱۸ نسبت به هفته قبل</div></div>
+    </div>
+    <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:8px; height:120px;">
+      <sc-for list="{{ bars }}" as="b" hint-placeholder-count="7">
+        <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; height:100%; justify-content:flex-end;">
+          <div style="width:100%; height:{{ b.h }}%; background:{{ b.bg }}; border-radius:7px 7px 4px 4px; transition:height .4s;"></div>
+          <span style="font-size:9.5px; color:#aaa;">{{ b.day }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- quick actions -->
+  <div style="padding:18px 16px 0;">
+    <div style="font-size:14px; font-weight:700; color:#333; margin-bottom:13px;">دسترسی سریع</div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:11px;">
+      <sc-for list="{{ actions }}" as="a" hint-placeholder-count="8">
+        <div style="background:#fff; border-radius:15px; padding:14px 6px; border:1px solid #EEE; text-align:center;">
+          <div style="font-size:20px; margin-bottom:7px;">{{ a.icon }}</div>
+          <div style="font-size:9.5px; color:#555; font-weight:500;">{{ a.label }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- recent orders -->
+  <div style="margin:20px 16px 0; background:#fff; border-radius:18px; border:1px solid #EEE; overflow:hidden;">
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:16px 16px 12px;">
+      <div style="font-size:14px; font-weight:700; color:#333;">سفارش‌های اخیر</div>
+      <span style="font-size:11px; color:#5C2D46; font-weight:600;">همه ›</span>
+    </div>
+    <sc-for list="{{ orders }}" as="o" hint-placeholder-count="4">
+      <div style="display:flex; align-items:center; gap:12px; padding:13px 16px; border-top:1px solid #F4F2F4;">
+        <div style="width:38px; height:38px; border-radius:50%; background:#FAF6F0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#5C2D46;">{{ o.av }}</div>
+        <div style="flex:1;"><div style="font-size:12.5px; font-weight:600; color:#333;">{{ o.name }}</div><div style="font-size:10px; color:#aaa; font-variant-numeric:tabular-nums;">{{ o.id }} · {{ o.time }}</div></div>
+        <div style="text-align:left;"><div style="font-size:12.5px; font-weight:800; color:#333; font-variant-numeric:tabular-nums;">{{ o.amount }}</div><span style="font-size:9.5px; font-weight:700; color:{{ o.sc }};">{{ o.status }}</span></div>
+      </div>
+    </sc-for>
+  </div>
+
+  <!-- low stock -->
+  <div style="margin:16px 16px 0; background:#fff; border-radius:18px; border:1px solid #EEE; overflow:hidden;">
+    <div style="display:flex; align-items:center; gap:8px; padding:16px 16px 12px;">
+      <span style="font-size:15px;">⚠️</span>
+      <div style="font-size:14px; font-weight:700; color:#333;">هشدار موجودی کم</div>
+    </div>
+    <sc-for list="{{ lowStock }}" as="l" hint-placeholder-count="3">
+      <div style="display:flex; align-items:center; gap:12px; padding:12px 16px; border-top:1px solid #F4F2F4;">
+        <div style="width:38px; height:38px; border-radius:10px; background:#F3EBE2; background-image:repeating-linear-gradient(135deg,#EBDFD2 0 1px,transparent 1px 6px);"></div>
+        <div style="flex:1; font-size:12px; color:#444; font-weight:500;">{{ l.name }}</div>
+        <span style="font-size:11px; font-weight:700; color:#fff; background:{{ l.color }}; padding:4px 11px; border-radius:9px; font-variant-numeric:tabular-nums;">{{ l.qty }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="padding:16px;"><a href="RozGold%20Homepage.dc.html" style="display:block; text-align:center; padding:13px; color:#5C2D46; font-size:12.5px; font-weight:600; background:#fff; border:1px solid #EEE; border-radius:14px; text-decoration:none;">↩ بازگشت به فروشگاه</a></div>
+
+  <!-- admin bottom nav -->
+  <div style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:390px; display:flex; justify-content:space-around; align-items:center; padding:11px 0 13px; background:#fff; border-top:1px solid #EEE; box-shadow:0 -6px 20px rgba(0,0,0,.05); z-index:50;">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#5C2D46;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/></svg><span style="font-size:8.5px; font-weight:700;">داشبورد</span></div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#bbb;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg><span style="font-size:8.5px;">سفارش‌ها</span></div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#bbb;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 7l-8-4-8 4 8 4 8-4zM4 7v10l8 4 8-4V7M12 11v10"/></svg><span style="font-size:8.5px;">محصولات</span></div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:3px; color:#bbb;"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/></svg><span style="font-size:8.5px;">تنظیمات</span></div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:844}}">
+class Component extends DCLogic {
+  renderVals() {
+    const days = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
+    const heights = [45, 62, 38, 78, 55, 90, 70];
+    return {
+      kpis: [
+        { value: '۶٬۸۵۰٬۰۰۰', label: 'فروش امروز (ت)', icon: '💰', tint: '#E7F7F0', trend: '↑ ٪۱۲', trendColor: '#10B981' },
+        { value: '۲۴', label: 'سفارش امروز', icon: '🛍️', tint: '#FAF0F1', trend: '↑ ٪۸', trendColor: '#10B981' },
+        { value: '۱٬۳۴۰', label: 'بازدید امروز', icon: '👁️', tint: '#FFF6E6', trend: '↓ ٪۳', trendColor: '#EF4444' },
+        { value: '۱۸', label: 'مشتری جدید', icon: '👤', tint: '#EEF2FF', trend: '↑ ٪۲۲', trendColor: '#10B981' },
+      ],
+      bars: days.map((d, i) => ({
+        day: d, h: heights[i],
+        bg: i === 5 ? 'linear-gradient(180deg,#5C2D46,#7c4862)' : '#EAD9DF',
+      })),
+      actions: [
+        { icon: '📦', label: 'محصولات' }, { icon: '📋', label: 'سفارش‌ها' },
+        { icon: '🏷️', label: 'تخفیف‌ها' }, { icon: '📊', label: 'گزارش‌ها' },
+        { icon: '💬', label: 'پاپ‌آپ' }, { icon: '📝', label: 'بلاگ' },
+        { icon: '👥', label: 'مشتریان' }, { icon: '⚙️', label: 'تنظیمات' },
+      ],
+      orders: [
+        { av: 'م.ا', name: 'مریم احمدی', id: 'RG-۲۴۸۹۱', time: '۵ دقیقه پیش', amount: '۷۷۰٬۰۰۰', status: 'جدید', sc: '#5C2D46' },
+        { av: 'س.ک', name: 'سارا کریمی', id: 'RG-۲۴۸۹۰', time: '۲۲ دقیقه پیش', amount: '۴۲۵٬۰۰۰', status: 'در حال پردازش', sc: '#F59E0B' },
+        { av: 'ن.ر', name: 'نگار رضایی', id: 'RG-۲۴۸۸۹', time: '۱ ساعت پیش', amount: '۱۹۸٬۰۰۰', status: 'ارسال شده', sc: '#10B981' },
+        { av: 'ز.م', name: 'زهرا موسوی', id: 'RG-۲۴۸۸۸', time: '۲ ساعت پیش', amount: '۱٬۲۵۰٬۰۰۰', status: 'ارسال شده', sc: '#10B981' },
+      ],
+      lowStock: [
+        { name: 'سرم ویتامین C روشن‌کننده', qty: '۲ عدد', color: '#EF4444' },
+        { name: 'رژ لب مات مخملی ۱۲', qty: '۳ عدد', color: '#EF4444' },
+        { name: 'عطر زنانه فلورال نوّا', qty: '۵ عدد', color: '#F59E0B' },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
