@@ -27,7 +27,13 @@ $PLACEHOLDER = 'assets/images/placeholder-product.svg';
 
 echo "→ Clearing slice tables…\n";
 $pdo->exec('SET FOREIGN_KEY_CHECKS=0');
-foreach (['cart_items','carts','review_images','reviews','product_variants','product_attributes','product_images','products','brands','categories','settings'] as $t) {
+$truncate = ['cart_items','carts','review_images','reviews','product_variants','product_attributes','product_images','products','brands','categories','settings'];
+foreach (['product_categories', 'product_tags'] as $extra) {
+    if ((int) $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = '{$extra}'")->fetchColumn() > 0) {
+        $truncate[] = $extra;
+    }
+}
+foreach ($truncate as $t) {
     $pdo->exec("TRUNCATE TABLE `{$t}`");
 }
 $pdo->exec('SET FOREIGN_KEY_CHECKS=1');
@@ -121,6 +127,8 @@ $pStmt = $pdo->prepare(
 $imgStmt  = $pdo->prepare('INSERT INTO product_images (product_id, path, alt, title, sort, is_primary, is_hover) VALUES (?,?,?,?,?,?,?)');
 $attrStmt = $pdo->prepare('INSERT INTO product_attributes (product_id, attr_key, attr_value, sort) VALUES (?,?,?,?)');
 $varStmt  = $pdo->prepare('INSERT INTO product_variants (product_id, label, sku, price_override, stock, sort) VALUES (?,?,?,?,?,?)');
+$hasPivot = (int) $pdo->query("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'product_categories'")->fetchColumn() > 0;
+$pcStmt   = $hasPivot ? $pdo->prepare('INSERT IGNORE INTO product_categories (product_id, category_id) VALUES (?,?)') : null;
 
 $productIds = [];
 foreach ($products as $idx => $p) {
@@ -143,6 +151,11 @@ foreach ($products as $idx => $p) {
     $pid = (int) $pdo->lastInsertId();
     $productIds[$slug] = $pid;
 
+    // primary category membership (many-to-many pivot)
+    if ($pcStmt) {
+        $pcStmt->execute([$pid, $catId[$cat]]);
+    }
+
     // images: primary + hover + two gallery
     $imgStmt->execute([$pid, $PLACEHOLDER, $name, $name . ' - نمای اصلی', 0, 1, 0]);
     $imgStmt->execute([$pid, $PLACEHOLDER, $name . ' - نمای دوم', $name . ' - نمای دوم', 1, 0, 1]);
@@ -163,6 +176,21 @@ foreach ($products as $idx => $p) {
     }
 }
 echo "✓ products (" . count($products) . ")\n";
+
+/* ── Demo multi-category memberships (a product in several categories) ── */
+if ($pcStmt) {
+    $extraMemberships = [
+        ['sunscreen-spf50', 'body'], ['gold-face-mask', 'body'],
+        ['body-mist-strawberry', 'body'], ['pocket-perfume', 'body'],
+        ['sulfate-free-shampoo', 'hygiene'], ['gentle-toner', 'hygiene'],
+    ];
+    foreach ($extraMemberships as [$mSlug, $mCat]) {
+        if (isset($productIds[$mSlug], $catId[$mCat])) {
+            $pcStmt->execute([$productIds[$mSlug], $catId[$mCat]]);
+        }
+    }
+    echo "✓ product_categories (multi)\n";
+}
 
 /* ── Variants for the hero product (size selector) ────────── */
 $serum = $productIds['serum-vitamin-c'];

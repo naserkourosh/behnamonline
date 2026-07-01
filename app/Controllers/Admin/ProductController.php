@@ -74,7 +74,9 @@ final class ProductController extends AdminController
         }
         $data['slug'] = $this->uniqueSlug($data['slug'] !== '' ? $data['slug'] : $data['name'], 0);
 
+        $categoryIds = $this->collectCategories($request, $data);
         $id = $this->products->insert($data);
+        $this->products->syncCategories($id, $categoryIds);
         $this->saveRelations($request, $id);
         $this->handleUploads($id);
         $this->products->ensurePrimary($id);
@@ -100,7 +102,9 @@ final class ProductController extends AdminController
         }
         $data['slug'] = $this->uniqueSlug($data['slug'] !== '' ? $data['slug'] : $data['name'], $id);
 
+        $categoryIds = $this->collectCategories($request, $data);
         $this->products->updateProduct($id, $data);
+        $this->products->syncCategories($id, $categoryIds);
         $this->saveRelations($request, $id);
         $this->updateImageMeta($request, $id);
         $this->handleUploads($id);
@@ -168,11 +172,30 @@ final class ProductController extends AdminController
             'categories' => (new CategoryRepository())->allAdmin(),
             'brands'     => (new BrandRepository())->allAdmin(),
             'tags'       => (new TagRepository())->all(),
-            'images'     => $id ? $this->products->allImages($id) : [],
-            'attributes' => $id ? $this->products->attributes($id) : [],
-            'variants'   => $id ? $this->products->variants($id) : [],
-            'tagIds'     => $id ? $this->products->tagIds($id) : [],
+            'images'      => $id ? $this->products->allImages($id) : [],
+            'attributes'  => $id ? $this->products->attributes($id) : [],
+            'variants'    => $id ? $this->products->variants($id) : [],
+            'tagIds'      => $id ? $this->products->tagIds($id) : [],
+            'categoryIds' => $id ? $this->products->categoryIds($id) : [],
         ], $product ? 'ویرایش محصول' : 'محصول جدید');
+    }
+
+    /**
+     * Merge the primary category (select) with the additional categories
+     * (checkboxes) into the full membership list. Resolves the primary from
+     * the checkboxes when the select is empty. Mutates $data['category_id'].
+     * @param array<string,mixed> $data
+     * @return list<int>
+     */
+    private function collectCategories(Request $request, array &$data): array
+    {
+        $extra   = array_map('intval', (array) $request->input('categories', []));
+        $primary = (int) ($data['category_id'] ?? 0);
+        $all     = array_values(array_unique(array_filter(array_merge([$primary], $extra))));
+        if ($primary === 0 && $all !== []) {
+            $data['category_id'] = $all[0];
+        }
+        return $all;
     }
 
     /** @return array<string,mixed> */

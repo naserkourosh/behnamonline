@@ -26,7 +26,8 @@ final class BrandRepository extends BaseRepository
             'SELECT DISTINCT b.id, b.name, b.slug
                FROM brands b
                JOIN products p ON p.brand_id = b.id
-              WHERE p.category_id = ? AND p.is_active = 1 AND b.is_active = 1
+               JOIN product_categories pc ON pc.product_id = p.id
+              WHERE pc.category_id = ? AND p.is_active = 1 AND b.is_active = 1
               ORDER BY b.name',
             [$categoryId]
         );

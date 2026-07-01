@@ -90,10 +90,16 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
 
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">دسته‌بندی و برند</h3>
-                <div class="mb-3"><label class="<?= $lbl ?>">دسته‌بندی</label>
-                    <select name="category_id" class="<?= $inp ?>"><option value="">— انتخاب —</option>
-                        <?php foreach ($categories as $c): ?><option value="<?= (int) $c['id'] ?>" <?= (int) ($product['category_id'] ?? 0) === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
-                    </select>
+                <div class="mb-3"><label class="<?= $lbl ?>">دسته‌بندی‌ها <span class="font-normal text-[#aaa]">(چند انتخابی)</span></label>
+                    <div class="max-h-48 space-y-1 overflow-y-auto rounded-xl2 border border-line p-2.5">
+                        <?php foreach ($categories as $c): $on = in_array((int) $c['id'], $categoryIds, true); ?>
+                            <label class="flex items-center gap-2 rounded-lg px-2 py-1 hover:bg-surface">
+                                <input type="checkbox" name="categories[]" value="<?= (int) $c['id'] ?>" class="h-4 w-4 accent-secondary" <?= $on ? 'checked' : '' ?>>
+                                <span class="text-[12.5px] text-[#555]"><?= e($c['name']) ?></span>
+                            </label>
+                        <?php endforeach; ?>
+                    </div>
+                    <p class="mt-1.5 text-[11px] text-[#aaa]">محصول در همهٔ دسته‌های انتخاب‌شده نمایش داده می‌شود. اولین دسته به‌عنوان دستهٔ اصلی (بردکرامب) استفاده می‌شود.</p>
                 </div>
                 <div><label class="<?= $lbl ?>">برند</label>
                     <select name="brand_id" class="<?= $inp ?>"><option value="">— انتخاب —</option>

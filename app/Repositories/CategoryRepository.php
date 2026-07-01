@@ -13,8 +13,9 @@ final class CategoryRepository extends BaseRepository
     {
         return $this->selectAll(
             'SELECT c.*,
-                    (SELECT COUNT(*) FROM products p
-                      WHERE p.category_id = c.id AND p.is_active = 1) AS product_count
+                    (SELECT COUNT(*) FROM product_categories pc
+                       JOIN products p ON p.id = pc.product_id
+                      WHERE pc.category_id = c.id AND p.is_active = 1) AS product_count
                FROM categories c
               WHERE c.is_active = 1
               ORDER BY c.sort, c.id'
@@ -37,7 +38,7 @@ final class CategoryRepository extends BaseRepository
     {
         return $this->selectAll(
             'SELECT c.*, p.name AS parent_name,
-                    (SELECT COUNT(*) FROM products pr WHERE pr.category_id = c.id) AS product_count
+                    (SELECT COUNT(*) FROM product_categories pc WHERE pc.category_id = c.id) AS product_count
                FROM categories c
           LEFT JOIN categories p ON p.id = c.parent_id
               ORDER BY c.sort, c.id'

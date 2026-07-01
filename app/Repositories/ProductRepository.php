@@ -364,6 +364,22 @@ final class ProductRepository extends BaseRepository
         return array_map(static fn ($r) => (int) $r['tag_id'], $rows);
     }
 
+    /** @return list<int> Category ids this product belongs to (many-to-many). */
+    public function categoryIds(int $productId): array
+    {
+        $rows = $this->selectAll('SELECT category_id FROM product_categories WHERE product_id = ?', [$productId]);
+        return array_map(static fn ($r) => (int) $r['category_id'], $rows);
+    }
+
+    /** @param list<int> $categoryIds */
+    public function syncCategories(int $productId, array $categoryIds): void
+    {
+        $this->execute('DELETE FROM product_categories WHERE product_id = ?', [$productId]);
+        foreach (array_unique(array_filter($categoryIds)) as $cid) {
+            $this->execute('INSERT IGNORE INTO product_categories (product_id, category_id) VALUES (?,?)', [$productId, (int) $cid]);
+        }
+    }
+
     /** @param list<int> $tagIds */
     public function syncTags(int $productId, array $tagIds): void
     {
@@ -400,7 +416,8 @@ final class ProductRepository extends BaseRepository
         $params  = [];
 
         if (!empty($filters['category_id'])) {
-            $clauses[] = 'p.category_id = ?';
+            // Membership is many-to-many: match any product linked to the category.
+            $clauses[] = 'EXISTS (SELECT 1 FROM product_categories pc WHERE pc.product_id = p.id AND pc.category_id = ?)';
             $params[]  = (int) $filters['category_id'];
         }
         if (!empty($filters['exclude_id'])) {
