@@ -15,6 +15,7 @@ $nav = [
     ['orders',     '/admin/orders',     'سفارش‌ها',      '<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>'],
     ['customers',  '/admin/customers',  'مشتریان',       '<circle cx="9" cy="8" r="4"/><path d="M15 8a4 4 0 0 1 0 8M2 21c0-4 3.5-6 7-6s7 2 7 6M16 15c3 0 6 2 6 6"/>'],
     ['menus',      '/admin/menus',      'منوها',         '<path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/>'],
+    ['sms',        '/admin/sms',        'پیامک‌ها',      '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'],
     ['settings',   '/admin/settings',   'تنظیمات',       '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/>'],
 ];
 $isActive = static function (string $href) use ($path): bool {

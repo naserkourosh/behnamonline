@@ -19,6 +19,7 @@ use App\Controllers\Admin\MenuController as AdminMenuController;
 use App\Controllers\Admin\OrderController as AdminOrderController;
 use App\Controllers\Admin\ProductController as AdminProductController;
 use App\Controllers\Admin\SettingController as AdminSettingController;
+use App\Controllers\Admin\SmsController as AdminSmsController;
 use App\Controllers\Admin\TagController as AdminTagController;
 use App\Core\Router;
 use App\Middleware\RequireAdmin;
@@ -92,6 +93,7 @@ return static function (Router $router): void {
             $x->get('/admin/products/{id}/edit', [AdminProductController::class, 'edit']);
             $x->post('/admin/products/{id}', [AdminProductController::class, 'update'], [VerifyCsrf::class]);
             $x->post('/admin/products/{id}/delete', [AdminProductController::class, 'destroy'], [VerifyCsrf::class]);
+            $x->post('/admin/products/{id}/sort', [AdminProductController::class, 'sort'], [VerifyCsrf::class]);
             $x->post('/admin/products/{id}/images', [AdminProductController::class, 'uploadImages'], [VerifyCsrf::class]);
             $x->post('/admin/products/images/{img}/delete', [AdminProductController::class, 'deleteImage'], [VerifyCsrf::class]);
 
@@ -132,6 +134,11 @@ return static function (Router $router): void {
             $x->post('/admin/menus', [AdminMenuController::class, 'store'], [VerifyCsrf::class]);
             $x->post('/admin/menus/{id}/items', [AdminMenuController::class, 'addItem'], [VerifyCsrf::class]);
             $x->post('/admin/menus/items/{id}/delete', [AdminMenuController::class, 'deleteItem'], [VerifyCsrf::class]);
+
+            // SMS
+            $x->get('/admin/sms', [AdminSmsController::class, 'index']);
+            $x->post('/admin/sms/send', [AdminSmsController::class, 'send'], [VerifyCsrf::class]);
+            $x->post('/admin/sms/templates', [AdminSmsController::class, 'templates'], [VerifyCsrf::class]);
 
             // Settings
             $x->get('/admin/settings', [AdminSettingController::class, 'index']);

@@ -27,19 +27,44 @@ final class ProductController extends AdminController
         if ($r = $this->guard('products')) {
             return $r;
         }
-        $search  = trim((string) $request->query('q', ''));
+        $filters = [
+            'q'        => trim((string) $request->query('q', '')),
+            'category' => (int) $request->query('category', 0),
+            'brand'    => (int) $request->query('brand', 0),
+            'tag'      => (int) $request->query('tag', 0),
+            'stock'    => (string) $request->query('stock', ''),
+        ];
         $perPage = 20;
         $page    = max(1, (int) $request->query('page', 1));
-        $total   = $this->products->adminCount($search);
+        $total   = $this->products->adminCount($filters);
 
         return $this->adminView('admin/products/index', [
-            'items'   => $this->products->adminList($search, $perPage, ($page - 1) * $perPage),
-            'total'   => $total,
-            'page'    => $page,
-            'perPage' => $perPage,
-            'pages'   => (int) ceil($total / $perPage),
-            'search'  => $search,
+            'items'      => $this->products->adminList($filters, $perPage, ($page - 1) * $perPage),
+            'total'      => $total,
+            'page'       => $page,
+            'perPage'    => $perPage,
+            'pages'      => (int) ceil($total / $perPage),
+            'filters'    => $filters,
+            'categories' => (new CategoryRepository())->allAdmin(),
+            'brands'     => (new BrandRepository())->allAdmin(),
+            'tags'       => (new TagRepository())->all(),
         ], 'محصولات');
+    }
+
+    /** AJAX: update a product's display order (sort) from the list. */
+    public function sort(Request $request): Response
+    {
+        if ($r = $this->guard('products')) {
+            return $r;
+        }
+        $id = (int) $request->param('id');
+        if ($this->products->findById($id) === null) {
+            return $this->json(['ok' => false], 404);
+        }
+        $sort = (int) en_num((string) $request->input('sort', 0));
+        $this->products->updateSort($id, $sort);
+        $this->audit($request, 'update', 'product', $id, 'sort=' . $sort);
+        return $this->json(['ok' => true, 'sort' => $sort]);
     }
 
     public function create(Request $request): Response
@@ -219,6 +244,7 @@ final class ProductController extends AdminController
             'old_price'           => ($old !== null && trim((string) $old) !== '') ? $int($old) : null,
             'stock'               => $int($request->input('stock', 0)),
             'low_stock_threshold' => max(0, $int($request->input('low_stock_threshold', 5))),
+            'sort'                => $int($request->input('sort', 0)),
             'is_active'           => $request->input('is_active') ? 1 : 0,
             'is_new'              => $request->input('is_new') ? 1 : 0,
             'is_featured'         => $request->input('is_featured') ? 1 : 0,

@@ -24,7 +24,7 @@ final class ProductRepository extends BaseRepository
         'price_desc' => 'p.price DESC',
         'rating'     => 'p.rating_avg DESC, p.rating_count DESC',
         'bestselling'=> 'p.view_count DESC',
-        'default'    => 'p.is_featured DESC, p.id DESC',
+        'default'    => 'p.sort DESC, p.is_featured DESC, p.id DESC',
     ];
 
     /**
@@ -183,40 +183,80 @@ final class ProductRepository extends BaseRepository
 
     /* ───────────────────────── Admin ───────────────────────── */
 
-    /** @return list<array<string,mixed>> All products (active + inactive) for the admin list. */
-    public function adminList(string $search, int $limit, int $offset): array
+    /**
+     * @param array{q?:string,category?:int,brand?:int,tag?:int,stock?:string} $filters
+     * @return list<array<string,mixed>> All products (active + inactive) for the admin list.
+     */
+    public function adminList(array $filters, int $limit, int $offset): array
     {
         $limit  = max(1, min(100, $limit));
         $offset = max(0, $offset);
-        $where  = '1=1';
-        $params = [];
-        if ($search !== '') {
-            $where = '(p.name LIKE ? OR p.sku LIKE ?)';
-            $params = ['%' . $search . '%', '%' . $search . '%'];
-        }
+        [$where, $params] = $this->adminWhere($filters);
         return $this->selectAll(
-            "SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock, p.is_active, p.is_new, p.is_featured,
+            "SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock, p.reserved, p.sort,
+                    p.is_active, p.is_new, p.is_featured,
                     b.name AS brand_name, c.name AS category_name,
                     (SELECT i.path FROM product_images i WHERE i.product_id = p.id AND i.is_primary = 1 ORDER BY i.sort LIMIT 1) AS image
                FROM products p
           LEFT JOIN brands b ON b.id = p.brand_id
           LEFT JOIN categories c ON c.id = p.category_id
               WHERE {$where}
-              ORDER BY p.id DESC
+              ORDER BY p.sort DESC, p.id DESC
               LIMIT {$limit} OFFSET {$offset}",
             $params
         );
     }
 
-    public function adminCount(string $search): int
+    /** @param array{q?:string,category?:int,brand?:int,tag?:int,stock?:string} $filters */
+    public function adminCount(array $filters): int
     {
-        if ($search === '') {
-            return (int) $this->scalar('SELECT COUNT(*) FROM products');
-        }
+        [$where, $params] = $this->adminWhere($filters);
         return (int) $this->scalar(
-            'SELECT COUNT(*) FROM products WHERE name LIKE ? OR sku LIKE ?',
-            ['%' . $search . '%', '%' . $search . '%']
+            "SELECT COUNT(*) FROM products p LEFT JOIN brands b ON b.id = p.brand_id WHERE {$where}",
+            $params
         );
+    }
+
+    /**
+     * Build the WHERE clause for the admin product list from its filters.
+     * @param array{q?:string,category?:int,brand?:int,tag?:int,stock?:string} $filters
+     * @return array{0:string,1:list<mixed>}
+     */
+    private function adminWhere(array $filters): array
+    {
+        $clauses = ['1=1'];
+        $params  = [];
+
+        $q = trim((string) ($filters['q'] ?? ''));
+        if ($q !== '') {
+            $clauses[] = '(p.name LIKE ? OR p.sku LIKE ?)';
+            $params[]  = '%' . $q . '%';
+            $params[]  = '%' . $q . '%';
+        }
+        if (!empty($filters['category'])) {
+            $clauses[] = 'EXISTS (SELECT 1 FROM product_categories pc WHERE pc.product_id = p.id AND pc.category_id = ?)';
+            $params[]  = (int) $filters['category'];
+        }
+        if (!empty($filters['brand'])) {
+            $clauses[] = 'p.brand_id = ?';
+            $params[]  = (int) $filters['brand'];
+        }
+        if (!empty($filters['tag'])) {
+            $clauses[] = 'EXISTS (SELECT 1 FROM product_tags pt WHERE pt.product_id = p.id AND pt.tag_id = ?)';
+            $params[]  = (int) $filters['tag'];
+        }
+        if (($filters['stock'] ?? '') === 'in') {
+            $clauses[] = '(p.stock - p.reserved) > 0';
+        } elseif (($filters['stock'] ?? '') === 'out') {
+            $clauses[] = '(p.stock - p.reserved) <= 0';
+        }
+
+        return [implode(' AND ', $clauses), $params];
+    }
+
+    public function updateSort(int $id, int $sort): void
+    {
+        $this->execute('UPDATE products SET sort = ?, updated_at = ? WHERE id = ?', [$sort, date('Y-m-d H:i:s'), $id]);
     }
 
     /** @return array<string,mixed>|null */
@@ -233,13 +273,13 @@ final class ProductRepository extends BaseRepository
             'INSERT INTO products
                 (category_id, brand_id, name, slug, sku, barcode, short_desc, description, aparat_embed,
                  price, old_price, stock, low_stock_threshold, is_active, is_new, is_featured, on_flash_sale,
-                 expiration_date, seo_title, seo_description, created_at, updated_at)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                 expiration_date, sort, seo_title, seo_description, created_at, updated_at)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             [
                 $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
                 $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
                 $d['stock'], $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
-                $d['on_flash_sale'], $d['expiration_date'], $d['seo_title'], $d['seo_description'], $now, $now,
+                $d['on_flash_sale'], $d['expiration_date'], $d['sort'], $d['seo_title'], $d['seo_description'], $now, $now,
             ]
         );
         return $this->lastInsertId();
@@ -251,14 +291,14 @@ final class ProductRepository extends BaseRepository
         $this->execute(
             'UPDATE products SET category_id=?, brand_id=?, name=?, slug=?, sku=?, barcode=?, short_desc=?,
                 description=?, aparat_embed=?, price=?, old_price=?, stock=?, low_stock_threshold=?,
-                is_active=?, is_new=?, is_featured=?, on_flash_sale=?, expiration_date=?,
+                is_active=?, is_new=?, is_featured=?, on_flash_sale=?, expiration_date=?, sort=?,
                 seo_title=?, seo_description=?, updated_at=?
               WHERE id=?',
             [
                 $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
                 $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
                 $d['stock'], $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
-                $d['on_flash_sale'], $d['expiration_date'], $d['seo_title'], $d['seo_description'],
+                $d['on_flash_sale'], $d['expiration_date'], $d['sort'], $d['seo_title'], $d['seo_description'],
                 date('Y-m-d H:i:s'), $id,
             ]
         );

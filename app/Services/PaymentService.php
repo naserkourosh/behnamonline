@@ -134,8 +134,12 @@ final class PaymentService
         $tracking = 'IR' . date('ymd') . random_int(10000, 99999);
         $this->orders->finalizePaid($orderId, $tracking);
 
-        $message = "بهنام\nسفارش {$order['order_number']} با موفقیت پرداخت شد. ✅\nکد رهگیری پستی: {$tracking}";
-        (new SmsManager())->send((string) $order['mobile'], $message);
+        $message = (new \App\Repositories\SmsTemplateRepository())->render(
+            'order_paid',
+            ['order' => (string) $order['order_number'], 'tracking' => $tracking],
+            "بهنام\nسفارش {$order['order_number']} با موفقیت پرداخت شد. ✅\nکد رهگیری پستی: {$tracking}"
+        );
+        (new SmsManager())->send((string) $order['mobile'], $message, 'order');
 
         return $tracking;
     }

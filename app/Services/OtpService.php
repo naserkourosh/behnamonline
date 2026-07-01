@@ -43,7 +43,7 @@ final class OtpService
 
         $brand   = (string) Config::get('app.name', 'بهنام');
         $message = "کد تایید {$brand}: {$code}\nاین کد تا " . ((int) ($ttl / 60)) . " دقیقه معتبر است.";
-        (new SmsManager())->send($mobile, $message);
+        (new SmsManager())->send($mobile, $message, 'otp');
 
         $result = ['ok' => true, 'message' => 'کد تایید ارسال شد.', 'resend_wait' => $resendWait];
 

@@ -95,12 +95,22 @@ final class OrderController extends AdminController
             if (!$tracking) {
                 $tracking = 'IR' . date('ymd') . random_int(10000, 99999);
             }
-            $sms->send((string) $order['mobile'], "بهنام\nپرداخت سفارش {$order['order_number']} تایید شد. ✅\nکد رهگیری: {$tracking}");
+            $templates = new \App\Repositories\SmsTemplateRepository();
+            $sms->send((string) $order['mobile'], $templates->render(
+                'payment_confirmed',
+                ['order' => (string) $order['order_number'], 'tracking' => (string) $tracking],
+                "بهنام\nپرداخت سفارش {$order['order_number']} تایید شد. ✅\nکد رهگیری: {$tracking}"
+            ), 'order');
         }
 
         // Shipping notification.
         if ((string) $order['status'] !== 'shipped' && $status === 'shipped') {
-            $sms->send((string) $order['mobile'], "بهنام\nسفارش {$order['order_number']} ارسال شد. 🚚" . ($tracking ? "\nکد رهگیری: {$tracking}" : ''));
+            $templates = $templates ?? new \App\Repositories\SmsTemplateRepository();
+            $sms->send((string) $order['mobile'], $templates->render(
+                'order_shipped',
+                ['order' => (string) $order['order_number'], 'tracking' => (string) ($tracking ?? '')],
+                "بهنام\nسفارش {$order['order_number']} ارسال شد. 🚚" . ($tracking ? "\nکد رهگیری: {$tracking}" : '')
+            ), 'order');
         }
 
         $this->orders->adminUpdate($id, $status, $payment, $tracking ?: null);

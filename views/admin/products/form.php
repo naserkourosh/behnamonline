@@ -75,6 +75,10 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
                         <input type="checkbox" name="<?= $k ?>" value="1" class="h-5 w-5 accent-secondary" <?= $flag($k, $def) ? 'checked' : '' ?>>
                     </label>
                 <?php endforeach; ?>
+                <div class="mt-3 border-t border-line2 pt-3">
+                    <label class="<?= $lbl ?>">ترتیب نمایش <span class="font-normal text-[#aaa]">(عدد بزرگ‌تر = بالاتر)</span></label>
+                    <input name="sort" value="<?= $v('sort', '0') ?>" dir="ltr" class="<?= $inp ?> text-left">
+                </div>
             </div>
 
             <div class="rounded-2xl border border-line2 bg-white p-5">

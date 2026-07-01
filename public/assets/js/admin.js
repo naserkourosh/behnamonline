@@ -53,6 +53,26 @@
     });
   });
 
+  /* Inline product sort (display order) — save on change */
+  $(document).on("change", ".js-sort-input", function () {
+    var $inp = $(this);
+    $inp.prop("disabled", true);
+    $.ajax({
+      method: "POST",
+      url: $inp.data("url"),
+      headers: { "X-CSRF-Token": csrf(), "X-Requested-With": "XMLHttpRequest" },
+      data: { sort: $inp.val() },
+      dataType: "json",
+    }).done(function () {
+      $inp.css("background-color", "#E7F7F0");
+      setTimeout(function () { $inp.css("background-color", ""); }, 700);
+    }).fail(function () {
+      $inp.css("background-color", "#FDECEC");
+    }).always(function () {
+      $inp.prop("disabled", false);
+    });
+  });
+
   /* Menu builder: quick-fill from category */
   $(document).on("change", ".js-menu-cat", function () {
     var $opt = $(this).find("option:selected");
