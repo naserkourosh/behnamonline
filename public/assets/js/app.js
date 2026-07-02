@@ -295,6 +295,28 @@
     $(".js-sum-total, .js-sum-total-mobile").text(money(summary.total));
     $(".js-ship-bar").css("width", summary.free_progress + "%");
     $(".js-ship-msg").text(summary.qualifies_free ? "🎉 سفارش شما شامل ارسال رایگان است" : money(summary.free_remaining) + " تومان تا ارسال رایگان باقی مانده");
+
+    // coupon discount row
+    if (summary.coupon_discount > 0) {
+      $(".js-sum-coupon-row").removeClass("hidden");
+      $(".js-sum-coupon").text("− " + money(summary.coupon_discount) + " تومان");
+      $(".js-sum-coupon-code").text(summary.coupon_code || "");
+    } else {
+      $(".js-sum-coupon-row").addClass("hidden");
+    }
+    renderCouponBox(summary);
+  }
+
+  function renderCouponBox(summary) {
+    var $box = $("#js-coupon-box");
+    if (!$box.length) { return; }
+    if (summary.coupon_code) {
+      $box.html('<div class="flex items-center justify-between"><div class="text-[12px] text-[#444]">✅ کد «<span class="font-bold text-success">' +
+        summary.coupon_code + '</span>» اعمال شد</div><button type="button" class="js-coupon-remove text-[11.5px] font-semibold text-danger">حذف</button></div>');
+    } else {
+      var err = summary.coupon_error ? '<p class="mt-2 text-[11px] text-danger">' + summary.coupon_error + "</p>" : "";
+      $box.html('<form class="js-coupon flex gap-2.5"><input name="code" class="flex-1 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[12px] outline-none focus:border-secondary" placeholder="کد تخفیف یا کارت هدیه"><button type="submit" class="rounded-xl bg-secondary px-5 text-[12.5px] font-bold text-white">ثبت</button></form>' + err);
+    }
   }
 
   $(document).on("click", ".js-cart-inc, .js-cart-dec", function () {
@@ -318,8 +340,50 @@
   });
   $(document).on("submit", ".js-coupon", function (e) {
     e.preventDefault();
-    toast("کد تخفیف نامعتبر است.", "error");
+    var code = ($(this).find('input[name="code"]').val() || "").trim();
+    if (!code) { toast("کد تخفیف را وارد کنید.", "error"); return; }
+    api("POST", "/api/cart/coupon", { code: code }).done(function (res) {
+      if (res.summary) { renderCart(res.summary); }
+      toast(res.ok ? (res.message || "کد تخفیف اعمال شد.") : (res.error || "کد تخفیف نامعتبر است."), res.ok ? "success" : "error");
+    });
   });
+  $(document).on("click", ".js-coupon-remove", function () {
+    api("POST", "/api/cart/coupon/remove", {}).done(function (res) {
+      if (res.summary) { renderCart(res.summary); }
+      toast("کد تخفیف حذف شد.");
+    });
+  });
+
+  /* ── promotional popup ───────────────────────────────────── */
+  (function () {
+    var $p = $("#js-popup");
+    if (!$p.length) { return; }
+    var id = $p.data("id");
+    var freq = $p.data("frequency");
+    var key = "behnam_popup_" + id;
+
+    function seenRecently() {
+      try {
+        if (freq === "always") { return false; }
+        if (freq === "once_session") { return sessionStorage.getItem(key) === "1"; }
+        // once_day
+        var ts = parseInt(localStorage.getItem(key) || "0", 10);
+        return ts && (Date.now() - ts) < 86400000;
+      } catch (e) { return false; }
+    }
+    function mark() {
+      try {
+        if (freq === "once_session") { sessionStorage.setItem(key, "1"); }
+        else if (freq === "once_day") { localStorage.setItem(key, String(Date.now())); }
+      } catch (e) {}
+    }
+    function close() { $p.addClass("hidden"); mark(); }
+
+    if (seenRecently()) { return; }
+    setTimeout(function () { $p.removeClass("hidden"); }, (parseInt($p.data("delay"), 10) || 0) * 1000);
+    $p.on("click", ".js-popup-close, .js-popup-backdrop", close);
+    $p.on("click", ".btn-primary", mark);
+  })();
 
   /* ── shared OTP + geo helpers (Phase 2) ──────────────────── */
   function toEn(s) {

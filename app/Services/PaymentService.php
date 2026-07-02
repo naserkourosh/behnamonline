@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Core\Config;
+use App\Repositories\CouponRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\PaymentRepository;
 use App\Repositories\ProductRepository;
@@ -134,6 +135,8 @@ final class PaymentService
         $tracking = 'IR' . date('ymd') . random_int(10000, 99999);
         $this->orders->finalizePaid($orderId, $tracking);
 
+        $this->finalizePromotions(array_merge($order, ['id' => $orderId]));
+
         $message = (new \App\Repositories\SmsTemplateRepository())->render(
             'order_paid',
             ['order' => (string) $order['order_number'], 'tracking' => $tracking],
@@ -142,5 +145,38 @@ final class PaymentService
         (new SmsManager())->send((string) $order['mobile'], $message, 'order');
 
         return $tracking;
+    }
+
+    /**
+     * Record coupon consumption and award loyalty points once an order is
+     * paid. Idempotent per order — safe from both the gateway callback and a
+     * manual (card-to-card) confirmation in the admin panel.
+     * @param array<string,mixed> $order  Must contain id, coupon_code, coupon_discount, user_id, subtotal.
+     */
+    public function finalizePromotions(array $order): void
+    {
+        $orderId = (int) ($order['id'] ?? 0);
+        if ($orderId === 0) {
+            return;
+        }
+
+        $code     = (string) ($order['coupon_code'] ?? '');
+        $discount = (int) ($order['coupon_discount'] ?? 0);
+        if ($code !== '' && $discount > 0) {
+            $coupons = new CouponRepository();
+            if (!$coupons->hasUsageForOrder($orderId)) {
+                $coupon = $coupons->findByCode($code);
+                if ($coupon !== null) {
+                    $coupons->recordUsage(
+                        (int) $coupon['id'],
+                        !empty($order['user_id']) ? (int) $order['user_id'] : null,
+                        $orderId,
+                        $discount
+                    );
+                }
+            }
+        }
+
+        (new PointsService())->awardForOrder($order);
     }
 }

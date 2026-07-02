@@ -16,6 +16,8 @@ use App\Controllers\Admin\AccountingController as AdminAccountingController;
 use App\Controllers\Admin\AuthController as AdminAuthController;
 use App\Controllers\Admin\BlogController as AdminBlogController;
 use App\Controllers\Admin\BrandController as AdminBrandController;
+use App\Controllers\Admin\CouponController as AdminCouponController;
+use App\Controllers\Admin\PopupController as AdminPopupController;
 use App\Controllers\Admin\FaqController as AdminFaqController;
 use App\Controllers\Admin\TicketController as AdminTicketController;
 use App\Controllers\Admin\CategoryController as AdminCategoryController;
@@ -90,6 +92,7 @@ return static function (Router $router): void {
             $a->get('/account/profile', [AccountController::class, 'profile']);
             $a->post('/account/profile', [AccountController::class, 'profileUpdate'], [VerifyCsrf::class]);
             $a->get('/account/wishlist', [AccountController::class, 'wishlist']);
+            $a->get('/account/points', [AccountController::class, 'points']);
             $a->get('/account/tickets', [AccountController::class, 'tickets']);
             $a->post('/account/tickets', [AccountController::class, 'ticketStore'], [VerifyCsrf::class]);
             $a->get('/account/tickets/{id}', [AccountController::class, 'ticketShow']);
@@ -153,6 +156,22 @@ return static function (Router $router): void {
             $x->post('/admin/menus', [AdminMenuController::class, 'store'], [VerifyCsrf::class]);
             $x->post('/admin/menus/{id}/items', [AdminMenuController::class, 'addItem'], [VerifyCsrf::class]);
             $x->post('/admin/menus/items/{id}/delete', [AdminMenuController::class, 'deleteItem'], [VerifyCsrf::class]);
+
+            // Coupons
+            $x->get('/admin/coupons', [AdminCouponController::class, 'index']);
+            $x->get('/admin/coupons/create', [AdminCouponController::class, 'create']);
+            $x->post('/admin/coupons', [AdminCouponController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/coupons/{id}/edit', [AdminCouponController::class, 'edit']);
+            $x->post('/admin/coupons/{id}', [AdminCouponController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/coupons/{id}/delete', [AdminCouponController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // Popups
+            $x->get('/admin/popups', [AdminPopupController::class, 'index']);
+            $x->get('/admin/popups/create', [AdminPopupController::class, 'create']);
+            $x->post('/admin/popups', [AdminPopupController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/popups/{id}/edit', [AdminPopupController::class, 'edit']);
+            $x->post('/admin/popups/{id}', [AdminPopupController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/popups/{id}/delete', [AdminPopupController::class, 'destroy'], [VerifyCsrf::class]);
 
             // Blog / magazine
             $x->get('/admin/blog', [AdminBlogController::class, 'index']);

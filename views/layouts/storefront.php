@@ -62,6 +62,7 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
     <?php $this->partial('footer'); ?>
     <?php $this->partial('bottom-nav'); ?>
     <?php $this->partial('floating-support'); ?>
+    <?php $this->partial('popup'); ?>
 
     <!-- Toast container -->
     <div id="toast-root" class="pointer-events-none fixed inset-x-0 bottom-24 z-[80] flex flex-col items-center gap-2 px-4 md:bottom-8"></div>

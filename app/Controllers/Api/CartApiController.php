@@ -56,4 +56,26 @@ final class CartApiController extends Controller
 
         return $this->json((new CartService())->remove($lineId));
     }
+
+    public function applyCoupon(Request $request): Response
+    {
+        $code = trim((string) $request->input('code', ''));
+        if ($code === '') {
+            return $this->json(['ok' => false, 'error' => 'کد تخفیف را وارد کنید.'], 422);
+        }
+        $result = (new CartService())->applyCoupon($code);
+        // Always 200: the JS reads the `ok` flag so it can update the summary
+        // whether the code was accepted or rejected.
+        return $this->json([
+            'ok'      => $result['ok'],
+            'message' => $result['message'],
+            'error'   => $result['ok'] ? null : $result['message'],
+            'summary' => $result['summary'],
+        ]);
+    }
+
+    public function removeCoupon(Request $request): Response
+    {
+        return $this->json((new CartService())->removeCoupon());
+    }
 }

@@ -13,6 +13,8 @@ $nav = [
     ['brands',     '/admin/brands',     'برندها',        '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/>'],
     ['tags',       '/admin/tags',       'برچسب‌ها',      '<path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'],
     ['orders',     '/admin/orders',     'سفارش‌ها',      '<path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>'],
+    ['coupons',    '/admin/coupons',    'کدهای تخفیف',   '<path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M9 9l6 6M9 15h.01M15 9h.01"/>'],
+    ['popups',     '/admin/popups',     'پاپ‌آپ‌ها',     '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/>'],
     ['customers',  '/admin/customers',  'مشتریان',       '<circle cx="9" cy="8" r="4"/><path d="M15 8a4 4 0 0 1 0 8M2 21c0-4 3.5-6 7-6s7 2 7 6M16 15c3 0 6 2 6 6"/>'],
     ['menus',      '/admin/menus',      'منوها',         '<path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/>'],
     ['blog',       '/admin/blog',       'مجله',          '<path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v5h5M8 13h8M8 17h5"/>'],

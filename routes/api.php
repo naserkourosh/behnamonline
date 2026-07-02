@@ -20,6 +20,8 @@ return static function (Router $router): void {
         $r->post('/api/cart', [CartApiController::class, 'add'], [VerifyCsrf::class]);
         $r->post('/api/cart/update', [CartApiController::class, 'update'], [VerifyCsrf::class]);
         $r->post('/api/cart/remove', [CartApiController::class, 'remove'], [VerifyCsrf::class]);
+        $r->post('/api/cart/coupon', [CartApiController::class, 'applyCoupon'], [VerifyCsrf::class]);
+        $r->post('/api/cart/coupon/remove', [CartApiController::class, 'removeCoupon'], [VerifyCsrf::class]);
 
         $r->get('/api/search', [SearchApiController::class, 'suggest']);
 

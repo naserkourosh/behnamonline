@@ -12,6 +12,7 @@ use App\Core\Session;
 use App\Core\Validator;
 use App\Repositories\AddressRepository;
 use App\Repositories\OrderRepository;
+use App\Repositories\PointTransactionRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\TicketRepository;
 use App\Repositories\UserRepository;
@@ -156,6 +157,17 @@ final class AccountController extends Controller
         $ids    = (new WishlistRepository())->productIds($userId);
         return $this->view('storefront/account/wishlist', [
             'products' => (new ProductRepository())->cardsByIds($ids),
+        ]);
+    }
+
+    public function points(Request $request): Response
+    {
+        $user = AuthService::user();
+        return $this->view('storefront/account/points', [
+            'user'         => $user,
+            'transactions' => (new PointTransactionRepository())->forUser((int) $user['id'], 50),
+            'earn_percent' => (float) setting('points_earn_percent', 0),
+            'enabled'      => (bool) setting('points_enabled', false),
         ]);
     }
 

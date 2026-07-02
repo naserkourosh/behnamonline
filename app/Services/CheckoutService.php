@@ -44,7 +44,21 @@ final class CheckoutService
         }
 
         $subtotal = (int) $summary['subtotal'];
-        $total    = $subtotal + $ship['cost'];
+
+        // Re-validate any applied coupon now that the customer is known
+        // (enforces per-user limits). Drop it silently if no longer valid.
+        $couponCode     = $this->cart->appliedCouponCode();
+        $couponDiscount = 0;
+        if ($couponCode !== null) {
+            $res = (new CouponService())->validate($couponCode, $subtotal, $userId);
+            if ($res['ok']) {
+                $couponDiscount = (int) $res['discount'];
+            } else {
+                $couponCode = null;
+            }
+        }
+
+        $total = max(0, $subtotal - $couponDiscount + $ship['cost']);
 
         // Create the order as PENDING/UNPAID. Stock is decremented and the
         // order settled only after the payment gateway confirms (PaymentService).
@@ -54,6 +68,8 @@ final class CheckoutService
             'status'         => 'pending',
             'subtotal'       => $subtotal,
             'discount'       => (int) $summary['savings'],
+            'coupon_code'    => $couponCode,
+            'coupon_discount'=> $couponDiscount,
             'shipping_cost'  => $ship['cost'],
             'total'          => $total,
             'shipping_method'=> $ship['label'],

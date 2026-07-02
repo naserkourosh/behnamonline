@@ -10,6 +10,8 @@ $labels = [
     'show_stock_qty'          => 'نمایش تعداد موجودی به مشتری',
     'low_stock_threshold'     => 'آستانه نمایش «تنها N عدد»',
     'flash_sale_ends_at'      => 'پایان پیشنهاد شگفت‌انگیز (YYYY-MM-DD HH:MM:SS)',
+    'points_enabled'          => 'فعال‌سازی باشگاه مشتریان (امتیازدهی)',
+    'points_earn_percent'     => 'درصد امتیاز از مبلغ هر سفارش',
 ];
 ?>
 <form method="post" action="<?= e(url('/admin/settings')) ?>" class="max-w-2xl">

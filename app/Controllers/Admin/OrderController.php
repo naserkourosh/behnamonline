@@ -95,6 +95,8 @@ final class OrderController extends AdminController
             if (!$tracking) {
                 $tracking = 'IR' . date('ymd') . random_int(10000, 99999);
             }
+            // Consume coupon + award loyalty points (idempotent per order).
+            (new \App\Services\PaymentService())->finalizePromotions($order);
             $templates = new \App\Repositories\SmsTemplateRepository();
             $sms->send((string) $order['mobile'], $templates->render(
                 'payment_confirmed',

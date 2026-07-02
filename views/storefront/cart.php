@@ -71,10 +71,20 @@ $items = $summary['items'];
                 </div>
 
                 <!-- coupon -->
-                <form class="js-coupon mt-4 flex gap-2.5 rounded-2xl border border-line2 bg-white p-3">
-                    <input class="flex-1 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[12px] outline-none" placeholder="کد تخفیف یا کارت هدیه">
-                    <button type="submit" class="rounded-xl bg-secondary px-5 text-[12.5px] font-bold text-white">ثبت</button>
-                </form>
+                <div id="js-coupon-box" class="mt-4 rounded-2xl border border-line2 bg-white p-3">
+                    <?php if (!empty($summary['coupon_code'])): ?>
+                        <div class="flex items-center justify-between">
+                            <div class="text-[12px] text-[#444]">✅ کد «<span class="font-bold text-success"><?= e($summary['coupon_code']) ?></span>» اعمال شد</div>
+                            <button type="button" class="js-coupon-remove text-[11.5px] font-semibold text-danger">حذف</button>
+                        </div>
+                    <?php else: ?>
+                        <form class="js-coupon flex gap-2.5">
+                            <input name="code" class="flex-1 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[12px] outline-none focus:border-secondary" placeholder="کد تخفیف یا کارت هدیه">
+                            <button type="submit" class="rounded-xl bg-secondary px-5 text-[12.5px] font-bold text-white">ثبت</button>
+                        </form>
+                        <?php if (!empty($summary['coupon_error'])): ?><p class="mt-2 text-[11px] text-danger"><?= e($summary['coupon_error']) ?></p><?php endif; ?>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <!-- summary -->
@@ -82,6 +92,7 @@ $items = $summary['items'];
                 <div class="rounded-2xl border border-line2 bg-white p-4 md:sticky md:top-44">
                     <div class="mb-3 flex justify-between text-[12.5px] text-[#666]"><span>جمع کالاها</span><span class="js-sum-gross nums"><?= money((int) $summary['gross']) ?> تومان</span></div>
                     <div class="mb-3 flex justify-between text-[12.5px] text-success"><span>تخفیف</span><span class="js-sum-savings nums">− <?= money((int) $summary['savings']) ?> تومان</span></div>
+                    <div class="js-sum-coupon-row mb-3 flex justify-between text-[12.5px] text-secondary <?= empty($summary['coupon_discount']) ? 'hidden' : '' ?>"><span>تخفیف کد <span class="js-sum-coupon-code font-bold"><?= e($summary['coupon_code'] ?? '') ?></span></span><span class="js-sum-coupon nums">− <?= money((int) ($summary['coupon_discount'] ?? 0)) ?> تومان</span></div>
                     <div class="mb-3 flex justify-between text-[12.5px] text-[#666]"><span>هزینه ارسال</span><span class="js-sum-shipping"><?= ((int) $summary['shipping']) === 0 ? '<span class="text-success">رایگان</span>' : money((int) $summary['shipping']) . ' تومان' ?></span></div>
                     <div class="my-3 h-px bg-line"></div>
                     <div class="flex items-center justify-between">

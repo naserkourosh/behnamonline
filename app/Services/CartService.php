@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Session;
 use App\Repositories\CartRepository;
 use App\Repositories\ProductRepository;
 
@@ -14,7 +15,8 @@ use App\Repositories\ProductRepository;
  */
 final class CartService
 {
-    private const COOKIE = 'behnam_cart';
+    private const COOKIE       = 'behnam_cart';
+    private const COUPON_KEY   = 'cart_coupon';
 
     private CartRepository $carts;
     private ProductRepository $products;
@@ -151,6 +153,21 @@ final class CartService
         $remaining  = max(0, $threshold - $net);
         $progress   = $threshold > 0 ? min(100, (int) round($net / $threshold * 100)) : 100;
 
+        // Apply a session-stored discount code against the current subtotal.
+        $couponCode     = null;
+        $couponDiscount = 0;
+        $couponError    = '';
+        $applied = Session::get(self::COUPON_KEY);
+        if (is_string($applied) && $applied !== '' && $count > 0) {
+            $res = (new CouponService())->validate($applied, $net, AuthService::id());
+            if ($res['ok']) {
+                $couponCode     = $applied;
+                $couponDiscount = (int) $res['discount'];
+            } else {
+                $couponError = $res['message'];
+            }
+        }
+
         return [
             'items'             => $lines,
             'count'             => $count,
@@ -158,12 +175,47 @@ final class CartService
             'savings'           => $savings,
             'subtotal'          => $net,
             'shipping'          => $shipping,
-            'total'             => $net + $shipping,
+            'coupon_code'       => $couponCode,
+            'coupon_discount'   => $couponDiscount,
+            'coupon_error'      => $couponError,
+            'total'             => max(0, $net - $couponDiscount + $shipping),
             'free_threshold'    => $threshold,
             'free_remaining'    => $remaining,
             'free_progress'     => $progress,
             'qualifies_free'    => $count > 0 && $net >= $threshold,
         ];
+    }
+
+    /**
+     * Store & validate a discount code for the current cart.
+     * @return array{ok:bool,message:string,summary:array<string,mixed>}
+     */
+    public function applyCoupon(string $code): array
+    {
+        $subtotal = (int) $this->summary()['subtotal'];
+        $res = (new CouponService())->validate($code, $subtotal, AuthService::id());
+        if ($res['ok']) {
+            Session::set(self::COUPON_KEY, strtoupper(trim($code)));
+        }
+        return ['ok' => $res['ok'], 'message' => $res['message'], 'summary' => $this->summary()];
+    }
+
+    /** @return array{ok:bool,summary:array<string,mixed>} */
+    public function removeCoupon(): array
+    {
+        Session::forget(self::COUPON_KEY);
+        return ['ok' => true, 'summary' => $this->summary()];
+    }
+
+    public function appliedCouponCode(): ?string
+    {
+        $c = Session::get(self::COUPON_KEY);
+        return is_string($c) && $c !== '' ? strtoupper($c) : null;
+    }
+
+    public function clearCoupon(): void
+    {
+        Session::forget(self::COUPON_KEY);
     }
 
     public function count(): int
@@ -179,6 +231,7 @@ final class CartService
         if ($cartId !== 0) {
             $this->carts->clear($cartId);
         }
+        $this->clearCoupon();
     }
 
     /**

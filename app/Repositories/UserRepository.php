@@ -43,6 +43,15 @@ final class UserRepository extends BaseRepository
         $this->execute('UPDATE users SET last_login_at = ? WHERE id = ?', [date('Y-m-d H:i:s'), $id]);
     }
 
+    /** Add (or subtract, when negative) reward points, clamped at zero. */
+    public function addPoints(int $id, int $points): void
+    {
+        $this->execute(
+            'UPDATE users SET reward_points = GREATEST(0, reward_points + ?), updated_at = ? WHERE id = ?',
+            [$points, date('Y-m-d H:i:s'), $id]
+        );
+    }
+
     /* ───────────────────────── Admin ───────────────────────── */
 
     /** @return list<array<string,mixed>> */
