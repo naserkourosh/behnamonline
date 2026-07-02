@@ -32,28 +32,57 @@ final class MediaController extends AdminController
         ], 'کتابخانه رسانه');
     }
 
+    /** JSON list of media files (for the editor's image manager). */
+    public function listJson(Request $request): Response
+    {
+        if (!\App\Services\AdminAuthService::can('media')) {
+            return $this->json(['ok' => false], 403);
+        }
+        $folder = preg_replace('/[^a-z0-9_-]/i', '', (string) $request->query('folder', '')) ?? '';
+        $items = [];
+        foreach ($this->media->list($folder, 120) as $m) {
+            $items[] = [
+                'path'     => $m['path'],
+                'url'      => asset((string) $m['path']),
+                'name'     => $m['name'],
+                'is_video' => $m['is_video'],
+            ];
+        }
+        return $this->json(['ok' => true, 'items' => $items, 'folders' => $this->media->folders()]);
+    }
+
     public function upload(Request $request): Response
     {
         if ($r = $this->guard('media')) {
             return $r;
         }
         $folder = trim((string) $request->input('folder', 'library')) ?: 'library';
-        $ok = 0;
+        $stored = [];
         $failed = 0;
 
         // Support single or multiple file inputs (name="files[]").
-        $files = $this->normalizeFiles();
-        foreach ($files as $file) {
-            if ($this->media->store($file, $folder) !== null) {
-                $ok++;
+        foreach ($this->normalizeFiles() as $file) {
+            $path = $this->media->store($file, $folder);
+            if ($path !== null) {
+                $stored[] = $path;
             } else {
                 $failed++;
             }
         }
 
-        if ($ok > 0) {
-            $this->audit($request, 'upload', 'media', null, $folder . ' ×' . $ok);
-            Session::flash('success', fa($ok) . ' فایل بارگذاری شد.' . ($failed ? ' ' . fa($failed) . ' فایل نامعتبر بود.' : ''));
+        if ($stored !== []) {
+            $this->audit($request, 'upload', 'media', null, $folder . ' ×' . count($stored));
+        }
+
+        // AJAX (editor image manager) → JSON with the uploaded file path.
+        if ($request->wantsJson()) {
+            return $this->json($stored !== []
+                ? ['ok' => true, 'path' => $stored[0], 'url' => asset($stored[0])]
+                : ['ok' => false, 'error' => 'فایل نامعتبر بود.'], $stored !== [] ? 200 : 422);
+        }
+
+        if ($stored !== []) {
+            Session::flash('success', fa(count($stored)) . ' فایل بارگذاری شد.' . ($failed ? ' ' . fa($failed) . ' فایل نامعتبر بود.' : ''));
         } else {
             Session::flash('error', 'هیچ فایل معتبری بارگذاری نشد (فرمت یا حجم نامعتبر).');
         }

@@ -19,7 +19,7 @@ $v = static fn (string $k, $d = '') => e($post[$k] ?? $d);
                 <div class="mb-4"><label class="<?= $lbl ?>">عنوان *</label><input name="title" value="<?= $v('title') ?>" class="<?= $inp ?>" required></div>
                 <div class="mb-4"><label class="<?= $lbl ?>">نامک (slug)</label><input name="slug" value="<?= $v('slug') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="به‌صورت خودکار ساخته می‌شود"></div>
                 <div class="mb-4"><label class="<?= $lbl ?>">خلاصه</label><textarea name="excerpt" rows="2" class="<?= $inp ?>"><?= e($post['excerpt'] ?? '') ?></textarea></div>
-                <div><label class="<?= $lbl ?>">متن کامل <span class="font-normal text-[#aaa]">(HTML مجاز)</span></label><textarea name="body" rows="12" class="<?= $inp ?>"><?= e($post['body'] ?? '') ?></textarea></div>
+                <div><label class="<?= $lbl ?>">متن کامل <span class="font-normal text-[#aaa]">(ویرایشگر متن)</span></label><textarea name="body" rows="12" class="js-wysiwyg <?= $inp ?>"><?= e($post['body'] ?? '') ?></textarea></div>
             </div>
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">سئو</h3>

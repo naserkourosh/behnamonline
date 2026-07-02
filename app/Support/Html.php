@@ -14,8 +14,8 @@ namespace App\Support;
 final class Html
 {
     private const ALLOWED_TAGS = [
-        'p', 'br', 'strong', 'b', 'em', 'i', 'u', 'ul', 'ol', 'li',
-        'h2', 'h3', 'h4', 'blockquote', 'span', 'a', 'table', 'thead',
+        'p', 'br', 'hr', 'strong', 'b', 'em', 'i', 'u', 's', 'ul', 'ol', 'li',
+        'h1', 'h2', 'h3', 'h4', 'blockquote', 'span', 'div', 'a', 'table', 'thead',
         'tbody', 'tr', 'td', 'th', 'img', 'figure', 'figcaption',
     ];
 

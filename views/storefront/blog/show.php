@@ -40,7 +40,7 @@ $currentUser = \App\Services\AuthService::user();
         <img src="<?= e($cover) ?>" alt="<?= e($post['title']) ?>" class="w-full object-cover">
     </div>
 
-    <div class="prose-fa mt-6 space-y-4 text-[14px] leading-8 text-[#333]">
+    <div class="rich mt-6 text-[14px] text-[#333]">
         <?= html_clean((string) $post['body']) ?>
     </div>
 

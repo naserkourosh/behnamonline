@@ -19,9 +19,10 @@ $lowAt     = (int) setting('low_stock_threshold', 5);
 $images    = $images !== [] ? $images : [['path' => 'assets/images/placeholder-product.svg', 'alt' => $p['name'], 'title' => $p['name']]];
 $mainImg   = $images[0];
 
+$shortText = trim(strip_tags((string) $p['short_desc']));
 $this->meta([
     'title'       => ($p['seo_title'] ?: $p['name'] . ' | بهنام'),
-    'description' => ($p['seo_description'] ?: $p['short_desc'] ?: $p['name']),
+    'description' => ($p['seo_description'] ?: $shortText ?: $p['name']),
     'og_image'    => asset((string) ($p['og_image'] ?: $mainImg['path'])),
 ]);
 
@@ -34,7 +35,7 @@ $this->push('json_ld', '<script type="application/ld+json">' . json_encode([
     'gtin'        => $p['barcode'],
     'brand'       => ['@type' => 'Brand', 'name' => $p['brand_name']],
     'image'       => asset((string) $mainImg['path']),
-    'description' => $p['short_desc'],
+    'description' => $shortText,
     'aggregateRating' => (int) $p['rating_count'] > 0 ? [
         '@type' => 'AggregateRating',
         'ratingValue' => (float) $p['rating_avg'],
@@ -122,6 +123,10 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
                 <span class="text-[11px] text-mauve">(<?= fa((int) $p['rating_count']) ?> دیدگاه)</span>
             </div>
 
+            <?php if ($shortText !== ''): ?>
+                <div class="rich mt-4 border-s-2 border-primary ps-3 text-[#666]"><?= html_clean((string) $p['short_desc']) ?></div>
+            <?php endif; ?>
+
             <?php if ($variants !== []): ?>
                 <div class="mt-5">
                     <div class="mb-2.5 text-[12px] text-[#666]">حجم / گزینه:</div>
@@ -175,45 +180,38 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
         </section>
     <?php endif; ?>
 
-    <!-- description / specs tabs -->
+    <!-- full description -->
+    <?php if (trim((string) $p['description']) !== ''): ?>
+        <section class="mt-9">
+            <h2 class="section-title mb-4">توضیحات محصول</h2>
+            <div class="rich max-w-3xl"><?= html_clean((string) $p['description']) ?></div>
+        </section>
+    <?php endif; ?>
+
+    <!-- technical specs (below the description) -->
     <section class="mt-9">
-        <div class="mb-4 flex gap-6 border-b border-line">
-            <button type="button" class="js-tab -mb-px border-b-2 border-secondary pb-2.5 text-[13px] font-bold text-secondary" data-tab="desc">توضیحات</button>
-            <button type="button" class="js-tab -mb-px border-b-2 border-transparent pb-2.5 text-[13px] font-bold text-[#bbb]" data-tab="specs">مشخصات فنی</button>
-        </div>
-        <div class="js-tab-panel" data-panel="desc">
-            <div class="max-w-3xl text-[13px] leading-8 text-[#555]"><?= html_clean((string) $p['description']) ?></div>
-        </div>
-        <div class="js-tab-panel hidden" data-panel="specs">
-            <div class="max-w-2xl overflow-hidden rounded-2xl border border-line">
-                <?php foreach ($attributes as $i => $attr): ?>
-                    <div class="flex justify-between px-4 py-3 text-[12.5px] <?= $i % 2 ? 'bg-surface' : 'bg-white' ?>">
-                        <span class="text-[#999]"><?= e($attr['attr_key']) ?></span>
-                        <span class="font-semibold text-[#333]"><?= e($attr['attr_value']) ?></span>
-                    </div>
-                <?php endforeach; ?>
-                <div class="flex justify-between px-4 py-3 text-[12.5px] <?= count($attributes) % 2 ? 'bg-surface' : 'bg-white' ?>">
-                    <span class="text-[#999]">موجودی</span>
-                    <span class="font-semibold text-[#333] nums"><?= $showQty ? fa($available) . ' عدد' : ($available > 0 ? 'موجود' : 'ناموجود') ?></span>
+        <h2 class="section-title mb-4">مشخصات فنی</h2>
+        <div class="max-w-2xl overflow-hidden rounded-2xl border border-line">
+            <?php foreach ($attributes as $i => $attr): ?>
+                <div class="flex justify-between px-4 py-3 text-[12.5px] <?= $i % 2 ? 'bg-surface' : 'bg-white' ?>">
+                    <span class="text-[#999]"><?= e($attr['attr_key']) ?></span>
+                    <span class="font-semibold text-[#333]"><?= e($attr['attr_value']) ?></span>
                 </div>
+            <?php endforeach; ?>
+            <div class="flex justify-between px-4 py-3 text-[12.5px] <?= count($attributes) % 2 ? 'bg-surface' : 'bg-white' ?>">
+                <span class="text-[#999]">موجودی</span>
+                <span class="font-semibold text-[#333] nums"><?= $showQty ? fa($available) . ' عدد' : ($available > 0 ? 'موجود' : 'ناموجود') ?></span>
             </div>
         </div>
     </section>
 
     <!-- frequently bought together -->
     <?php if ($fbt !== []): ?>
-        <section class="mt-9 rounded-3xl bg-surface p-5 md:p-7">
-            <h2 class="section-title mb-5">معمولاً با هم خریداری می‌شوند</h2>
-            <div class="flex flex-wrap items-stretch gap-3.5">
-                <?php foreach (array_merge([$p], $fbt) as $item):
-                    $img = $item['image'] ?? ($mainImg['path']); ?>
-                    <div class="w-[140px] flex-none">
-                        <?php // lightweight tile for the bundle ?>
-                        <div class="overflow-hidden rounded-xl2 border border-line2 bg-white">
-                            <div class="aspect-square bg-[#F3EBE2]"><img src="<?= e(asset((string) ($item['image'] ?? $mainImg['path']))) ?>" alt="<?= e($item['name']) ?>" loading="lazy" class="h-full w-full object-cover"></div>
-                            <div class="p-2 text-center text-[11px] font-bold text-secondary nums"><?= money((int) $item['price']) ?></div>
-                        </div>
-                    </div>
+        <section class="mt-9">
+            <h2 class="section-title mb-4">معمولاً با هم خریداری می‌شوند</h2>
+            <div class="hscroll -mx-4 flex gap-3.5 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
+                <?php foreach ($fbt as $product): ?>
+                    <div class="w-[150px] flex-none md:w-[210px]"><?php $this->partial('product-card', ['product' => $product]); ?></div>
                 <?php endforeach; ?>
             </div>
         </section>

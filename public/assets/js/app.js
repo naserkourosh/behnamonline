@@ -291,13 +291,6 @@
       $("body").append($box);
     });
 
-    // tabs
-    $(document).on("click", ".js-tab", function () {
-      var tab = $(this).data("tab");
-      $(".js-tab").removeClass("border-secondary text-secondary").addClass("border-transparent text-[#bbb]");
-      $(this).removeClass("border-transparent text-[#bbb]").addClass("border-secondary text-secondary");
-      $(".js-tab-panel").addClass("hidden").filter('[data-panel="' + tab + '"]').removeClass("hidden");
-    });
 
   }
 

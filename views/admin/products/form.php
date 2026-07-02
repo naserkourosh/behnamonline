@@ -22,8 +22,8 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <div class="mb-4"><label class="<?= $lbl ?>">نام محصول *</label><input name="name" value="<?= $v('name') ?>" class="<?= $inp ?>" required></div>
                 <div class="mb-4"><label class="<?= $lbl ?>">نامک (slug)</label><input name="slug" value="<?= $v('slug') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="به‌صورت خودکار از نام ساخته می‌شود"></div>
-                <div class="mb-4"><label class="<?= $lbl ?>">توضیح کوتاه</label><input name="short_desc" value="<?= $v('short_desc') ?>" class="<?= $inp ?>"></div>
-                <div><label class="<?= $lbl ?>">توضیحات کامل <span class="font-normal text-[#aaa]">(HTML مجاز + امبد آپارات)</span></label><textarea name="description" rows="6" class="<?= $inp ?>"><?= e($product['description'] ?? '') ?></textarea></div>
+                <div class="mb-4"><label class="<?= $lbl ?>">توضیح کوتاه <span class="font-normal text-[#aaa]">(می‌توانید فهرست ویژگی‌ها بنویسید)</span></label><textarea name="short_desc" rows="3" class="js-wysiwyg <?= $inp ?>" placeholder="مثلاً فهرست ویژگی‌های کلیدی محصول…"><?= e($product['short_desc'] ?? '') ?></textarea></div>
+                <div><label class="<?= $lbl ?>">توضیحات کامل <span class="font-normal text-[#aaa]">(HTML مجاز + امبد آپارات)</span></label><textarea name="description" rows="6" class="js-wysiwyg <?= $inp ?>"><?= e($product['description'] ?? '') ?></textarea></div>
                 <div class="mt-4"><label class="<?= $lbl ?>">لینک امبد ویدیو آپارات</label><input name="aparat_embed" value="<?= $v('aparat_embed') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="https://www.aparat.com/embed/..."></div>
             </div>
 

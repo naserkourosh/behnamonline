@@ -160,6 +160,7 @@ return static function (Router $router): void {
 
             // Media library
             $x->get('/admin/media', [AdminMediaController::class, 'index']);
+            $x->get('/admin/media/list', [AdminMediaController::class, 'listJson']);
             $x->post('/admin/media/upload', [AdminMediaController::class, 'upload'], [VerifyCsrf::class]);
             $x->post('/admin/media/delete', [AdminMediaController::class, 'delete'], [VerifyCsrf::class]);
 

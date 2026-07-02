@@ -129,4 +129,75 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* Rendered rich text: product descriptions, blog posts, short-desc features.
+     Restores list markers that Preflight strips, tuned for RTL. */
+  .rich {
+    @apply text-[13px] leading-8 text-[#555];
+  }
+  .rich p {
+    @apply mb-3;
+  }
+  .rich ul {
+    @apply mb-3 list-disc space-y-1 ps-5;
+  }
+  .rich ol {
+    @apply mb-3 list-decimal space-y-1 ps-5;
+  }
+  .rich li {
+    @apply leading-7;
+  }
+  .rich strong,
+  .rich b {
+    @apply font-bold text-[#333];
+  }
+  .rich a {
+    @apply text-secondary underline;
+  }
+  .rich h2,
+  .rich h3,
+  .rich h4 {
+    @apply mb-2 mt-4 font-bold text-secondary;
+  }
+  .rich h3 {
+    @apply text-[15px];
+  }
+  .rich blockquote {
+    @apply border-s-2 border-primary ps-3 text-[#777];
+  }
+
+  /* Lightweight WYSIWYG editor (admin) */
+  .wysiwyg-toolbar {
+    @apply flex flex-wrap gap-1 rounded-t-xl2 border border-b-0 border-line bg-surface p-1.5;
+  }
+  .wysiwyg-btn {
+    @apply flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-[12.5px] font-bold text-secondary transition hover:bg-pink;
+  }
+  .wysiwyg-area {
+    @apply min-h-[130px] w-full rounded-b-xl2 border border-line bg-white px-3.5 py-2.5 text-[13px] leading-7 text-ink outline-none focus:border-secondary;
+  }
+  .wysiwyg-area:empty::before {
+    content: attr(data-placeholder);
+    @apply text-mauve;
+  }
+  .wysiwyg-area img {
+    @apply my-1 inline-block max-w-full rounded-lg;
+    height: auto;
+  }
+  .rich img {
+    @apply my-2 max-w-full rounded-lg;
+    height: auto;
+  }
+  /* Source (HTML) mode textarea */
+  .wysiwyg-code {
+    @apply min-h-[150px] w-full rounded-b-xl2 border border-line px-3.5 py-2.5 text-[12px] leading-6 outline-none;
+    background: #1e1e2e;
+    color: #e6e6e6;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+  }
+  /* Dim non-source controls while editing raw HTML */
+  .js-wysiwyg-wrap.is-code .wysiwyg-toolbar > *:not(:last-child) {
+    opacity: 0.4;
+    pointer-events: none;
+  }
 }

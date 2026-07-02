@@ -237,7 +237,7 @@ final class ProductController extends AdminController
             'slug'                => slugify((string) $request->input('slug', '')),
             'sku'                 => trim((string) $request->input('sku', '')) ?: null,
             'barcode'             => trim((string) $request->input('barcode', '')) ?: null,
-            'short_desc'          => trim((string) $request->input('short_desc', '')) ?: null,
+            'short_desc'          => html_clean((string) $request->input('short_desc', '')) ?: null,
             'description'         => html_clean((string) $request->input('description', '')),
             'aparat_embed'        => trim((string) $request->input('aparat_embed', '')) ?: null,
             'price'               => $int($request->input('price', 0)),
