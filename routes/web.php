@@ -19,6 +19,7 @@ use App\Controllers\Admin\BrandController as AdminBrandController;
 use App\Controllers\Admin\CouponController as AdminCouponController;
 use App\Controllers\Admin\PopupController as AdminPopupController;
 use App\Controllers\Admin\FaqController as AdminFaqController;
+use App\Controllers\Admin\MediaController as AdminMediaController;
 use App\Controllers\Admin\TicketController as AdminTicketController;
 use App\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Controllers\Admin\CustomerController as AdminCustomerController;
@@ -156,6 +157,11 @@ return static function (Router $router): void {
             $x->post('/admin/menus', [AdminMenuController::class, 'store'], [VerifyCsrf::class]);
             $x->post('/admin/menus/{id}/items', [AdminMenuController::class, 'addItem'], [VerifyCsrf::class]);
             $x->post('/admin/menus/items/{id}/delete', [AdminMenuController::class, 'deleteItem'], [VerifyCsrf::class]);
+
+            // Media library
+            $x->get('/admin/media', [AdminMediaController::class, 'index']);
+            $x->post('/admin/media/upload', [AdminMediaController::class, 'upload'], [VerifyCsrf::class]);
+            $x->post('/admin/media/delete', [AdminMediaController::class, 'delete'], [VerifyCsrf::class]);
 
             // Coupons
             $x->get('/admin/coupons', [AdminCouponController::class, 'index']);

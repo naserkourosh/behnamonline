@@ -47,8 +47,45 @@
     $(".js-cart-title-count").text("(" + toFa(count) + ")");
   }
 
+  /* ── add-to-cart animation (fly image → cart, badge bump) ──── */
+  function cartTargetEl() {
+    var els = $("a[href$='/cart'], .js-cart-count").filter(":visible");
+    return els.length ? els.get(0) : null;
+  }
+  function bumpCart() {
+    if (!window.Element || !Element.prototype.animate) { return; }
+    var frames = [{ transform: "scale(1)" }, { transform: "scale(1.6)" }, { transform: "scale(1)" }];
+    $(".js-cart-count").each(function () { try { this.animate(frames, { duration: 450, easing: "ease-out" }); } catch (e) {} });
+    var t = cartTargetEl();
+    if (t) { try { t.animate([{ transform: "scale(1)" }, { transform: "scale(1.25)" }, { transform: "scale(1)" }], { duration: 450 }); } catch (e) {} }
+  }
+  function flyToCart($src) {
+    var target = cartTargetEl();
+    if (!$src || !$src.length || !target || !window.Element || !Element.prototype.animate) { bumpCart(); return; }
+    try {
+      var el = $src.get(0);
+      var s = el.getBoundingClientRect();
+      var t = target.getBoundingClientRect();
+      if (!s.width || !s.height) { bumpCart(); return; }
+      var clone = el.cloneNode(true);
+      clone.style.cssText = "position:fixed;z-index:100;margin:0;border-radius:14px;object-fit:cover;pointer-events:none;" +
+        "left:" + s.left + "px;top:" + s.top + "px;width:" + s.width + "px;height:" + s.height + "px;" +
+        "box-shadow:0 12px 34px rgba(92,45,70,.28)";
+      document.body.appendChild(clone);
+      var dx = (t.left + t.width / 2) - (s.left + s.width / 2);
+      var dy = (t.top + t.height / 2) - (s.top + s.height / 2);
+      var anim = clone.animate([
+        { transform: "translate(0,0) scale(1)", opacity: 1 },
+        { transform: "translate(" + (dx * 0.5) + "px," + (dy * 0.5 - 50) + "px) scale(0.6)", opacity: 0.95, offset: 0.6 },
+        { transform: "translate(" + dx + "px," + dy + "px) scale(0.12)", opacity: 0.2 }
+      ], { duration: 780, easing: "cubic-bezier(.5,-0.2,.7,1)" });
+      anim.onfinish = function () { clone.remove(); bumpCart(); };
+      anim.oncancel = function () { clone.remove(); };
+    } catch (e) { bumpCart(); }
+  }
+
   /* ── add to cart ─────────────────────────────────────────── */
-  function addToCart(productId, variantId, qty, $btn) {
+  function addToCart(productId, variantId, qty, $btn, $source) {
     if ($btn) { $btn.prop("disabled", true); }
     return api("POST", "/api/cart", {
       product_id: productId,
@@ -58,6 +95,7 @@
       .done(function (res) {
         if (res.ok) {
           updateCount(res.summary.count);
+          flyToCart($source);
           toast(res.message || "به سبد خرید اضافه شد.");
         } else {
           toast(res.message || res.error || "خطا در افزودن به سبد.", "error");
@@ -75,7 +113,7 @@
   // product-card "+" buttons
   $(document).on("click", ".js-add-cart", function () {
     var $b = $(this);
-    addToCart($b.data("id"), 0, 1, $b);
+    addToCart($b.data("id"), 0, 1, $b, $b.closest(".card-rise").find("a img").first());
   });
 
   /* ── wishlist (persisted for logged-in customers) ────────── */
@@ -233,7 +271,7 @@
     });
 
     $(document).on("click", ".js-pdp-add", function () {
-      addToCart(state.id, state.variant, state.qty, $(this));
+      addToCart(state.id, state.variant, state.qty, $(this), $("#js-gallery-main"));
     });
 
     // thumbnails
@@ -261,16 +299,6 @@
       $(".js-tab-panel").addClass("hidden").filter('[data-panel="' + tab + '"]').removeClass("hidden");
     });
 
-    // bundle add
-    $(document).on("click", ".js-add-bundle", function () {
-      var ids = String($(this).data("ids")).split(",").filter(Boolean);
-      var $b = $(this).prop("disabled", true);
-      var chain = $.Deferred().resolve();
-      ids.forEach(function (id) {
-        chain = chain.then(function () { return addToCart(parseInt(id, 10), 0, 1); });
-      });
-      chain.always(function () { $b.prop("disabled", false); toast("محصولات به سبد اضافه شدند."); });
-    });
   }
 
   /* ── cart page ───────────────────────────────────────────── */

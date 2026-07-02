@@ -216,11 +216,6 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
                     </div>
                 <?php endforeach; ?>
             </div>
-            <?php $bundleTotal = (int) $p['price'] + array_sum(array_map(static fn ($i) => (int) $i['price'], $fbt)); ?>
-            <button type="button" class="js-add-bundle btn-primary mt-5 w-full py-3.5 text-[13px] md:w-auto md:px-8"
-                    data-ids="<?= e(implode(',', array_merge([(int) $p['id']], array_map(static fn ($i) => (int) $i['id'], $fbt)))) ?>">
-                افزودن همه به سبد · <?= money($bundleTotal) ?> تومان
-            </button>
         </section>
     <?php endif; ?>
 

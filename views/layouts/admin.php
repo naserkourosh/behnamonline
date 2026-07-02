@@ -17,6 +17,7 @@ $nav = [
     ['popups',     '/admin/popups',     'پاپ‌آپ‌ها',     '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/>'],
     ['customers',  '/admin/customers',  'مشتریان',       '<circle cx="9" cy="8" r="4"/><path d="M15 8a4 4 0 0 1 0 8M2 21c0-4 3.5-6 7-6s7 2 7 6M16 15c3 0 6 2 6 6"/>'],
     ['menus',      '/admin/menus',      'منوها',         '<path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/>'],
+    ['media',      '/admin/media',      'کتابخانه رسانه','<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'],
     ['blog',       '/admin/blog',       'مجله',          '<path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v5h5M8 13h8M8 17h5"/>'],
     ['support',    '/admin/tickets',    'تیکت‌ها',       '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>'],
     ['support',    '/admin/faq',        'سوالات متداول', '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>'],

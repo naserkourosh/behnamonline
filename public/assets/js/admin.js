@@ -73,6 +73,25 @@
     });
   });
 
+  /* Media library: copy a file's web path */
+  $(document).on("click", ".js-copy-path", function () {
+    var $b = $(this);
+    var path = "/" + String($b.data("path") || "").replace(/^\/+/, "");
+    var done = function () {
+      var t = $b.text();
+      $b.text("کپی شد ✓");
+      setTimeout(function () { $b.text(t); }, 1200);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(path).then(done, done);
+    } else {
+      var $tmp = $("<input>").val(path).appendTo("body").select();
+      try { document.execCommand("copy"); } catch (e) {}
+      $tmp.remove();
+      done();
+    }
+  });
+
   /* Menu builder: quick-fill from category */
   $(document).on("change", ".js-menu-cat", function () {
     var $opt = $(this).find("option:selected");
