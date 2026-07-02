@@ -8,6 +8,7 @@ $adminUser = admin();
 
 $nav = [
     ['dashboard',  '/admin',            'داشبورد',       '<rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="5" rx="1"/><rect x="13" y="10" width="8" height="11" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/>'],
+    ['reports',    '/admin/reports',    'گزارش‌ها و آمار','<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke-linecap="round"/>'],
     ['products',   '/admin/products',   'محصولات',       '<path d="M20 7l-8-4-8 4 8 4 8-4zM4 7v10l8 4 8-4V7M12 11v10"/>'],
     ['categories', '/admin/categories', 'دسته‌بندی‌ها',  '<path d="M3 7h7l2 2h9v9a2 2 0 0 1-2 2H3z"/>'],
     ['brands',     '/admin/brands',     'برندها',        '<circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/>'],
@@ -17,12 +18,15 @@ $nav = [
     ['popups',     '/admin/popups',     'پاپ‌آپ‌ها',     '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/>'],
     ['customers',  '/admin/customers',  'مشتریان',       '<circle cx="9" cy="8" r="4"/><path d="M15 8a4 4 0 0 1 0 8M2 21c0-4 3.5-6 7-6s7 2 7 6M16 15c3 0 6 2 6 6"/>'],
     ['menus',      '/admin/menus',      'منوها',         '<path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/>'],
+    ['banners',    '/admin/banners',    'بنرها',         '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.6"/><path d="M21 16l-5-4-4 3-3-2-6 4"/>'],
     ['media',      '/admin/media',      'کتابخانه رسانه','<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'],
     ['blog',       '/admin/blog',       'مجله',          '<path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v5h5M8 13h8M8 17h5"/>'],
     ['support',    '/admin/tickets',    'تیکت‌ها',       '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>'],
     ['support',    '/admin/faq',        'سوالات متداول', '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>'],
     ['accounting', '/admin/accounting', 'حسابداری',      '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/>'],
+    ['shipping',   '/admin/shipping',   'ارسال و مناطق', '<path d="M3 7h11v8H3zM14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/>'],
     ['sms',        '/admin/sms',        'پیامک‌ها',      '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'],
+    ['staff',      '/admin/staff',      'کاربران مدیریت','<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0M16 5.5a3 3 0 0 1 0 6M17.5 20a5.5 5.5 0 0 0-3-4.9"/>'],
     ['settings',   '/admin/settings',   'تنظیمات',       '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.6-2-3.4-2.3 1a7 7 0 0 0-1.7-1l-.4-2.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.6a7 7 0 0 0 0 2l-2 1.6 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.6a7 7 0 0 0 .1-1z"/>'],
 ];
 $isActive = static function (string $href) use ($path): bool {

@@ -14,9 +14,13 @@ use App\Controllers\Storefront\PaymentController;
 use App\Controllers\Storefront\ProductController;
 use App\Controllers\Admin\AccountingController as AdminAccountingController;
 use App\Controllers\Admin\AuthController as AdminAuthController;
+use App\Controllers\Admin\BannerController as AdminBannerController;
 use App\Controllers\Admin\BlogController as AdminBlogController;
 use App\Controllers\Admin\BrandController as AdminBrandController;
 use App\Controllers\Admin\CouponController as AdminCouponController;
+use App\Controllers\Admin\ReportController as AdminReportController;
+use App\Controllers\Admin\ShippingController as AdminShippingController;
+use App\Controllers\Admin\StaffController as AdminStaffController;
 use App\Controllers\Admin\PopupController as AdminPopupController;
 use App\Controllers\Admin\FaqController as AdminFaqController;
 use App\Controllers\Admin\MediaController as AdminMediaController;
@@ -109,6 +113,9 @@ return static function (Router $router): void {
         $r->group([RequireAdmin::class], static function (Router $x): void {
             $x->get('/admin', [AdminDashboardController::class, 'index']);
 
+            // Reports & analytics
+            $x->get('/admin/reports', [AdminReportController::class, 'index']);
+
             // Products
             $x->get('/admin/products', [AdminProductController::class, 'index']);
             $x->get('/admin/products/create', [AdminProductController::class, 'create']);
@@ -179,6 +186,30 @@ return static function (Router $router): void {
             $x->get('/admin/popups/{id}/edit', [AdminPopupController::class, 'edit']);
             $x->post('/admin/popups/{id}', [AdminPopupController::class, 'update'], [VerifyCsrf::class]);
             $x->post('/admin/popups/{id}/delete', [AdminPopupController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // Banners
+            $x->get('/admin/banners', [AdminBannerController::class, 'index']);
+            $x->get('/admin/banners/create', [AdminBannerController::class, 'create']);
+            $x->post('/admin/banners', [AdminBannerController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/banners/{id}/edit', [AdminBannerController::class, 'edit']);
+            $x->post('/admin/banners/{id}', [AdminBannerController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/banners/{id}/delete', [AdminBannerController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // Shipping zones / methods
+            $x->get('/admin/shipping', [AdminShippingController::class, 'index']);
+            $x->get('/admin/shipping/create', [AdminShippingController::class, 'create']);
+            $x->post('/admin/shipping', [AdminShippingController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/shipping/{id}/edit', [AdminShippingController::class, 'edit']);
+            $x->post('/admin/shipping/{id}', [AdminShippingController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/shipping/{id}/delete', [AdminShippingController::class, 'destroy'], [VerifyCsrf::class]);
+
+            // Staff & roles (RBAC)
+            $x->get('/admin/staff', [AdminStaffController::class, 'index']);
+            $x->get('/admin/staff/create', [AdminStaffController::class, 'create']);
+            $x->post('/admin/staff', [AdminStaffController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/staff/{id}/edit', [AdminStaffController::class, 'edit']);
+            $x->post('/admin/staff/{id}', [AdminStaffController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/staff/{id}/delete', [AdminStaffController::class, 'destroy'], [VerifyCsrf::class]);
 
             // Blog / magazine
             $x->get('/admin/blog', [AdminBlogController::class, 'index']);

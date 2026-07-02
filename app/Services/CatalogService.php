@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Repositories\BannerRepository;
 use App\Repositories\BrandRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\ProductRepository;
@@ -46,13 +47,17 @@ final class CatalogService
             }
         }
 
+        $banners = new BannerRepository();
+
         return [
-            'categories' => $categories,
-            'flashSale'  => $this->products->flashSale(8),
-            'sections'   => $sections,
-            'brands'     => $this->brands->allActive(),
-            'reviews'    => $this->reviews->latestApproved(6),
-            'posts'      => $this->demoPosts(),
+            'categories'   => $categories,
+            'flashSale'    => $this->products->flashSale(8),
+            'sections'     => $sections,
+            'brands'       => $this->brands->allActive(),
+            'reviews'      => $this->reviews->latestApproved(6),
+            'posts'        => $this->demoPosts(),
+            'heroBanners'  => $banners->activeByPlacement('hero', 6),
+            'promoBanners' => $banners->activeByPlacement('promo', 2),
         ];
     }
 

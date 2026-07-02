@@ -23,11 +23,33 @@ $this->push('json_ld', '<script type="application/ld+json">' . json_encode([
     ],
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>');
 
-$slides = [
-    ['kicker' => 'مجموعه‌ی جدید بهار', 't1' => 'درخششی که', 't2' => 'شایسته‌ی شماست', 'sub' => 'محصولات اصل آرایشی و مراقبتی، با ضمانت اصالت', 'grad' => 'linear-gradient(155deg,#F4E4E6 0%,#EAD0D4 55%,#E8C5C8 100%)'],
-    ['kicker' => 'عطرهای لوکس', 't1' => 'رایحه‌ای', 't2' => 'به‌یادماندنی', 'sub' => 'مجموعه‌ی عطرهای زنانه‌ی اصل و ماندگار', 'grad' => 'linear-gradient(155deg,#EFE6DC 0%,#E4D3C4 55%,#D8BFA8 100%)'],
-    ['kicker' => 'مراقبت پوست', 't1' => 'پوستی سالم،', 't2' => 'احساسی تازه', 'sub' => 'با برندهای معتبر جهانی و قیمت ویژه', 'grad' => 'linear-gradient(155deg,#E9E0E6 0%,#D9C7D2 55%,#C9AEC0 100%)'],
-];
+/** @var list<array<string,mixed>> $heroBanners */
+/** @var list<array<string,mixed>> $promoBanners */
+$heroBanners = $heroBanners ?? [];
+$promoBanners = $promoBanners ?? [];
+
+// Admin-managed hero banners take priority; otherwise use the built-in slides.
+if ($heroBanners !== []) {
+    $slides = [];
+    foreach ($heroBanners as $b) {
+        $slides[] = [
+            'kicker' => (string) ($b['kicker'] ?? ''),
+            't1'     => (string) $b['title'],
+            't2'     => (string) ($b['subtitle'] ?? ''),
+            'sub'    => (string) ($b['subtitle'] ?? ''),
+            'cta'    => (string) ($b['cta_label'] ?? 'خرید اکنون') ?: 'خرید اکنون',
+            'href'   => (string) ($b['link_url'] ?? '/category') ?: '/category',
+            'image'  => !empty($b['image']) ? asset((string) $b['image']) : null,
+            'grad'   => (string) ($b['bg_color'] ?? '') ?: 'linear-gradient(155deg,#F4E4E6 0%,#EAD0D4 55%,#E8C5C8 100%)',
+        ];
+    }
+} else {
+    $slides = [
+        ['kicker' => 'مجموعه‌ی جدید بهار', 't1' => 'درخششی که', 't2' => 'شایسته‌ی شماست', 'sub' => 'محصولات اصل آرایشی و مراقبتی، با ضمانت اصالت', 'grad' => 'linear-gradient(155deg,#F4E4E6 0%,#EAD0D4 55%,#E8C5C8 100%)', 'cta' => 'خرید اکنون', 'href' => '/category', 'image' => null],
+        ['kicker' => 'عطرهای لوکس', 't1' => 'رایحه‌ای', 't2' => 'به‌یادماندنی', 'sub' => 'مجموعه‌ی عطرهای زنانه‌ی اصل و ماندگار', 'grad' => 'linear-gradient(155deg,#EFE6DC 0%,#E4D3C4 55%,#D8BFA8 100%)', 'cta' => 'خرید اکنون', 'href' => '/category', 'image' => null],
+        ['kicker' => 'مراقبت پوست', 't1' => 'پوستی سالم،', 't2' => 'احساسی تازه', 'sub' => 'با برندهای معتبر جهانی و قیمت ویژه', 'grad' => 'linear-gradient(155deg,#E9E0E6 0%,#D9C7D2 55%,#C9AEC0 100%)', 'cta' => 'خرید اکنون', 'href' => '/category', 'image' => null],
+    ];
+}
 
 $flashEnds = (string) setting('flash_sale_ends_at', date('Y-m-d H:i:s', time() + 7200));
 $remaining = max(0, strtotime($flashEnds) - time());
@@ -45,15 +67,15 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
     <div class="grid gap-5 md:grid-cols-[1fr_360px]">
         <div class="js-hero relative h-[368px] overflow-hidden rounded-[22px] md:h-[440px] md:rounded-4xl" data-autoplay="1">
             <?php foreach ($slides as $i => $sl): ?>
-                <a href="<?= e(url('/category')) ?>"
-                   class="hero-slide absolute inset-0 flex flex-col justify-end p-6 transition-opacity duration-700 md:justify-center md:px-14 <?= $i === 0 ? 'opacity-100' : 'opacity-0' ?>"
-                   style="background:<?= $sl['grad'] ?>" <?= $i === 0 ? '' : 'aria-hidden="true"' ?>>
+                <a href="<?= e(url((string) $sl['href'])) ?>"
+                   class="hero-slide absolute inset-0 flex flex-col justify-end bg-cover bg-center p-6 transition-opacity duration-700 md:justify-center md:px-14 <?= $i === 0 ? 'opacity-100' : 'opacity-0' ?>"
+                   style="background:<?= !empty($sl['image']) ? "url('" . e((string) $sl['image']) . "') center/cover no-repeat" : $sl['grad'] ?>" <?= $i === 0 ? '' : 'aria-hidden="true"' ?>>
                     <div class="absolute inset-0 bg-gradient-to-t from-secondary/50 to-transparent md:bg-gradient-to-l md:from-transparent md:to-secondary/10"></div>
                     <div class="relative max-w-[460px]">
-                        <div class="mb-2.5 pr-[0.32em] text-[10px] tracking-[0.32em] text-white/90 md:mb-4 md:text-[12px]"><?= e($sl['kicker']) ?></div>
-                        <h2 class="mb-2 text-[30px] font-light leading-snug text-white md:text-[46px]"><?= e($sl['t1']) ?> <span class="font-bold"><?= e($sl['t2']) ?></span></h2>
-                        <p class="mb-4 text-[12.5px] leading-7 text-white/90 md:mb-7 md:text-[15px]"><?= e($sl['sub']) ?></p>
-                        <span class="inline-block rounded-full bg-white px-7 py-3 text-[13px] font-bold text-secondary shadow-card md:text-[14px]">خرید اکنون</span>
+                        <?php if ($sl['kicker'] !== ''): ?><div class="mb-2.5 pr-[0.32em] text-[10px] tracking-[0.32em] text-white/90 md:mb-4 md:text-[12px]"><?= e($sl['kicker']) ?></div><?php endif; ?>
+                        <h2 class="mb-2 text-[30px] font-light leading-snug text-white md:text-[46px]"><?= e($sl['t1']) ?><?php if (($sl['t2'] ?? '') !== '' && $sl['t2'] !== $sl['sub']): ?> <span class="font-bold"><?= e($sl['t2']) ?></span><?php endif; ?></h2>
+                        <?php if (($sl['sub'] ?? '') !== ''): ?><p class="mb-4 text-[12.5px] leading-7 text-white/90 md:mb-7 md:text-[15px]"><?= e($sl['sub']) ?></p><?php endif; ?>
+                        <span class="inline-block rounded-full bg-white px-7 py-3 text-[13px] font-bold text-secondary shadow-card md:text-[14px]"><?= e((string) ($sl['cta'] ?? 'خرید اکنون')) ?></span>
                     </div>
                 </a>
             <?php endforeach; ?>
@@ -65,16 +87,30 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
         </div>
 
         <div class="hidden grid-rows-2 gap-5 md:grid">
-            <a href="<?= e(url('/category/perfume')) ?>" class="card-rise relative flex flex-col justify-center overflow-hidden rounded-4xl p-6" style="background:linear-gradient(140deg,#EFE3D4,#E2CBB4)">
-                <div class="mb-2 text-[11px] font-bold text-[#8a6a4a]">عطر و ادکلن</div>
-                <div class="text-[22px] font-bold leading-relaxed text-[#5a3a1e]">تا ۴۰٪ تخفیف</div>
-                <div class="mt-2 text-[12px] text-[#8a6a4a]">مشاهده ›</div>
-            </a>
-            <a href="<?= e(url('/category/skincare')) ?>" class="card-rise relative flex flex-col justify-center overflow-hidden rounded-4xl p-6" style="background:linear-gradient(140deg,#E9DDE5,#D4BCCB)">
-                <div class="mb-2 text-[11px] font-bold text-[#7c5070]">مراقبت پوست</div>
-                <div class="text-[22px] font-bold leading-relaxed text-secondary">کالکشن جدید</div>
-                <div class="mt-2 text-[12px] text-[#7c5070]">مشاهده ›</div>
-            </a>
+            <?php if ($promoBanners !== []): ?>
+                <?php foreach (array_slice($promoBanners, 0, 2) as $pb):
+                    $bg = !empty($pb['image']) ? "url('" . e(asset((string) $pb['image'])) . "') center/cover no-repeat" : ((string) ($pb['bg_color'] ?? '') ?: 'linear-gradient(140deg,#EFE3D4,#E2CBB4)'); ?>
+                    <a href="<?= e(url((string) ($pb['link_url'] ?? '/category') ?: '/category')) ?>" class="card-rise relative flex flex-col justify-center overflow-hidden rounded-4xl p-6 text-white" style="background:<?= $bg ?>">
+                        <?php if (!empty($pb['image'])): ?><div class="absolute inset-0 bg-secondary/25"></div><?php endif; ?>
+                        <div class="relative">
+                            <?php if (!empty($pb['kicker'])): ?><div class="mb-2 text-[11px] font-bold text-white/90"><?= e($pb['kicker']) ?></div><?php endif; ?>
+                            <div class="text-[22px] font-bold leading-relaxed"><?= e($pb['title']) ?></div>
+                            <div class="mt-2 text-[12px] text-white/90"><?= e((string) ($pb['cta_label'] ?? 'مشاهده') ?: 'مشاهده') ?> ›</div>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <a href="<?= e(url('/category/perfume')) ?>" class="card-rise relative flex flex-col justify-center overflow-hidden rounded-4xl p-6" style="background:linear-gradient(140deg,#EFE3D4,#E2CBB4)">
+                    <div class="mb-2 text-[11px] font-bold text-[#8a6a4a]">عطر و ادکلن</div>
+                    <div class="text-[22px] font-bold leading-relaxed text-[#5a3a1e]">تا ۴۰٪ تخفیف</div>
+                    <div class="mt-2 text-[12px] text-[#8a6a4a]">مشاهده ›</div>
+                </a>
+                <a href="<?= e(url('/category/skincare')) ?>" class="card-rise relative flex flex-col justify-center overflow-hidden rounded-4xl p-6" style="background:linear-gradient(140deg,#E9DDE5,#D4BCCB)">
+                    <div class="mb-2 text-[11px] font-bold text-[#7c5070]">مراقبت پوست</div>
+                    <div class="text-[22px] font-bold leading-relaxed text-secondary">کالکشن جدید</div>
+                    <div class="mt-2 text-[12px] text-[#7c5070]">مشاهده ›</div>
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </section>
