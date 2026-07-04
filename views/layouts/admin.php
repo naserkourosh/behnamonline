@@ -43,6 +43,7 @@ $isActive = static function (string $href) use ($path): bool {
     <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>">
 </head>
 <body class="bg-[#F4F2F4] font-sans text-ink">
+<?php $this->partial('loader'); ?>
 <div class="flex min-h-screen">
     <!-- Sidebar -->
     <aside class="js-admin-sidebar fixed inset-y-0 right-0 z-50 w-64 -translate-x-0 overflow-y-auto border-l border-line bg-white transition-transform md:static md:translate-x-0 max-md:translate-x-full max-md:shadow-2xl">

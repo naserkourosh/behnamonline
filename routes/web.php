@@ -105,6 +105,7 @@ return static function (Router $router): void {
 
         // ── Admin authentication ──
         $r->get('/admin/login', [AdminAuthController::class, 'showLogin']);
+        $r->get('/admin/captcha', [AdminAuthController::class, 'captcha']);
         $r->post('/admin/login', [AdminAuthController::class, 'login'], [VerifyCsrf::class]);
         $r->post('/admin/logout', [AdminAuthController::class, 'logout'], [VerifyCsrf::class]);
 

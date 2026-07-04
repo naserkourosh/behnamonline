@@ -229,9 +229,17 @@ final class ProductRepository extends BaseRepository
 
         $q = trim((string) ($filters['q'] ?? ''));
         if ($q !== '') {
-            $clauses[] = '(p.name LIKE ? OR p.sku LIKE ?)';
-            $params[]  = '%' . $q . '%';
-            $params[]  = '%' . $q . '%';
+            // Fast name match via the ngram FULLTEXT index; SKU by prefix (indexed).
+            $ft = self::ftBoolean($q);
+            if ($ft !== null) {
+                $clauses[] = '(MATCH (p.name) AGAINST (? IN BOOLEAN MODE) OR p.sku LIKE ?)';
+                $params[]  = $ft;
+                $params[]  = $q . '%';
+            } else {
+                $clauses[] = '(p.name LIKE ? OR p.sku LIKE ?)';
+                $params[]  = '%' . $q . '%';
+                $params[]  = '%' . $q . '%';
+            }
         }
         if (!empty($filters['category'])) {
             $clauses[] = 'EXISTS (SELECT 1 FROM product_categories pc WHERE pc.product_id = p.id AND pc.category_id = ?)';
@@ -499,13 +507,41 @@ final class ProductRepository extends BaseRepository
             $clauses[] = 'p.is_new = 1';
         }
         if (!empty($filters['search'])) {
-            $term      = '%' . trim((string) $filters['search']) . '%';
-            $clauses[] = '(p.name LIKE ? OR p.sku LIKE ? OR b.name LIKE ?)';
-            $params[]  = $term;
-            $params[]  = $term;
-            $params[]  = $term;
+            // Customer-facing search: ngram FULLTEXT on the product name (no
+            // leading-wildcard full scan). Falls back to LIKE for 1-char terms.
+            $search = trim((string) $filters['search']);
+            $ft = self::ftBoolean($search);
+            if ($ft !== null) {
+                $clauses[] = 'MATCH (p.name) AGAINST (? IN BOOLEAN MODE)';
+                $params[]  = $ft;
+            } else {
+                $clauses[] = 'p.name LIKE ?';
+                $params[]  = '%' . $search . '%';
+            }
         }
 
         return [implode(' AND ', $clauses), $params];
+    }
+
+    /**
+     * Build a safe BOOLEAN-mode FULLTEXT term from user input: strips the
+     * boolean operators so input can't break the query, then requires each
+     * word (≥2 chars, the ngram token size) as a prefix match. Returns null
+     * when nothing usable remains (caller should fall back to LIKE).
+     */
+    private static function ftBoolean(string $q): ?string
+    {
+        $clean = preg_replace('/[+\-@><()~*"]+/u', ' ', $q) ?? '';
+        $clean = trim((string) preg_replace('/\s+/u', ' ', $clean));
+        if ($clean === '') {
+            return null;
+        }
+        $tokens = [];
+        foreach (explode(' ', $clean) as $tok) {
+            if (mb_strlen($tok) >= 2) {
+                $tokens[] = '+' . $tok . '*';
+            }
+        }
+        return $tokens === [] ? null : implode(' ', $tokens);
     }
 }

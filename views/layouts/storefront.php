@@ -45,6 +45,8 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
 </head>
 <body class="min-h-screen bg-white pb-[78px] md:pb-0">
 
+    <?php $this->partial('loader'); ?>
+
     <?php if (setting('show_announcement', true)): ?>
         <div class="bg-secondary px-3 py-2 text-center text-[11.5px] tracking-wide text-[#F6E9EC] md:text-[13px]">
             <?= e(setting('announcement_text', 'ارسال رایگان سفارش‌های بالای ۵۰۰ هزار تومان')) ?>

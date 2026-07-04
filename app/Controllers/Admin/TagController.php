@@ -23,7 +23,10 @@ final class TagController extends AdminController
         if ($r = $this->guard('tags')) {
             return $r;
         }
-        return $this->adminView('admin/tags/index', ['items' => $this->repo->allWithCounts()], 'برچسب‌ها');
+        return $this->adminView('admin/tags/index', [
+            'items'  => $this->repo->allWithCounts(),
+            'groups' => $this->repo->groups(),
+        ], 'برچسب‌ها');
     }
 
     public function store(Request $request): Response
@@ -36,8 +39,9 @@ final class TagController extends AdminController
             Session::flash('error', 'نام برچسب الزامی است.');
             return $this->redirect(url('/admin/tags'));
         }
-        $slug = $this->uniqueSlug($name, 0);
-        $id = $this->repo->insert($name, $slug);
+        $slug  = $this->uniqueSlug($name, 0);
+        $group = trim((string) $request->input('tag_group', '')) ?: null;
+        $id = $this->repo->insert($name, $slug, $group);
         $this->audit($request, 'create', 'tag', $id, $name);
         Session::flash('success', 'برچسب افزوده شد.');
         return $this->redirect(url('/admin/tags'));
@@ -58,7 +62,8 @@ final class TagController extends AdminController
             Session::flash('error', 'نام برچسب الزامی است.');
             return $this->redirect(url('/admin/tags'));
         }
-        $this->repo->update($id, $name, $this->uniqueSlug($name, $id));
+        $group = trim((string) $request->input('tag_group', '')) ?: null;
+        $this->repo->update($id, $name, $this->uniqueSlug($name, $id), $group);
         Session::flash('success', 'برچسب ویرایش شد.');
         return $this->redirect(url('/admin/tags'));
     }

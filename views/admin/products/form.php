@@ -123,15 +123,26 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
                 </div>
             </div>
 
-            <?php if ($tags !== []): ?>
+            <?php if ($tags !== []):
+                $tagGroups = [];
+                foreach ($tags as $t) { $g = trim((string) ($t['tag_group'] ?? '')) ?: 'سایر'; $tagGroups[$g][] = $t; }
+            ?>
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">برچسب‌ها</h3>
-                <div class="flex flex-wrap gap-2">
-                    <?php foreach ($tags as $t): $on = in_array((int) $t['id'], $tagIds, true); ?>
-                        <label class="cursor-pointer">
-                            <input type="checkbox" name="tags[]" value="<?= (int) $t['id'] ?>" class="peer sr-only" <?= $on ? 'checked' : '' ?>>
-                            <span class="inline-block rounded-lg border px-3 py-1.5 text-[11.5px] transition peer-checked:border-secondary peer-checked:bg-pink peer-checked:text-secondary <?= $on ? 'border-secondary bg-pink text-secondary' : 'border-line text-[#777]' ?>"><?= e($t['name']) ?></span>
-                        </label>
+                <input type="text" class="js-tag-filter <?= $inp ?> mb-3" placeholder="جستجوی برچسب…">
+                <div class="js-tag-groups max-h-72 space-y-3 overflow-y-auto pe-1">
+                    <?php foreach ($tagGroups as $groupName => $rows): ?>
+                        <div class="js-tag-group">
+                            <div class="mb-1.5 text-[11px] font-bold text-mauve"><?= e($groupName) ?></div>
+                            <div class="flex flex-wrap gap-2">
+                                <?php foreach ($rows as $t): $on = in_array((int) $t['id'], $tagIds, true); ?>
+                                    <label class="js-tag-item cursor-pointer" data-name="<?= e($t['name']) ?>">
+                                        <input type="checkbox" name="tags[]" value="<?= (int) $t['id'] ?>" class="peer sr-only" <?= $on ? 'checked' : '' ?>>
+                                        <span class="inline-block rounded-lg border px-3 py-1.5 text-[11.5px] transition peer-checked:border-secondary peer-checked:bg-pink peer-checked:text-secondary <?= $on ? 'border-secondary bg-pink text-secondary' : 'border-line text-[#777]' ?>"><?= e($t['name']) ?></span>
+                                    </label>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                     <?php endforeach; ?>
                 </div>
             </div>

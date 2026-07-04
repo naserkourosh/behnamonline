@@ -28,10 +28,26 @@
                     <label class="mb-1.5 block text-[12px] text-[#888]">رمز عبور</label>
                     <input name="password" type="password" class="w-full rounded-xl2 border border-line bg-surface px-4 py-3 text-[13px] outline-none focus:border-secondary" placeholder="••••••••">
                 </div>
+                <div>
+                    <label class="mb-1.5 block text-[12px] text-[#888]">کد امنیتی</label>
+                    <div class="flex items-center gap-2">
+                        <input name="captcha" autocomplete="off" inputmode="latin" dir="ltr" class="w-full rounded-xl2 border border-line bg-surface px-4 py-3 text-center text-[15px] font-bold tracking-[0.3em] outline-none focus:border-secondary" placeholder="------" required>
+                        <img id="captcha-img" src="<?= e(url('/admin/captcha')) ?>" width="120" height="42" alt="کد امنیتی" class="h-[42px] flex-none rounded-lg border border-line">
+                        <button type="button" id="captcha-reload" title="کد جدید" class="flex-none rounded-lg border border-line px-2.5 py-2 text-secondary hover:bg-pink">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </button>
+                    </div>
+                </div>
                 <button type="submit" class="btn-primary w-full py-3.5 text-[14px]">ورود</button>
             </form>
         </div>
         <div class="mt-4 text-center text-[11px] text-[#aaa]">بازگشت به <a href="<?= e(url('/')) ?>" class="text-secondary">فروشگاه</a></div>
     </div>
+    <script>
+        (function () {
+            var b = document.getElementById('captcha-reload'), img = document.getElementById('captcha-img');
+            if (b && img) { b.addEventListener('click', function () { img.src = <?= json_encode(url('/admin/captcha'), JSON_UNESCAPED_SLASHES) ?> + '?r=' + Date.now(); }); }
+        })();
+    </script>
 </body>
 </html>

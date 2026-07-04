@@ -32,16 +32,21 @@ final class SecurityHeaders implements Middleware
             "object-src 'none'",
             "base-uri 'self'",
             "form-action 'self'",
+            "frame-ancestors 'self'",
         ]);
 
         $response->header('Content-Security-Policy', $csp);
         $response->header('X-Content-Type-Options', 'nosniff');
         $response->header('X-Frame-Options', 'SAMEORIGIN');
         $response->header('Referrer-Policy', 'strict-origin-when-cross-origin');
+        $response->header('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=()');
 
-        if (!Config::get('app.debug', false)) {
-            $response->header('X-Powered-By', 'Behnam');
+        // HSTS only when serving over HTTPS (prod), so local http isn't pinned.
+        if ((bool) Config::get('app.session.secure', false)) {
+            $response->header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
+
+        $response->header('X-Powered-By', 'Behnam');
 
         return $response;
     }

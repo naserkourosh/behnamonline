@@ -39,6 +39,18 @@
   $(document).on("click", ".js-add-variant", function () { addRow("tpl-variant", ".js-variants"); });
   $(document).on("click", ".js-del-row", function () { $(this).closest(".js-row").remove(); });
 
+  // Live filter for the (possibly large) grouped tag picker on the product form.
+  $(document).on("input", ".js-tag-filter", function () {
+    var q = ($(this).val() || "").toString().trim().toLowerCase();
+    $(".js-tag-item").each(function () {
+      var name = ($(this).data("name") || "").toString().toLowerCase();
+      $(this).toggle(q === "" || name.indexOf(q) !== -1);
+    });
+    $(".js-tag-group").each(function () {
+      $(this).toggle($(this).find(".js-tag-item:visible").length > 0);
+    });
+  });
+
   /* Delete a product image via AJAX */
   $(document).on("click", ".js-del-image", function () {
     if (!window.confirm("حذف این تصویر؟")) { return; }
