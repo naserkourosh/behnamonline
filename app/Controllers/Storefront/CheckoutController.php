@@ -8,14 +8,12 @@ use App\Controllers\Controller;
 use App\Core\Config;
 use App\Core\Request;
 use App\Core\Response;
-use App\Core\Session;
 use App\Core\Validator;
 use App\Repositories\AddressRepository;
 use App\Repositories\UserRepository;
 use App\Services\AuthService;
 use App\Services\CartService;
 use App\Services\CheckoutService;
-use App\Services\OtpService;
 use App\Services\ShippingService;
 
 final class CheckoutController extends Controller
@@ -49,18 +47,24 @@ final class CheckoutController extends Controller
         ], 'storefront');
     }
 
-    public function sendOtp(Request $request): Response
+    /**
+     * Place the order directly from the shipping form — no OTP. Registration
+     * is optional: a customer account is created/looked-up by mobile and the
+     * customer is signed in so they can view the order + their panel. The
+     * separate /login flow (OTP) is for deliberate registration/sign-in.
+     */
+    public function place(Request $request): Response
     {
         $data = $this->collect($request);
 
         $validator = new Validator();
         $rules = [
-            'first_name' => 'required',
-            'last_name'  => 'required',
-            'province'   => 'required',
-            'city'       => 'required',
-            'address'    => 'required',
-            'mobile'     => 'required|mobile',
+            'first_name'      => 'required',
+            'last_name'       => 'required',
+            'province'        => 'required',
+            'city'            => 'required',
+            'address'         => 'required',
+            'mobile'          => 'required|mobile',
             'shipping_method' => 'required',
             'payment_method'  => 'required',
         ];
@@ -68,12 +72,13 @@ final class CheckoutController extends Controller
             return $this->json(['ok' => false, 'error' => 'لطفاً همه‌ی فیلدهای الزامی را کامل کنید.', 'fields' => $validator->errors()], 422);
         }
 
-        // Validate the chosen shipping method against the destination + parcel.
         $cart    = new CartService();
         $summary = $cart->summary();
         if ((int) $summary['count'] === 0) {
             return $this->json(['ok' => false, 'error' => 'سبد خرید شما خالی است.'], 422);
         }
+
+        // Validate the chosen shipping method against destination + parcel.
         $ship = (new ShippingService())->resolve(
             $data['province'],
             $data['city'],
@@ -85,26 +90,7 @@ final class CheckoutController extends Controller
             return $this->json(['ok' => false, 'error' => 'روش ارسال نامعتبر است.'], 422);
         }
 
-        Session::set('checkout', $data);
-
-        $result = (new OtpService())->send($data['mobile'], 'checkout');
-        return $this->json($result, $result['ok'] ? 200 : 429);
-    }
-
-    public function verify(Request $request): Response
-    {
-        $data = Session::get('checkout');
-        if (!is_array($data)) {
-            return $this->json(['ok' => false, 'error' => 'نشست پرداخت منقضی شده است. دوباره تلاش کنید.'], 419);
-        }
-
-        $code = en_num((string) $request->input('code', ''));
-        $otp  = (new OtpService())->verify($data['mobile'], $code, 'checkout');
-        if (!$otp['ok']) {
-            return $this->json(['ok' => false, 'error' => $otp['message']], 422);
-        }
-
-        // Find or create the customer account, filling in name if missing.
+        // Find or create the customer account by mobile (no OTP).
         $users = new UserRepository();
         $user  = $users->findByMobile($data['mobile']);
         if ($user === null) {
@@ -128,6 +114,7 @@ final class CheckoutController extends Controller
             'is_default'    => $addresses->count($userId) === 0 ? 1 : 0,
         ]);
 
+        // Create the order (also SMS-notifies "ready for payment").
         $result = (new CheckoutService())->place($userId, [
             'receiver_name' => trim($data['first_name'] . ' ' . $data['last_name']),
             'mobile'        => $data['mobile'],
@@ -142,8 +129,8 @@ final class CheckoutController extends Controller
             return $this->json(['ok' => false, 'error' => $result['message']], 422);
         }
 
+        // Sign the customer in (1-year session) so they can track the order.
         AuthService::login($userId);
-        Session::forget('checkout');
 
         // Hand off to the payment step (gateway redirect or card-to-card page).
         return $this->json([

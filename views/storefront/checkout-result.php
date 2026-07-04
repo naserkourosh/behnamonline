@@ -24,6 +24,7 @@ $this->meta(['title' => ($success ? 'پرداخت موفق' : 'پرداخت نا
                 </div>
             </div>
             <a href="<?= e(url('/account/orders/' . $order['id'])) ?>" class="btn-primary mt-5 w-full py-4 text-[14px]">مشاهده جزئیات سفارش</a>
+            <a href="<?= e(url('/account')) ?>" class="btn-outline mt-2.5 w-full py-3.5 text-[13px]">ورود به پنل کاربری</a>
             <a href="<?= e(url('/account/orders/' . $order['id'] . '/invoice')) ?>" class="mt-2 block py-2 text-[13px] font-semibold text-secondary">چاپ فاکتور</a>
             <a href="<?= e(url('/')) ?>" class="mt-1 block py-2 text-[13px] text-[#888]">بازگشت به فروشگاه</a>
         <?php else: ?>

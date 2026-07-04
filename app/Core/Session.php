@@ -21,10 +21,12 @@ final class Session
         }
 
         $secure = (bool) Config::get('app.session.secure', false);
+        // Keep customers signed in for a year (persistent cookie + server GC).
+        $lifetime = (int) Config::get('app.session.lifetime', 60 * 60 * 24 * 365);
 
         session_name((string) Config::get('app.session.name', 'behnam_session'));
         session_set_cookie_params([
-            'lifetime' => 0,
+            'lifetime' => $lifetime,
             'path'     => '/',
             'domain'   => '',
             'secure'   => $secure,
@@ -34,6 +36,7 @@ final class Session
 
         ini_set('session.use_strict_mode', '1');
         ini_set('session.use_only_cookies', '1');
+        ini_set('session.gc_maxlifetime', (string) $lifetime);
 
         session_start();
 

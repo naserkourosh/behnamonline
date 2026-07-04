@@ -104,6 +104,10 @@ final class CheckoutService
             ]);
         }
 
+        // Notify the customer that the order is placed and awaiting payment,
+        // embedding their name and the cart items (before the cart is cleared).
+        $this->sendReadySms($address, $summary['items'], 'BH-' . (10000 + $orderId));
+
         // The cart has been converted into an order; clear it. Payment retries
         // operate on the order, not the cart.
         $this->cart->clear();
@@ -116,5 +120,29 @@ final class CheckoutService
                 'total'  => $total,
             ],
         ];
+    }
+
+    /**
+     * SMS the customer that their order is placed and ready for payment.
+     * @param array<string,mixed> $address
+     * @param list<array<string,mixed>> $items
+     */
+    private function sendReadySms(array $address, array $items, string $orderNumber): void
+    {
+        $name = trim((string) ($address['receiver_name'] ?? '')) ?: 'مشتری';
+
+        $names = [];
+        foreach ($items as $it) {
+            $names[] = (string) $it['name'] . ' ×' . fa((int) $it['qty']);
+        }
+        $products = implode('، ', $names);
+
+        $message = (new \App\Repositories\SmsTemplateRepository())->render(
+            'order_ready',
+            ['name' => $name, 'order' => $orderNumber, 'products' => $products],
+            "کاربر گرامی {$name}،\nسفارش شما شامل {$products} ثبت شد و آمادهٔ پرداخت است.\nبهنام"
+        );
+
+        (new \App\Services\Sms\SmsManager())->send((string) ($address['mobile'] ?? ''), $message, 'order');
     }
 }

@@ -63,10 +63,9 @@ return static function (Router $router): void {
         // ── FAQ ──
         $r->get('/faq', [FaqController::class, 'index']);
 
-        // ── Checkout (OTP) ──
+        // ── Checkout (no OTP — order placed directly, customer auto-signed-in) ──
         $r->get('/checkout', [CheckoutController::class, 'index']);
-        $r->post('/checkout/send-otp', [CheckoutController::class, 'sendOtp'], [VerifyCsrf::class]);
-        $r->post('/checkout/verify', [CheckoutController::class, 'verify'], [VerifyCsrf::class]);
+        $r->post('/checkout/place', [CheckoutController::class, 'place'], [VerifyCsrf::class]);
 
         // ── Auth (OTP login) ──
         $r->get('/login', [AuthController::class, 'show']);

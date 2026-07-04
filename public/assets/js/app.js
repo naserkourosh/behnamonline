@@ -449,20 +449,21 @@
   if ($ck.length) {
     var ckCfg = JSON.parse($("#checkout-config").text());
     var $prov = $("#ck-province"), $city = $("#ck-city");
-    var shipCost = 0;
+    var shipCost = 0, shipReady = false, shipCollect = false;
 
     function renderShipping() {
       var province = $prov.val(), city = $city.val();
+      shipReady = false; shipCost = 0; shipCollect = false;
       if (!city) {
         $("#ck-shipping").html('<p class="text-[12px] text-[#999]">برای نمایش روش‌های ارسال، استان و شهر را انتخاب کنید.</p>');
-        shipCost = 0; updateTotal(); return;
+        updateTotal(); return;
       }
       $("#ck-shipping").html('<p class="text-[12px] text-[#999]">در حال محاسبه هزینه ارسال…</p>');
       api("GET", "/api/shipping/quote", { province: province, city: city }).done(function (res) {
         var opts = (res && res.options) || [];
         if (!opts.length) {
           $("#ck-shipping").html('<p class="text-[12px] text-[#999]">روش ارسالی برای این مقصد یافت نشد.</p>');
-          shipCost = 0; updateTotal(); return;
+          shipReady = false; updateTotal(); return;
         }
         var html = "";
         opts.forEach(function (o, i) {
@@ -472,70 +473,51 @@
           if (o.desc) meta.push(o.desc);
           if (o.eta) meta.push("تحویل: " + o.eta);
           html += '<label class="flex cursor-pointer items-center gap-3 rounded-xl2 border p-3 ' + (i === 0 ? "border-secondary bg-pink" : "border-line") + '">' +
-            '<input type="radio" name="ship_opt" value="' + o.key + '" data-cost="' + o.cost + '" class="accent-secondary" ' + (i === 0 ? "checked" : "") + ">" +
+            '<input type="radio" name="ship_opt" value="' + o.key + '" data-cost="' + o.cost + '" data-collect="' + (o.collect ? 1 : 0) + '" class="accent-secondary" ' + (i === 0 ? "checked" : "") + ">" +
             '<div class="flex-1"><div class="text-[13px] font-bold text-secondary">' + o.label + '</div><div class="text-[10.5px] text-[#999]">' + meta.join(" · ") + "</div></div>" +
             '<span class="text-[12px] font-bold ' + costCls + '">' + costLabel + "</span></label>";
         });
         $("#ck-shipping").html(html);
-        shipCost = parseInt(opts[0].cost, 10) || 0; updateTotal();
+        shipCost = parseInt(opts[0].cost, 10) || 0; shipCollect = !!opts[0].collect; shipReady = true; updateTotal();
       }).fail(function () {
         $("#ck-shipping").html('<p class="text-[12px] text-danger">خطا در محاسبه هزینه ارسال. دوباره تلاش کنید.</p>');
-        shipCost = 0; updateTotal();
+        shipReady = false; updateTotal();
       });
     }
     function updateTotal() {
-      $(".js-ck-total").text(money(ckCfg.net + shipCost));
-      $(".js-ck-ship-cost").html(shipCost === 0 ? '<span class="text-success">رایگان</span>' : money(shipCost) + " تومان");
+      $(".js-ck-total").text(money(ckCfg.net + (shipReady ? shipCost : 0)));
+      var html;
+      if (!shipReady) html = '<span class="text-mauve">محاسبه پس از ثبت آدرس</span>';
+      else if (shipCollect) html = '<span class="text-success">پس‌کرایه</span>';
+      else if (shipCost === 0) html = '<span class="text-success">رایگان</span>';
+      else html = money(shipCost) + " تومان";
+      $(".js-ck-ship-cost").html(html);
     }
     $prov.on("change", function () { populateCities($prov, $city, ckCfg.geo, ""); renderShipping(); });
     $city.on("change", renderShipping);
-    $ck.on("change", 'input[name="ship_opt"]', function () { shipCost = parseInt($(this).data("cost"), 10) || 0; updateTotal(); });
+    $ck.on("change", 'input[name="ship_opt"]', function () {
+      shipCost = parseInt($(this).data("cost"), 10) || 0;
+      shipCollect = String($(this).data("collect")) === "1";
+      shipReady = true; updateTotal();
+    });
     if ($prov.val()) { populateCities($prov, $city, ckCfg.geo, ckCfg.prefillCity || ""); }
     renderShipping();
 
-    var ckOtp = bindOtpBoxes($ck), ckStop;
-    function ckStep(n) {
-      $(".js-step-dot").each(function () {
-        var s = $(this).data("step");
-        $(this).toggleClass("bg-secondary text-white border-transparent", s <= n).toggleClass("bg-white text-[#bbb] border-[#E0CDD3]", s > n);
-      });
-      $("#ck-step-info, #ck-info-bar").toggleClass("hidden", n !== 0);
-      $("#ck-step-otp").toggleClass("hidden", n !== 1);
-      $("#ck-step-done").toggleClass("hidden", n !== 2);
-      window.scrollTo(0, 0);
-    }
+    // No OTP: submit the shipping form → create the order → go to payment.
     function ckPayload() {
       var data = {};
       $("#ck-form").serializeArray().forEach(function (f) { data[f.name] = f.value; });
       data.shipping_method = $('input[name="ship_opt"]:checked').val() || "";
       return data;
     }
-    function ckSend($btn) {
-      $btn && $btn.prop("disabled", true);
-      var data = ckPayload();
-      return api("POST", "/checkout/send-otp", data).done(function (res) {
-        if (!res.ok) { toast(res.error || "خطا", "error"); return; }
-        $(".js-ck-mobile").text(data.mobile);
-        ckStep(1);
-        if (res.dev_code) { ckOtp.fill(res.dev_code); toast("کد تست: " + res.dev_code); }
-        if (ckStop) ckStop();
-        ckStop = startResend($(".js-ck-resend"), res.resend_wait || 90);
-      }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا در ارسال کد", "error"); })
-        .always(function () { $btn && $btn.prop("disabled", false); });
-    }
-    $(document).on("click", ".js-ck-send", function () { ckSend($(this)); });
-    $(document).on("click", "#checkout-page .js-resend", function () { ckSend(); toast("کد مجدد ارسال شد."); });
-    $(document).on("click", ".js-ck-change", function () { ckStep(0); });
-    $(document).on("click", ".js-ck-verify", function () {
-      var code = ckOtp.value();
-      if (code.length < 5) { toast("کد ۵ رقمی را کامل وارد کنید.", "error"); return; }
+    $(document).on("click", ".js-ck-send", function () {
+      if (!$('input[name="ship_opt"]:checked').length) { toast("لطفاً روش ارسال را انتخاب کنید.", "error"); return; }
       var $btn = $(this).prop("disabled", true);
-      api("POST", "/checkout/verify", { code: code }).done(function (res) {
-        if (!res.ok) { toast(res.error || "کد نادرست است.", "error"); ckOtp.clear(); return; }
+      api("POST", "/checkout/place", ckPayload()).done(function (res) {
+        if (!res.ok) { toast(res.error || "خطا در ثبت سفارش", "error"); return; }
         updateCount(0);
-        // Hand off to the payment gateway (or card-to-card page).
         window.location.href = res.payment_url;
-      }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا", "error"); })
+      }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا در ثبت سفارش", "error"); })
         .always(function () { $btn.prop("disabled", false); });
     });
   }
