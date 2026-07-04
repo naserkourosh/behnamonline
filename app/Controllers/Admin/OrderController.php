@@ -92,16 +92,14 @@ final class OrderController extends AdminController
                     $products->decrementVariantStock((int) $it['variant_id'], (int) $it['qty']);
                 }
             }
-            if (!$tracking) {
-                $tracking = 'IR' . date('ymd') . random_int(10000, 99999);
-            }
             // Consume coupon + award loyalty points (idempotent per order).
             (new \App\Services\PaymentService())->finalizePromotions($order);
             $templates = new \App\Repositories\SmsTemplateRepository();
+            // No tracking code at payment time — it is sent when the parcel ships.
             $sms->send((string) $order['mobile'], $templates->render(
                 'payment_confirmed',
-                ['order' => (string) $order['order_number'], 'tracking' => (string) $tracking],
-                "بهنام\nپرداخت سفارش {$order['order_number']} تایید شد. ✅\nکد رهگیری: {$tracking}"
+                ['order' => (string) $order['order_number'], 'tracking' => ''],
+                "بهنام\nپرداخت سفارش {$order['order_number']} تایید شد. ✅\nسفارش شما در حال آماده‌سازی است."
             ), 'order');
         }
 

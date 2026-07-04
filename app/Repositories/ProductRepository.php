@@ -272,13 +272,15 @@ final class ProductRepository extends BaseRepository
         $this->execute(
             'INSERT INTO products
                 (category_id, brand_id, name, slug, sku, barcode, short_desc, description, aparat_embed,
-                 price, old_price, stock, low_stock_threshold, is_active, is_new, is_featured, on_flash_sale,
+                 price, old_price, stock, weight_grams, length_cm, width_cm, height_cm, low_stock_threshold,
+                 is_active, is_new, is_featured, on_flash_sale,
                  expiration_date, sort, seo_title, seo_description, created_at, updated_at)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             [
                 $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
                 $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
-                $d['stock'], $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
+                $d['stock'], $d['weight_grams'], $d['length_cm'], $d['width_cm'], $d['height_cm'],
+                $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
                 $d['on_flash_sale'], $d['expiration_date'], $d['sort'], $d['seo_title'], $d['seo_description'], $now, $now,
             ]
         );
@@ -290,14 +292,16 @@ final class ProductRepository extends BaseRepository
     {
         $this->execute(
             'UPDATE products SET category_id=?, brand_id=?, name=?, slug=?, sku=?, barcode=?, short_desc=?,
-                description=?, aparat_embed=?, price=?, old_price=?, stock=?, low_stock_threshold=?,
+                description=?, aparat_embed=?, price=?, old_price=?, stock=?, weight_grams=?, length_cm=?,
+                width_cm=?, height_cm=?, low_stock_threshold=?,
                 is_active=?, is_new=?, is_featured=?, on_flash_sale=?, expiration_date=?, sort=?,
                 seo_title=?, seo_description=?, updated_at=?
               WHERE id=?',
             [
                 $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
                 $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
-                $d['stock'], $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
+                $d['stock'], $d['weight_grams'], $d['length_cm'], $d['width_cm'], $d['height_cm'],
+                $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
                 $d['on_flash_sale'], $d['expiration_date'], $d['sort'], $d['seo_title'], $d['seo_description'],
                 date('Y-m-d H:i:s'), $id,
             ]

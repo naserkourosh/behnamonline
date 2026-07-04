@@ -148,8 +148,10 @@ final class CartService
             ];
         }
 
+        // Shipping is NOT priced in the cart — it depends on the delivery
+        // address (destination + parcel weight) and is computed at checkout.
         $threshold = (int) \setting('free_shipping_threshold', (int) \config('shipping.free_shipping_threshold', 500000));
-        $shipping   = ($count > 0 && $net < $threshold) ? (int) \config('shipping.default_cost', 45000) : 0;
+        $shipping   = 0;
         $remaining  = max(0, $threshold - $net);
         $progress   = $threshold > 0 ? min(100, (int) round($net / $threshold * 100)) : 100;
 
@@ -175,10 +177,11 @@ final class CartService
             'savings'           => $savings,
             'subtotal'          => $net,
             'shipping'          => $shipping,
+            'shipping_pending'  => $count > 0,
             'coupon_code'       => $couponCode,
             'coupon_discount'   => $couponDiscount,
             'coupon_error'      => $couponError,
-            'total'             => max(0, $net - $couponDiscount + $shipping),
+            'total'             => max(0, $net - $couponDiscount),
             'free_threshold'    => $threshold,
             'free_remaining'    => $remaining,
             'free_progress'     => $progress,
@@ -222,6 +225,39 @@ final class CartService
     {
         $summary = $this->summary();
         return (int) $summary['count'];
+    }
+
+    /**
+     * Aggregate the cart into a shippable parcel for the postal-fee service.
+     * Billable weight = max(actual weight, volumetric weight), where
+     * volumetric grams = Σ(L×W×H cm)/6 (i.e. cm³ ÷ 6000 kg × 1000 g).
+     *
+     * @return array{weight_g:int,volumetric_g:int,billable_g:int,items:int}
+     */
+    public function parcel(): array
+    {
+        $cartId = $this->resolveCartId(false);
+        $items  = $cartId === 0 ? [] : $this->carts->items($cartId);
+
+        $weight = 0;
+        $volume = 0;
+        $count  = 0;
+        foreach ($items as $it) {
+            $qty = (int) $it['qty'];
+            $weight += max(0, (int) ($it['weight_grams'] ?? 0)) * $qty;
+            $l = max(0, (int) ($it['length_cm'] ?? 0));
+            $w = max(0, (int) ($it['width_cm'] ?? 0));
+            $h = max(0, (int) ($it['height_cm'] ?? 0));
+            $volume += (int) round($l * $w * $h / 6) * $qty; // cm³ → volumetric grams
+            $count  += $qty;
+        }
+
+        return [
+            'weight_g'     => $weight,
+            'volumetric_g' => $volume,
+            'billable_g'   => max($weight, $volume),
+            'items'        => $count,
+        ];
     }
 
     /** Empty the current cart (after a successful checkout). */

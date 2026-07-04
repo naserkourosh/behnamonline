@@ -7,6 +7,7 @@ namespace App\Controllers\Admin;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
+use App\Repositories\SettingsRepository;
 use App\Repositories\ShippingZoneRepository;
 
 final class ShippingController extends AdminController
@@ -23,7 +24,33 @@ final class ShippingController extends AdminController
         if ($r = $this->guard('shipping')) {
             return $r;
         }
-        return $this->adminView('admin/shipping/index', ['items' => $this->repo->all()], 'ارسال و مناطق');
+        return $this->adminView('admin/shipping/index', [
+            'items'    => $this->repo->all(),
+            'settings' => [
+                'post_enabled'    => (bool) setting('shipping_post_enabled', true),
+                'collect_enabled' => (bool) setting('shipping_collect_enabled', false),
+                'eta_enabled'     => (bool) setting('shipping_eta_enabled', true),
+                'eta_gorgan'      => (string) setting('shipping_eta_gorgan', 'کمتر از یک روز کاری'),
+                'eta_default'     => (string) setting('shipping_eta_default', '۲ تا ۴ روز کاری'),
+            ],
+        ], 'ارسال و مناطق');
+    }
+
+    /** Save the shipping toggles + delivery-time (ETA) texts. */
+    public function saveSettings(Request $request): Response
+    {
+        if ($r = $this->guard('shipping')) {
+            return $r;
+        }
+        $s = new SettingsRepository();
+        $s->set('shipping_post_enabled', $request->input('shipping_post_enabled') ? '1' : '0', 'bool');
+        $s->set('shipping_collect_enabled', $request->input('shipping_collect_enabled') ? '1' : '0', 'bool');
+        $s->set('shipping_eta_enabled', $request->input('shipping_eta_enabled') ? '1' : '0', 'bool');
+        $s->set('shipping_eta_gorgan', trim((string) $request->input('shipping_eta_gorgan', '')), 'string');
+        $s->set('shipping_eta_default', trim((string) $request->input('shipping_eta_default', '')), 'string');
+        $this->audit($request, 'update', 'settings', null, 'shipping');
+        Session::flash('success', 'تنظیمات ارسال ذخیره شد.');
+        return $this->redirect(url('/admin/shipping'));
     }
 
     public function create(Request $request): Response

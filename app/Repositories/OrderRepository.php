@@ -16,15 +16,15 @@ final class OrderRepository extends BaseRepository
             'INSERT INTO orders
                 (order_number, user_id, status, subtotal, discount, coupon_code, coupon_discount, shipping_cost, total,
                  shipping_method, payment_method, payment_status,
-                 receiver_name, mobile, province, city, address, postal_code, created_at, updated_at)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                 receiver_name, mobile, province, city, address, postal_code, note, created_at, updated_at)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             [
                 $data['order_number'], $data['user_id'], $data['status'] ?? 'processing',
                 $data['subtotal'], $data['discount'] ?? 0, $data['coupon_code'] ?? null, $data['coupon_discount'] ?? 0,
                 $data['shipping_cost'] ?? 0, $data['total'],
                 $data['shipping_method'] ?? null, $data['payment_method'] ?? null, $data['payment_status'] ?? 'unpaid',
                 $data['receiver_name'] ?? null, $data['mobile'] ?? null, $data['province'] ?? null,
-                $data['city'] ?? null, $data['address'] ?? null, $data['postal_code'] ?? null, $now, $now,
+                $data['city'] ?? null, $data['address'] ?? null, $data['postal_code'] ?? null, $data['note'] ?? null, $now, $now,
             ]
         );
         return $this->lastInsertId();
@@ -50,6 +50,19 @@ final class OrderRepository extends BaseRepository
             'UPDATE orders SET payment_status = ?, status = ?, tracking_code = ?, updated_at = ?
               WHERE id = ? AND payment_status <> ?',
             ['paid', 'processing', $trackingCode, date('Y-m-d H:i:s'), $id, 'paid']
+        );
+    }
+
+    /**
+     * Settle a paid order WITHOUT a tracking code. The postal tracking code
+     * is issued by the admin only after the parcel actually ships.
+     */
+    public function markPaidProcessing(int $id): void
+    {
+        $this->execute(
+            'UPDATE orders SET payment_status = ?, status = ?, updated_at = ?
+              WHERE id = ? AND payment_status <> ?',
+            ['paid', 'processing', date('Y-m-d H:i:s'), $id, 'paid']
         );
     }
 

@@ -115,13 +115,18 @@ final class PaymentService
         }
 
         $this->payments->markPaid((int) $payment['id'], (string) ($result['ref_id'] ?? ''));
-        $tracking = $this->settle((int) $order['id'], $order);
+        $this->settle((int) $order['id'], $order);
 
-        return ['ok' => true, 'tracking' => $tracking];
+        // No tracking code yet — it is issued by the admin after the parcel ships.
+        return ['ok' => true, 'tracking' => ''];
     }
 
-    /** Finalize a paid order: decrement stock, set tracking, notify by SMS. */
-    private function settle(int $orderId, array $order): string
+    /**
+     * Finalize a paid order: decrement stock, mark paid+processing, notify by
+     * SMS. The postal tracking code is NOT generated here — the admin sends it
+     * once the parcel actually ships.
+     */
+    private function settle(int $orderId, array $order): void
     {
         foreach ($this->orders->items($orderId) as $item) {
             if ($item['product_id'] !== null) {
@@ -132,19 +137,16 @@ final class PaymentService
             }
         }
 
-        $tracking = 'IR' . date('ymd') . random_int(10000, 99999);
-        $this->orders->finalizePaid($orderId, $tracking);
+        $this->orders->markPaidProcessing($orderId);
 
         $this->finalizePromotions(array_merge($order, ['id' => $orderId]));
 
         $message = (new \App\Repositories\SmsTemplateRepository())->render(
             'order_paid',
-            ['order' => (string) $order['order_number'], 'tracking' => $tracking],
-            "بهنام\nسفارش {$order['order_number']} با موفقیت پرداخت شد. ✅\nکد رهگیری پستی: {$tracking}"
+            ['order' => (string) $order['order_number'], 'tracking' => ''],
+            "بهنام\nسفارش {$order['order_number']} با موفقیت پرداخت شد. ✅\nپس از ارسال مرسوله، کد رهگیری پستی برای شما پیامک می‌شود."
         );
         (new SmsManager())->send((string) $order['mobile'], $message, 'order');
-
-        return $tracking;
     }
 
     /**

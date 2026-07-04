@@ -312,7 +312,7 @@
 
     $(".js-sum-gross").text(money(summary.gross) + " تومان");
     $(".js-sum-savings").text("− " + money(summary.savings) + " تومان");
-    $(".js-sum-shipping").html(summary.shipping === 0 ? '<span class="text-success">رایگان</span>' : money(summary.shipping) + " تومان");
+    $(".js-sum-shipping").html('محاسبه پس از ثبت آدرس');
     $(".js-sum-total, .js-sum-total-mobile").text(money(summary.total));
     $(".js-ship-bar").css("width", summary.free_progress + "%");
     $(".js-ship-msg").text(summary.qualifies_free ? "🎉 سفارش شما شامل ارسال رایگان است" : money(summary.free_remaining) + " تومان تا ارسال رایگان باقی مانده");
@@ -452,27 +452,36 @@
     var shipCost = 0;
 
     function renderShipping() {
-      var city = $city.val(), opts = [], html = "";
-      if (ckCfg.cityRules[city]) {
-        var r = ckCfg.cityRules[city];
-        opts.push({ key: "courier", label: r.method, desc: "ویژه " + city + " · " + (r.note || ""), cost: r.cost });
-      } else if (city) {
-        var free = ckCfg.net >= ckCfg.freeThreshold;
-        opts.push({ key: "post", label: "پست پیشتاز", desc: "۲ تا ۳ روز کاری", cost: free ? 0 : ckCfg.defaultCost });
-        opts.push({ key: "tipax", label: "تیپاکس (سریع)", desc: "۱ روز کاری", cost: 45000 });
-      }
-      if (!opts.length) {
+      var province = $prov.val(), city = $city.val();
+      if (!city) {
         $("#ck-shipping").html('<p class="text-[12px] text-[#999]">برای نمایش روش‌های ارسال، استان و شهر را انتخاب کنید.</p>');
         shipCost = 0; updateTotal(); return;
       }
-      opts.forEach(function (o, i) {
-        html += '<label class="flex cursor-pointer items-center gap-3 rounded-xl2 border p-3 ' + (i === 0 ? "border-secondary bg-pink" : "border-line") + '">' +
-          '<input type="radio" name="ship_opt" value="' + o.key + '" data-cost="' + o.cost + '" class="accent-secondary" ' + (i === 0 ? "checked" : "") + ">" +
-          '<div class="flex-1"><div class="text-[13px] font-bold text-secondary">' + o.label + '</div><div class="text-[10.5px] text-[#999]">' + o.desc + "</div></div>" +
-          '<span class="text-[12px] font-bold ' + (o.cost === 0 ? "text-success" : "text-secondary") + '">' + (o.cost === 0 ? "رایگان" : money(o.cost) + " ت") + "</span></label>";
+      $("#ck-shipping").html('<p class="text-[12px] text-[#999]">در حال محاسبه هزینه ارسال…</p>');
+      api("GET", "/api/shipping/quote", { province: province, city: city }).done(function (res) {
+        var opts = (res && res.options) || [];
+        if (!opts.length) {
+          $("#ck-shipping").html('<p class="text-[12px] text-[#999]">روش ارسالی برای این مقصد یافت نشد.</p>');
+          shipCost = 0; updateTotal(); return;
+        }
+        var html = "";
+        opts.forEach(function (o, i) {
+          var costLabel = o.collect ? "پس‌کرایه" : (o.cost === 0 ? "رایگان" : money(o.cost) + " ت");
+          var costCls = (o.collect || o.cost === 0) ? "text-success" : "text-secondary";
+          var meta = [];
+          if (o.desc) meta.push(o.desc);
+          if (o.eta) meta.push("تحویل: " + o.eta);
+          html += '<label class="flex cursor-pointer items-center gap-3 rounded-xl2 border p-3 ' + (i === 0 ? "border-secondary bg-pink" : "border-line") + '">' +
+            '<input type="radio" name="ship_opt" value="' + o.key + '" data-cost="' + o.cost + '" class="accent-secondary" ' + (i === 0 ? "checked" : "") + ">" +
+            '<div class="flex-1"><div class="text-[13px] font-bold text-secondary">' + o.label + '</div><div class="text-[10.5px] text-[#999]">' + meta.join(" · ") + "</div></div>" +
+            '<span class="text-[12px] font-bold ' + costCls + '">' + costLabel + "</span></label>";
+        });
+        $("#ck-shipping").html(html);
+        shipCost = parseInt(opts[0].cost, 10) || 0; updateTotal();
+      }).fail(function () {
+        $("#ck-shipping").html('<p class="text-[12px] text-danger">خطا در محاسبه هزینه ارسال. دوباره تلاش کنید.</p>');
+        shipCost = 0; updateTotal();
       });
-      $("#ck-shipping").html(html);
-      shipCost = opts[0].cost; updateTotal();
     }
     function updateTotal() {
       $(".js-ck-total").text(money(ckCfg.net + shipCost));

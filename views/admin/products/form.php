@@ -93,6 +93,17 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
             </div>
 
             <div class="rounded-2xl border border-line2 bg-white p-5">
+                <h3 class="mb-1 text-[14px] font-bold text-[#333]">ابعاد و وزن ارسال</h3>
+                <p class="mb-3 text-[11px] leading-6 text-[#aaa]">برای محاسبهٔ هزینهٔ پست بر اساس وزن و وزن حجمی لازم است. وزن به گرم و ابعاد به سانتی‌متر.</p>
+                <div class="mb-3"><label class="<?= $lbl ?>">وزن (گرم)</label><input name="weight_grams" value="<?= $v('weight_grams', '0') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="مثلاً ۲۵۰"></div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div><label class="<?= $lbl ?>">طول</label><input name="length_cm" value="<?= $v('length_cm', '0') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="cm"></div>
+                    <div><label class="<?= $lbl ?>">عرض</label><input name="width_cm" value="<?= $v('width_cm', '0') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="cm"></div>
+                    <div><label class="<?= $lbl ?>">ارتفاع</label><input name="height_cm" value="<?= $v('height_cm', '0') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="cm"></div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">دسته‌بندی و برند</h3>
                 <div class="mb-3"><label class="<?= $lbl ?>">دسته‌بندی‌ها <span class="font-normal text-[#aaa]">(چند انتخابی)</span></label>
                     <div class="max-h-48 space-y-1 overflow-y-auto rounded-xl2 border border-line p-2.5">

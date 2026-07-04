@@ -93,7 +93,7 @@ $items = $summary['items'];
                     <div class="mb-3 flex justify-between text-[12.5px] text-[#666]"><span>جمع کالاها</span><span class="js-sum-gross nums"><?= money((int) $summary['gross']) ?> تومان</span></div>
                     <div class="mb-3 flex justify-between text-[12.5px] text-success"><span>تخفیف</span><span class="js-sum-savings nums">− <?= money((int) $summary['savings']) ?> تومان</span></div>
                     <div class="js-sum-coupon-row mb-3 flex justify-between text-[12.5px] text-secondary <?= empty($summary['coupon_discount']) ? 'hidden' : '' ?>"><span>تخفیف کد <span class="js-sum-coupon-code font-bold"><?= e($summary['coupon_code'] ?? '') ?></span></span><span class="js-sum-coupon nums">− <?= money((int) ($summary['coupon_discount'] ?? 0)) ?> تومان</span></div>
-                    <div class="mb-3 flex justify-between text-[12.5px] text-[#666]"><span>هزینه ارسال</span><span class="js-sum-shipping"><?= ((int) $summary['shipping']) === 0 ? '<span class="text-success">رایگان</span>' : money((int) $summary['shipping']) . ' تومان' ?></span></div>
+                    <div class="mb-3 flex justify-between text-[12.5px] text-[#666]"><span>هزینه ارسال</span><span class="js-sum-shipping text-[11px] text-mauve">محاسبه پس از ثبت آدرس</span></div>
                     <div class="my-3 h-px bg-line"></div>
                     <div class="flex items-center justify-between">
                         <span class="text-[14px] font-bold text-[#333]">مبلغ قابل پرداخت</span>

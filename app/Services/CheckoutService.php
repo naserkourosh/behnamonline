@@ -38,7 +38,13 @@ final class CheckoutService
             return ['ok' => false, 'message' => 'سبد خرید شما خالی است.'];
         }
 
-        $ship = $this->shipping->resolve((string) $address['city'], $shippingKey, (int) $summary['subtotal']);
+        $ship = $this->shipping->resolve(
+            (string) ($address['province'] ?? ''),
+            (string) $address['city'],
+            $shippingKey,
+            (int) $summary['subtotal'],
+            $this->cart->parcel()
+        );
         if ($ship === null) {
             return ['ok' => false, 'message' => 'روش ارسال نامعتبر است.'];
         }
@@ -81,6 +87,7 @@ final class CheckoutService
             'city'           => $address['city'],
             'address'        => $address['address'],
             'postal_code'    => $address['postal_code'] ?? null,
+            'note'           => $address['note'] ?? null,
         ]);
 
         $this->orders->setNumber($orderId, 'BH-' . (10000 + $orderId));

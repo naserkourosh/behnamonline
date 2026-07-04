@@ -15,7 +15,13 @@ $this->meta(['title' => ($success ? 'پرداخت موفق' : 'پرداخت نا
             <div class="mt-5 rounded-2xl border border-line2 bg-white p-5 text-right">
                 <div class="mb-3 flex justify-between text-[12.5px]"><span class="text-[#999]">شماره سفارش</span><span class="font-bold text-[#333] nums"><?= e($order['order_number']) ?></span></div>
                 <div class="mb-3 flex justify-between text-[12.5px]"><span class="text-[#999]">مبلغ پرداختی</span><span class="font-bold text-secondary nums"><?= money((int) $order['total']) ?> تومان</span></div>
-                <div class="flex justify-between text-[12.5px]"><span class="text-[#999]">کد رهگیری پستی</span><span class="font-bold text-secondary nums" dir="ltr"><?= e($order['tracking_code'] ?: '—') ?></span></div>
+                <div class="flex justify-between text-[12.5px]"><span class="text-[#999]">کد رهگیری پستی</span>
+                    <?php if (!empty($order['tracking_code'])): ?>
+                        <span class="font-bold text-secondary nums" dir="ltr"><?= e($order['tracking_code']) ?></span>
+                    <?php else: ?>
+                        <span class="text-[11px] font-semibold text-warning">پس از ارسال مرسوله پیامک می‌شود</span>
+                    <?php endif; ?>
+                </div>
             </div>
             <a href="<?= e(url('/account/orders/' . $order['id'])) ?>" class="btn-primary mt-5 w-full py-4 text-[14px]">مشاهده جزئیات سفارش</a>
             <a href="<?= e(url('/account/orders/' . $order['id'] . '/invoice')) ?>" class="mt-2 block py-2 text-[13px] font-semibold text-secondary">چاپ فاکتور</a>

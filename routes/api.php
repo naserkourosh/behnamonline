@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\Api\CartApiController;
 use App\Controllers\Api\SearchApiController;
+use App\Controllers\Api\ShippingApiController;
 use App\Controllers\Api\WishlistApiController;
 use App\Core\Router;
 use App\Middleware\SecurityHeaders;
@@ -24,6 +25,8 @@ return static function (Router $router): void {
         $r->post('/api/cart/coupon/remove', [CartApiController::class, 'removeCoupon'], [VerifyCsrf::class]);
 
         $r->get('/api/search', [SearchApiController::class, 'suggest']);
+
+        $r->get('/api/shipping/quote', [ShippingApiController::class, 'quote']);
 
         $r->post('/api/wishlist', [WishlistApiController::class, 'toggle'], [VerifyCsrf::class]);
     });

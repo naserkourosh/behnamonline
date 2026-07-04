@@ -68,12 +68,19 @@ final class CheckoutController extends Controller
             return $this->json(['ok' => false, 'error' => 'لطفاً همه‌ی فیلدهای الزامی را کامل کنید.', 'fields' => $validator->errors()], 422);
         }
 
-        // Validate the chosen shipping method against the city.
-        $summary = (new CartService())->summary();
+        // Validate the chosen shipping method against the destination + parcel.
+        $cart    = new CartService();
+        $summary = $cart->summary();
         if ((int) $summary['count'] === 0) {
             return $this->json(['ok' => false, 'error' => 'سبد خرید شما خالی است.'], 422);
         }
-        $ship = (new ShippingService())->resolve($data['city'], $data['shipping_method'], (int) $summary['subtotal']);
+        $ship = (new ShippingService())->resolve(
+            $data['province'],
+            $data['city'],
+            $data['shipping_method'],
+            (int) $summary['subtotal'],
+            $cart->parcel()
+        );
         if ($ship === null) {
             return $this->json(['ok' => false, 'error' => 'روش ارسال نامعتبر است.'], 422);
         }
@@ -128,6 +135,7 @@ final class CheckoutController extends Controller
             'city'          => $data['city'],
             'address'       => $data['address'],
             'postal_code'   => $data['postal_code'] ?? null,
+            'note'          => $data['note'] ?? null,
         ], $data['shipping_method'], $data['payment_method']);
 
         if (!$result['ok']) {
@@ -155,6 +163,7 @@ final class CheckoutController extends Controller
             'address'         => trim((string) $request->input('address', '')),
             'postal_code'     => en_num((string) $request->input('postal_code', '')),
             'mobile'          => en_num((string) $request->input('mobile', '')),
+            'note'            => trim((string) $request->input('note', '')) ?: null,
             'shipping_method' => trim((string) $request->input('shipping_method', '')),
             'payment_method'  => trim((string) $request->input('payment_method', 'zarinpal')),
         ];

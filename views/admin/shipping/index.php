@@ -1,13 +1,46 @@
 <?php
 /** @var list<array<string,mixed>> $items */
+/** @var array<string,mixed> $settings */
+$inp = 'w-full rounded-xl2 border border-line bg-white px-3.5 py-2.5 text-[13px] outline-none focus:border-secondary';
+$lbl = 'mb-1.5 block text-[12px] font-semibold text-[#666]';
 ?>
+<!-- Shipping settings -->
+<form method="post" action="<?= e(url('/admin/shipping/settings')) ?>" class="mb-5 rounded-2xl border border-line2 bg-white p-5">
+    <?= csrf_field() ?>
+    <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-[14px] font-bold text-[#333]">تنظیمات ارسال</h2>
+        <button class="btn-primary px-5 py-2 text-[12.5px]">ذخیره تنظیمات</button>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2">
+        <div class="space-y-3">
+            <label class="flex items-center justify-between rounded-xl2 border border-line2 px-3.5 py-2.5">
+                <span class="text-[12.5px] text-[#555]">ارسال با پست فعال باشد</span>
+                <input type="checkbox" name="shipping_post_enabled" value="1" class="h-5 w-5 accent-secondary" <?= $settings['post_enabled'] ? 'checked' : '' ?>>
+            </label>
+            <label class="flex items-center justify-between rounded-xl2 border border-line2 px-3.5 py-2.5">
+                <span class="text-[12.5px] text-[#555]">پس‌کرایه (هزینهٔ پست هنگام تحویل)</span>
+                <input type="checkbox" name="shipping_collect_enabled" value="1" class="h-5 w-5 accent-secondary" <?= $settings['collect_enabled'] ? 'checked' : '' ?>>
+            </label>
+            <label class="flex items-center justify-between rounded-xl2 border border-line2 px-3.5 py-2.5">
+                <span class="text-[12.5px] text-[#555]">نمایش پیش‌بینی زمان تحویل</span>
+                <input type="checkbox" name="shipping_eta_enabled" value="1" class="h-5 w-5 accent-secondary" <?= $settings['eta_enabled'] ? 'checked' : '' ?>>
+            </label>
+        </div>
+        <div class="space-y-3">
+            <div><label class="<?= $lbl ?>">زمان تحویل گرگان (پیک)</label><input name="shipping_eta_gorgan" value="<?= e((string) $settings['eta_gorgan']) ?>" class="<?= $inp ?>" placeholder="کمتر از یک روز کاری"></div>
+            <div><label class="<?= $lbl ?>">زمان تحویل سایر شهرها (پست)</label><input name="shipping_eta_default" value="<?= e((string) $settings['eta_default']) ?>" class="<?= $inp ?>" placeholder="۲ تا ۴ روز کاری"></div>
+        </div>
+    </div>
+    <p class="mt-3 text-[11px] leading-6 text-[#999]">«ارسال با پست» روش پیش‌پرداخت (پست پیشتاز) و «پس‌کرایه» روش پرداخت هنگام تحویل است. این دو مستقل‌اند و می‌توانند هم‌زمان فعال باشند؛ برای شهرهای غیر از گرگان حداقل یکی باید فعال باشد تا مشتری بتواند سفارش را ثبت کند. ارسال پستی فقط یک روش دارد (پست پیشتاز).</p>
+</form>
+
 <div class="mb-4 flex items-center justify-between">
-    <span class="text-[13px] font-semibold text-[#555] nums"><?= fa(count($items)) ?> روش ارسال</span>
+    <span class="text-[13px] font-semibold text-[#555] nums"><?= fa(count($items)) ?> روش پیک شهری</span>
     <a href="<?= e(url('/admin/shipping/create')) ?>" class="btn-primary px-5 py-2.5 text-[13px]">+ روش جدید</a>
 </div>
 
 <div class="mb-4 rounded-2xl border border-line2 bg-[#EEF2FF] px-4 py-3 text-[12px] leading-6 text-[#4b5563]">
-    روش‌هایی با شهر «سراسری» برای همه‌ی مقصدها نمایش داده می‌شوند. اگر برای شهری روش اختصاصی تعریف شود، فقط همان روش‌ها برای آن شهر نشان داده می‌شوند (مثلاً پیک موتوری ویژه‌ی گرگان).
+    هزینهٔ پست به‌صورت خودکار از وب‌سرویس پست ملی محاسبه می‌شود. روش‌های زیر اضافه می‌شوند: با «شهر خاص» فقط برای همان شهر و به‌جای پست نمایش داده می‌شوند (مثل پیک ویژهٔ گرگان)، و با «سراسری» (فیلد شهر خالی) در کنار پست برای همهٔ شهرها نشان داده می‌شوند.
 </div>
 
 <div class="overflow-hidden rounded-2xl border border-line2 bg-white">

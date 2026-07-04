@@ -71,6 +71,10 @@ $field = static fn (string $k): string => e((string) ($prefill[$k] ?? ''));
                         <input name="mobile" inputmode="numeric" dir="ltr" value="<?= $field('mobile') ?>" class="ck-input text-left" placeholder="09xxxxxxxxx">
                     </div>
                 </div>
+                <div class="mt-3">
+                    <label class="mb-1.5 block text-[11px] text-[#888]">توضیحات <span class="text-[#bbb]">(اختیاری)</span></label>
+                    <textarea name="note" rows="2" class="ck-input resize-none" placeholder="یادداشت برای سفارش یا ارسال (اختیاری)"><?= $field('note') ?></textarea>
+                </div>
             </div>
 
             <div class="rounded-2xl border border-line2 bg-white p-5">
@@ -107,7 +111,7 @@ $field = static fn (string $k): string => e((string) ($prefill[$k] ?? ''));
                     <span class="text-[14px] font-bold">قابل پرداخت</span>
                     <span><span class="js-ck-total text-[18px] font-extrabold text-secondary nums"><?= money((int) $summary['subtotal']) ?></span> <span class="text-[11px] text-[#999]">تومان</span></span>
                 </div>
-                <button type="button" class="js-ck-send btn-primary mt-5 hidden w-full py-3.5 text-[14px] md:flex">ارسال کد تایید</button>
+                <button type="button" class="js-ck-send btn-primary mt-5 hidden w-full py-3.5 text-[14px] md:flex">تایید نهایی</button>
             </div>
         </aside>
     </div>

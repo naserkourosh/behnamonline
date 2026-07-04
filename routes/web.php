@@ -197,6 +197,7 @@ return static function (Router $router): void {
 
             // Shipping zones / methods
             $x->get('/admin/shipping', [AdminShippingController::class, 'index']);
+            $x->post('/admin/shipping/settings', [AdminShippingController::class, 'saveSettings'], [VerifyCsrf::class]);
             $x->get('/admin/shipping/create', [AdminShippingController::class, 'create']);
             $x->post('/admin/shipping', [AdminShippingController::class, 'store'], [VerifyCsrf::class]);
             $x->get('/admin/shipping/{id}/edit', [AdminShippingController::class, 'edit']);

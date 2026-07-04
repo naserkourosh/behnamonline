@@ -30,6 +30,7 @@ final class CartRepository extends BaseRepository
         return $this->selectAll(
             "SELECT ci.id, ci.product_id, ci.variant_id, ci.qty, ci.unit_price,
                     p.name, p.slug, p.stock, p.reserved, p.old_price,
+                    p.weight_grams, p.length_cm, p.width_cm, p.height_cm,
                     b.name AS brand_name,
                     v.label AS variant_label,
                     (SELECT i.path FROM product_images i WHERE i.product_id = p.id AND i.is_primary = 1 ORDER BY i.sort LIMIT 1) AS image,
