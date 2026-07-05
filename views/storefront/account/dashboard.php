@@ -22,13 +22,11 @@ $initial = mb_substr($name, 0, 1);
     </div>
 
     <!-- stat cards -->
-    <div class="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div class="mt-4 grid grid-cols-2 gap-3">
         <?php
         $cards = [
             ['📦', $stats['orders'], 'سفارش', 'bg-pink'],
             ['♡', $stats['wishlist'], 'علاقه‌مندی', 'bg-[#FFF0F3]'],
-            ['💳', money((int) $stats['wallet']), 'کیف پول', 'bg-[#E7F7F0]'],
-            ['★', $stats['points'], 'امتیاز', 'bg-[#FFF6E6]'],
         ];
         foreach ($cards as [$icon, $value, $label, $tint]): ?>
             <div class="flex items-center gap-3 rounded-2xl border border-line2 bg-white p-4">

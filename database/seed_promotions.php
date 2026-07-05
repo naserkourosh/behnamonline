@@ -51,15 +51,4 @@ if ($popups === 0) {
     echo "• popups already present ({$popups})\n";
 }
 
-/* Enable the loyalty club (2% of each order → points) if not configured */
-$has = (int) $pdo->query("SELECT COUNT(*) FROM settings WHERE setting_key = 'points_enabled'")->fetchColumn();
-if ($has === 0) {
-    $repo = new App\Repositories\SettingsRepository();
-    $repo->set('points_enabled', '1', 'bool');
-    $repo->set('points_earn_percent', '2', 'int');
-    echo "✓ loyalty club enabled (2% earn rate)\n";
-} else {
-    echo "• points settings already configured\n";
-}
-
 echo "Done. ✓\n";

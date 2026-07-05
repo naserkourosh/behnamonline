@@ -178,7 +178,5 @@ final class PaymentService
                 }
             }
         }
-
-        (new PointsService())->awardForOrder($order);
     }
 }

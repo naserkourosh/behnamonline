@@ -13,9 +13,8 @@ $name = trim(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
                     <div class="text-[12px] text-[#999] nums" dir="ltr"><?= e($user['mobile']) ?></div>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-3 text-center">
+            <div class="grid grid-cols-1 gap-3 text-center">
                 <div class="rounded-xl2 bg-surface p-3"><div class="text-[16px] font-extrabold text-secondary nums"><?= fa(count($orders)) ?></div><div class="text-[10.5px] text-[#999]">سفارش</div></div>
-                <div class="rounded-xl2 bg-surface p-3"><div class="text-[14px] font-extrabold text-secondary nums"><?= money((int) $user['wallet_balance']) ?></div><div class="text-[10.5px] text-[#999]">کیف پول</div></div>
             </div>
         </div>
         <div class="rounded-2xl border border-line2 bg-white p-5">

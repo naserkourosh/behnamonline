@@ -79,7 +79,7 @@ $items = $summary['items'];
                         </div>
                     <?php else: ?>
                         <form class="js-coupon flex gap-2.5">
-                            <input name="code" class="flex-1 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[12px] outline-none focus:border-secondary" placeholder="کد تخفیف یا کارت هدیه">
+                            <input name="code" class="flex-1 rounded-xl border border-line bg-surface px-3.5 py-2.5 text-[12px] outline-none focus:border-secondary" placeholder="کد تخفیف">
                             <button type="submit" class="rounded-xl bg-secondary px-5 text-[12.5px] font-bold text-white">ثبت</button>
                         </form>
                         <?php if (!empty($summary['coupon_error'])): ?><p class="mt-2 text-[11px] text-danger"><?= e($summary['coupon_error']) ?></p><?php endif; ?>

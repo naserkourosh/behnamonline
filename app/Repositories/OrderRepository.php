@@ -66,11 +66,6 @@ final class OrderRepository extends BaseRepository
         );
     }
 
-    public function setPointsEarned(int $id, int $points): void
-    {
-        $this->execute('UPDATE orders SET points_earned = ? WHERE id = ?', [$points, $id]);
-    }
-
     public function setStatus(int $id, string $status): void
     {
         $this->execute(

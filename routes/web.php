@@ -101,7 +101,6 @@ return static function (Router $router): void {
             $a->get('/account/profile', [AccountController::class, 'profile']);
             $a->post('/account/profile', [AccountController::class, 'profileUpdate'], [VerifyCsrf::class]);
             $a->get('/account/wishlist', [AccountController::class, 'wishlist']);
-            $a->get('/account/points', [AccountController::class, 'points']);
             $a->get('/account/tickets', [AccountController::class, 'tickets']);
             $a->post('/account/tickets', [AccountController::class, 'ticketStore'], [VerifyCsrf::class]);
             $a->get('/account/tickets/{id}', [AccountController::class, 'ticketShow']);

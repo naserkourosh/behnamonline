@@ -20,8 +20,6 @@ final class SettingController extends AdminController
         'show_stock_qty'          => 'bool',
         'low_stock_threshold'     => 'int',
         'flash_sale_ends_at'      => 'string',
-        'points_enabled'          => 'bool',
-        'points_earn_percent'     => 'int',
     ];
 
     public function index(Request $request): Response
