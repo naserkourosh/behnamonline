@@ -158,6 +158,35 @@ final class OrderRepository extends BaseRepository
         return $this->selectOne('SELECT * FROM orders WHERE id = ? LIMIT 1', [$id]);
     }
 
+    /**
+     * Orders for the accounting/inventory API (newest first, optional
+     * created-since filter and paid-only restriction).
+     * @return list<array<string,mixed>>
+     */
+    public function apiOrders(int $limit, int $offset, ?string $since, bool $paidOnly): array
+    {
+        $limit  = max(1, min(500, $limit));
+        $offset = max(0, $offset);
+        $clauses = [];
+        $params  = [];
+        if ($paidOnly) {
+            $clauses[] = "o.payment_status = 'paid'";
+        }
+        if ($since !== null && preg_match('/^\d{4}-\d{2}-\d{2}/', $since)) {
+            $clauses[] = 'o.created_at >= ?';
+            $params[]  = $since;
+        }
+        $where = $clauses === [] ? '' : 'WHERE ' . implode(' AND ', $clauses);
+        return $this->selectAll(
+            "SELECT o.id, o.order_number, o.created_at, o.subtotal, o.discount, o.coupon_discount,
+                    o.shipping_cost, o.total, o.payment_method, o.payment_status, o.status,
+                    o.mobile, o.receiver_name, o.province, o.city, o.tracking_code,
+                    (SELECT COUNT(*) FROM order_items i WHERE i.order_id = o.id) AS item_count
+               FROM orders o {$where} ORDER BY o.id DESC LIMIT {$limit} OFFSET {$offset}",
+            $params
+        );
+    }
+
     public function adminUpdate(int $id, string $status, string $paymentStatus, ?string $tracking): void
     {
         $this->execute(

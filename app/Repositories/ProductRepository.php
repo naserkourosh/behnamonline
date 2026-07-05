@@ -457,6 +457,84 @@ final class ProductRepository extends BaseRepository
         );
     }
 
+    /* ─────────── Integrations (Torob feed + accounting API) ─────────── */
+
+    /**
+     * Active products with the fields needed by the Torob feed and the
+     * integration API (one primary image + category + brand).
+     * @return list<array<string,mixed>>
+     */
+    public function feedList(int $limit = 5000): array
+    {
+        $limit = max(1, min(20000, $limit));
+        return $this->selectAll(
+            "SELECT p.id, p.name, p.slug, p.sku, p.barcode, p.short_desc,
+                    p.price, p.old_price, p.stock, p.reserved, p.is_active, p.updated_at,
+                    c.name AS category_name, b.name AS brand_name,
+                    (SELECT i.path FROM product_images i WHERE i.product_id = p.id AND i.is_primary = 1 ORDER BY i.sort LIMIT 1) AS image
+               FROM products p
+          LEFT JOIN categories c ON c.id = p.category_id
+          LEFT JOIN brands b ON b.id = p.brand_id
+              WHERE p.is_active = 1
+              ORDER BY p.id
+              LIMIT {$limit}"
+        );
+    }
+
+    /**
+     * Paginated product list for the accounting/inventory API.
+     * @return list<array<string,mixed>>
+     */
+    public function apiList(int $limit, int $offset): array
+    {
+        $limit  = max(1, min(500, $limit));
+        $offset = max(0, $offset);
+        return $this->selectAll(
+            "SELECT p.id, p.sku, p.barcode, p.name, p.price, p.old_price, p.stock, p.reserved,
+                    p.is_active, p.updated_at, c.name AS category, b.name AS brand
+               FROM products p
+          LEFT JOIN categories c ON c.id = p.category_id
+          LEFT JOIN brands b ON b.id = p.brand_id
+              ORDER BY p.id
+              LIMIT {$limit} OFFSET {$offset}"
+        );
+    }
+
+    public function countAll(): int
+    {
+        return (int) $this->scalar('SELECT COUNT(*) FROM products');
+    }
+
+    /** Find a product by its SKU or barcode (for accounting stock sync). @return array<string,mixed>|null */
+    public function findByCode(string $code): ?array
+    {
+        $code = trim($code);
+        if ($code === '') {
+            return null;
+        }
+        return $this->selectOne(
+            'SELECT * FROM products WHERE sku = ? OR barcode = ? ORDER BY (sku = ?) DESC LIMIT 1',
+            [$code, $code, $code]
+        );
+    }
+
+    /** Set stock (and optionally price) — used by the accounting sync. */
+    public function setStockPrice(int $id, ?int $stock, ?int $price): void
+    {
+        $sets   = ['updated_at = ?'];
+        $params = [date('Y-m-d H:i:s')];
+        if ($stock !== null) {
+            $sets[] = 'stock = ?';
+            $params[] = max(0, $stock);
+        }
+        if ($price !== null) {
+            $sets[] = 'price = ?';
+            $params[] = max(0, $price);
+        }
+        $params[] = $id;
+        $this->execute('UPDATE products SET ' . implode(', ', $sets) . ' WHERE id = ?', $params);
+    }
+
     /**
      * Build the WHERE clause and positional params from a filter array.
      * @param array<string,mixed> $filters

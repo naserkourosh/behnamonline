@@ -277,7 +277,9 @@
   /* Media library: copy a file's web path */
   $(document).on("click", ".js-copy-path", function () {
     var $b = $(this);
-    var path = "/" + String($b.data("path") || "").replace(/^\/+/, "");
+    var raw = String($b.data("path") || "");
+    // Absolute URLs and raw values (API keys) are copied as-is; relative media paths get a leading slash.
+    var path = ($b.data("raw") || /^https?:\/\//.test(raw)) ? raw : "/" + raw.replace(/^\/+/, "");
     var done = function () {
       var t = $b.text();
       $b.text("کپی شد ✓");

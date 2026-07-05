@@ -50,6 +50,21 @@ $this->push('json_ld', '<script type="application/ld+json">' . json_encode([
     ],
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>');
 
+// Torob (ترب) crawler markup — lets Torob read this product reliably when it
+// visits the page (complements the /torob.json feed). Prices in Toman.
+if (setting('torob_enabled', true)) {
+    $this->push('json_ld', '<script type="application/json" id="torob-product">' . json_encode([
+        'product_id'   => (string) $p['id'],
+        'page_url'     => abs_url('product/' . $p['slug']),
+        'title'        => (string) $p['name'],
+        'price'        => $price,
+        'old_price'    => $old ?: 0,
+        'availability' => $available > 0 ? 'instock' : 'outofstock',
+        'image_link'   => base_url() . asset((string) $mainImg['path']),
+        'category_name'=> (string) ($p['category_name'] ?? ''),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>');
+}
+
 // default variant = the one matching base price (override NULL), else first
 $defaultVariantId = 0;
 $defaultPrice     = $price;

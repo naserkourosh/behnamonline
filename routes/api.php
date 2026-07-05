@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use App\Controllers\Api\CartApiController;
+use App\Controllers\Api\IntegrationApiController;
 use App\Controllers\Api\SearchApiController;
 use App\Controllers\Api\ShippingApiController;
 use App\Controllers\Api\WishlistApiController;
 use App\Core\Router;
+use App\Middleware\RequireApiKey;
 use App\Middleware\SecurityHeaders;
 use App\Middleware\ThrottleRequests;
 use App\Middleware\VerifyCsrf;
@@ -29,5 +31,13 @@ return static function (Router $router): void {
         $r->get('/api/shipping/quote', [ShippingApiController::class, 'quote']);
 
         $r->post('/api/wishlist', [WishlistApiController::class, 'toggle'], [VerifyCsrf::class]);
+    });
+
+    // Accounting / inventory integration API (هلو / محک). Machine-to-machine:
+    // authenticated by an API key (RequireApiKey), not a browser CSRF token.
+    $router->group([SecurityHeaders::class, RequireApiKey::class], static function (Router $r): void {
+        $r->get('/api/integration/products', [IntegrationApiController::class, 'products']);
+        $r->get('/api/integration/orders', [IntegrationApiController::class, 'orders']);
+        $r->post('/api/integration/stock', [IntegrationApiController::class, 'stock']);
     });
 };

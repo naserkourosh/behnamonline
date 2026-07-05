@@ -12,6 +12,7 @@ use App\Controllers\Storefront\FaqController;
 use App\Controllers\Storefront\HomeController;
 use App\Controllers\Storefront\PaymentController;
 use App\Controllers\Storefront\ProductController;
+use App\Controllers\Storefront\TorobController;
 use App\Controllers\Admin\AccountingController as AdminAccountingController;
 use App\Controllers\Admin\AuthController as AdminAuthController;
 use App\Controllers\Admin\BannerController as AdminBannerController;
@@ -51,6 +52,10 @@ return static function (Router $router): void {
         $r->get('/category/{slug}', [CategoryController::class, 'show']);
 
         $r->get('/product/{slug}', [ProductController::class, 'show']);
+
+        // Torob (ترب) product feed — register the URL in the Torob merchant panel.
+        $r->get('/torob.json', [TorobController::class, 'feedJson']);
+        $r->get('/torob.xml', [TorobController::class, 'feedXml']);
 
         $r->get('/cart', [CartController::class, 'index']);
 
@@ -238,10 +243,13 @@ return static function (Router $router): void {
             $x->post('/admin/tickets/{id}/reply', [AdminTicketController::class, 'reply'], [VerifyCsrf::class]);
             $x->post('/admin/tickets/{id}/status', [AdminTicketController::class, 'status'], [VerifyCsrf::class]);
 
-            // Accounting export (Holoo / Mahak)
+            // Accounting export + integrations (Holoo / Mahak / Torob / API)
             $x->get('/admin/accounting', [AdminAccountingController::class, 'index']);
             $x->get('/admin/accounting/products.csv', [AdminAccountingController::class, 'exportProducts']);
             $x->get('/admin/accounting/orders.csv', [AdminAccountingController::class, 'exportOrders']);
+            $x->post('/admin/accounting/api-key', [AdminAccountingController::class, 'regenerateKey'], [VerifyCsrf::class]);
+            $x->post('/admin/accounting/torob', [AdminAccountingController::class, 'saveTorob'], [VerifyCsrf::class]);
+            $x->post('/admin/accounting/sync', [AdminAccountingController::class, 'sync'], [VerifyCsrf::class]);
 
             // SMS
             $x->get('/admin/sms', [AdminSmsController::class, 'index']);
