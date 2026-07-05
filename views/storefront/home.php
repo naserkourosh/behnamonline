@@ -51,6 +51,11 @@ if ($heroBanners !== []) {
     ];
 }
 
+// Preload the first hero image (the likely LCP element) when one is set.
+if (($slides[0]['image'] ?? null)) {
+    $this->push('head', '<link rel="preload" as="image" href="' . e((string) $slides[0]['image']) . '" fetchpriority="high">');
+}
+
 $flashEnds = (string) setting('flash_sale_ends_at', date('Y-m-d H:i:s', time() + 7200));
 $remaining = max(0, strtotime($flashEnds) - time());
 if ($remaining <= 0) {

@@ -12,6 +12,7 @@ use App\Controllers\Storefront\FaqController;
 use App\Controllers\Storefront\HomeController;
 use App\Controllers\Storefront\PaymentController;
 use App\Controllers\Storefront\ProductController;
+use App\Controllers\Storefront\SeoController;
 use App\Controllers\Storefront\TorobController;
 use App\Controllers\Admin\AccountingController as AdminAccountingController;
 use App\Controllers\Admin\AuthController as AdminAuthController;
@@ -56,6 +57,10 @@ return static function (Router $router): void {
         // Torob (ترب) product feed — register the URL in the Torob merchant panel.
         $r->get('/torob.json', [TorobController::class, 'feedJson']);
         $r->get('/torob.xml', [TorobController::class, 'feedXml']);
+
+        // Crawlability: XML sitemap + robots.txt (generated from live catalog).
+        $r->get('/sitemap.xml', [SeoController::class, 'sitemap']);
+        $r->get('/robots.txt', [SeoController::class, 'robots']);
 
         $r->get('/cart', [CartController::class, 'index']);
 

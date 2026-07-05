@@ -34,6 +34,7 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
 
     <link rel="preload" href="<?= e(asset('assets/fonts/vazirmatn-400.woff2')) ?>" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>">
+    <?= $this->stack('head') ?>
 
     <script type="application/ld+json"><?= json_encode([
         '@context' => 'https://schema.org',
@@ -44,6 +45,8 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
     <?= $this->stack('json_ld') ?>
 </head>
 <body class="min-h-screen bg-white pb-[78px] md:pb-0">
+
+    <a href="#main" class="skip-link">رفتن به محتوای اصلی</a>
 
     <?php $this->partial('loader'); ?>
 
@@ -67,7 +70,7 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
     <?php $this->partial('popup'); ?>
 
     <!-- Toast container -->
-    <div id="toast-root" class="pointer-events-none fixed inset-x-0 bottom-24 z-[80] flex flex-col items-center gap-2 px-4 md:bottom-8"></div>
+    <div id="toast-root" role="status" aria-live="polite" class="pointer-events-none fixed inset-x-0 bottom-24 z-[80] flex flex-col items-center gap-2 px-4 md:bottom-8"></div>
 
     <script>
         window.Behnam = {
@@ -76,7 +79,7 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
             placeholder: <?= json_encode(asset('assets/images/placeholder-product.svg'), JSON_UNESCAPED_SLASHES) ?>
         };
     </script>
-    <script src="<?= e(asset('assets/js/jquery.min.js')) ?>"></script>
+    <script src="<?= e(asset('assets/js/jquery.min.js')) ?>" defer></script>
     <script src="<?= e(asset('assets/js/app.js')) ?>" defer></script>
     <?= $this->stack('scripts') ?>
 </body>

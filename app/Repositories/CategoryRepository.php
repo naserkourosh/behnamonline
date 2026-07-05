@@ -31,6 +31,14 @@ final class CategoryRepository extends BaseRepository
         );
     }
 
+    /** @return list<array<string,mixed>> slug + lastmod for active categories (sitemap). */
+    public function sitemapList(): array
+    {
+        return $this->selectAll(
+            'SELECT slug, created_at FROM categories WHERE is_active = 1 ORDER BY sort, id'
+        );
+    }
+
     /* ───────────────────────── Admin ───────────────────────── */
 
     /** @return list<array<string,mixed>> */

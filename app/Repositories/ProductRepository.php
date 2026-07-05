@@ -481,6 +481,14 @@ final class ProductRepository extends BaseRepository
         );
     }
 
+    /** @return list<array<string,mixed>> slug + lastmod for every active product (sitemap). */
+    public function sitemapList(): array
+    {
+        return $this->selectAll(
+            'SELECT slug, updated_at, created_at FROM products WHERE is_active = 1 ORDER BY id DESC'
+        );
+    }
+
     /**
      * Paginated product list for the accounting/inventory API.
      * @return list<array<string,mixed>>

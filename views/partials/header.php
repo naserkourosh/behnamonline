@@ -39,7 +39,7 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
             <form action="<?= e(url('/category')) ?>" method="get" class="relative">
                 <div class="flex items-center gap-2.5 rounded-xl2 border border-line bg-surface px-3.5 py-2.5 text-mauve">
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>
-                    <input name="q" autocomplete="off" class="js-search-input w-full bg-transparent text-[13px] text-ink outline-none placeholder:text-mauve" placeholder="جستجوی محصولات، برندها…">
+                    <input name="q" autocomplete="off" aria-label="جستجو" class="js-search-input w-full bg-transparent text-[13px] text-ink outline-none placeholder:text-mauve" placeholder="جستجوی محصولات، برندها…">
                 </div>
                 <div class="js-search-results absolute inset-x-0 top-full z-50 mt-2 hidden overflow-hidden rounded-2xl border border-line bg-white shadow-card"></div>
             </form>
@@ -53,7 +53,7 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
             <form action="<?= e(url('/category')) ?>" method="get" class="relative mx-auto w-full max-w-[620px]">
                 <div class="flex items-center gap-3 rounded-2xl border border-line bg-surface px-5 py-3.5 text-mauve">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4" stroke-linecap="round"/></svg>
-                    <input name="q" autocomplete="off" class="js-search-input w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-mauve" placeholder="جستجوی محصولات، برندها و دسته‌بندی‌ها…">
+                    <input name="q" autocomplete="off" aria-label="جستجو" class="js-search-input w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-mauve" placeholder="جستجوی محصولات، برندها و دسته‌بندی‌ها…">
                 </div>
                 <div class="js-search-results absolute inset-x-0 top-full z-50 mt-2 hidden overflow-hidden rounded-2xl border border-line bg-white shadow-card"></div>
             </form>

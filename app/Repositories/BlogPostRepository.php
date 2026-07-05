@@ -75,6 +75,16 @@ final class BlogPostRepository extends BaseRepository
         $this->execute('UPDATE blog_posts SET view_count = view_count + 1 WHERE id = ?', [$id]);
     }
 
+    /** @return list<array<string,mixed>> slug + lastmod for published posts (sitemap). */
+    public function sitemapList(): array
+    {
+        return $this->selectAll(
+            "SELECT slug, updated_at, published_at FROM blog_posts
+              WHERE status = 'published' AND published_at <= NOW()
+              ORDER BY published_at DESC"
+        );
+    }
+
     /* ───────────────────────── Admin ───────────────────────── */
 
     /** @return list<array<string,mixed>> */

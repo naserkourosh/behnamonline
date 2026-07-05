@@ -56,6 +56,28 @@
   .nums {
     font-variant-numeric: tabular-nums;
   }
+  /* Accessibility: skip-to-content link, hidden until keyboard-focused */
+  .skip-link {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 200;
+    transform: translateY(-130%);
+    transition: transform 0.18s ease;
+    @apply rounded-b-xl bg-secondary px-4 py-2 text-[13px] font-bold text-white shadow-card;
+  }
+  .skip-link:focus {
+    transform: translateY(0);
+    outline: none;
+  }
+  /* Visible focus ring for keyboard users (WCAG 2.4.7) */
+  a:focus-visible,
+  button:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #5C2D46;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
 }
 
 @layer components {
