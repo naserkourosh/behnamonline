@@ -239,3 +239,17 @@ if (!function_exists('discount_percent')) {
         return (int) round((($old - $price) / $old) * 100);
     }
 }
+
+if (!function_exists('flash_active')) {
+    /**
+     * True when a product row's flash-sale window is currently open.
+     * @param array<string,mixed> $p
+     */
+    function flash_active(array $p): bool
+    {
+        if (empty($p['on_flash_sale']) || empty($p['flash_sale_ends_at'])) {
+            return false;
+        }
+        return strtotime((string) $p['flash_sale_ends_at']) > time();
+    }
+}

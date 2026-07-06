@@ -11,6 +11,7 @@ $lowAt      = (int) setting('low_stock_threshold', 5);
 $img        = (string) ($p['image'] ?: 'assets/images/placeholder-product.svg');
 $imgAlt     = (string) ($p['image_alt'] ?: $p['name']);
 $href       = url('/product/' . $p['slug']);
+$inCompare  = (new \App\Services\CompareService())->has((int) $p['id']);
 ?>
 <div class="card-rise flex h-full flex-col overflow-hidden rounded-2xl border border-line2 bg-white">
     <a href="<?= e($href) ?>" class="relative block aspect-square overflow-hidden bg-[#F3EBE2]">
@@ -24,6 +25,14 @@ $href       = url('/product/' . $p['slug']);
         <button type="button" class="js-wishlist absolute left-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-secondary" data-id="<?= (int) $p['id'] ?>" aria-label="افزودن به علاقه‌مندی">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.4-9.4-8.6C1 9.3 2.6 5.6 6 5.6c2 0 3 1.1 4 2.6 1-1.5 2-2.6 4-2.6 3.4 0 5 3.7 3.4 6.8C19 16.6 12 21 12 21z"/></svg>
         </button>
+        <button type="button" class="js-compare absolute left-2.5 top-[42px] flex h-7 w-7 items-center justify-center rounded-full bg-white/90 <?= $inCompare ? 'text-white bg-secondary' : 'text-secondary' ?>" data-id="<?= (int) $p['id'] ?>" aria-label="افزودن به مقایسه" title="مقایسه">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <?php if (flash_active($p)): ?>
+            <div class="js-flash-cd absolute inset-x-2 bottom-2 flex items-center justify-center gap-1 rounded-lg bg-secondary/90 py-1 text-[10px] font-bold text-white backdrop-blur" data-countdown="<?= (int) strtotime((string) $p['flash_sale_ends_at']) ?>">
+                <span>⚡</span><span class="js-cd-text nums" dir="ltr">--:--:--</span>
+            </div>
+        <?php endif; ?>
     </a>
     <div class="flex flex-1 flex-col p-3">
         <div class="mb-1 text-[9.5px] text-mauve md:text-[10.5px]"><?= e($p['brand_name'] ?? '') ?></div>

@@ -135,6 +135,35 @@
     });
   });
 
+  /* ── product compare ─────────────────────────────────────── */
+  function syncCompareBar(count) {
+    $(".js-compare-count").text(toFa(count));
+    $(".js-compare-bar").toggleClass("hidden", count <= 0);
+  }
+  $(document).on("click", ".js-compare", function (e) {
+    e.preventDefault();
+    var $btn = $(this);
+    var id = $btn.data("id");
+    if (!id) { return; }
+    api("POST", "/api/compare/toggle", { id: id }).done(function (res) {
+      if (!res.ok) { toast(res.error || "خطا در مقایسه", "error"); return; }
+      $btn.toggleClass("bg-secondary text-white", res.in).toggleClass("text-secondary", !res.in);
+      var $label = $btn.find(".js-compare-label");
+      if ($label.length) { $label.text(res.in ? "در لیست مقایسه ✓" : "افزودن به مقایسه"); }
+      syncCompareBar(res.count);
+      toast(res.in ? "به لیست مقایسه اضافه شد" : "از لیست مقایسه حذف شد");
+    });
+  });
+  $(document).on("click", ".js-compare-remove", function () {
+    api("POST", "/api/compare/remove", { id: $(this).data("id") }).done(function () { window.location.reload(); });
+  });
+  $(document).on("click", ".js-compare-clear", function () {
+    api("POST", "/api/compare/clear", {}).done(function () {
+      syncCompareBar(0);
+      if (/\/compare\/?$/.test(window.location.pathname)) { window.location.reload(); }
+    });
+  });
+
   /* ── mobile menu ─────────────────────────────────────────── */
   function menu(open) {
     $(".js-menu-overlay").toggleClass("hidden", !open);
@@ -215,6 +244,24 @@
     tick();
     setInterval(tick, 1000);
   });
+
+  /* ── per-card flash countdowns (data-countdown = unix end ts) ─ */
+  var $flashCds = $(".js-flash-cd");
+  if ($flashCds.length) {
+    var tickFlash = function () {
+      var now = Math.floor(Date.now() / 1000);
+      $flashCds.each(function () {
+        var $el = $(this);
+        var left = (parseInt($el.data("countdown"), 10) || 0) - now;
+        if (left <= 0) { $el.remove(); return; }
+        var pad = function (n) { return String(n).padStart(2, "0"); };
+        var t = pad(Math.floor(left / 3600)) + ":" + pad(Math.floor((left % 3600) / 60)) + ":" + pad(left % 60);
+        $el.find(".js-cd-text").text(toFa(t));
+      });
+    };
+    tickFlash();
+    setInterval(tickFlash, 1000);
+  }
 
   /* ── category: filter sheet, sort, load more ─────────────── */
   function filterSheet(open) {

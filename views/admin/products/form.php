@@ -76,6 +76,11 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
                     </label>
                 <?php endforeach; ?>
                 <div class="mt-3 border-t border-line2 pt-3">
+                    <label class="<?= $lbl ?>">پایان پیشنهاد شگفت‌انگیز <span class="font-normal text-[#aaa]">(YYYY-MM-DD HH:MM)</span></label>
+                    <input name="flash_sale_ends_at" value="<?= $v('flash_sale_ends_at') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="2026-07-10 18:00">
+                    <p class="mt-1 text-[10.5px] leading-5 text-[#aaa]">با فعال‌بودن «پیشنهاد شگفت‌انگیز»، تا این زمان شمارش معکوس نمایش داده می‌شود و سپس حراج به‌صورت خودکار پایان می‌یابد.</p>
+                </div>
+                <div class="mt-3 border-t border-line2 pt-3">
                     <label class="<?= $lbl ?>">ترتیب نمایش <span class="font-normal text-[#aaa]">(عدد بزرگ‌تر = بالاتر)</span></label>
                     <input name="sort" value="<?= $v('sort', '0') ?>" dir="ltr" class="<?= $inp ?> text-left">
                 </div>

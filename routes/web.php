@@ -8,6 +8,7 @@ use App\Controllers\Storefront\BlogController;
 use App\Controllers\Storefront\CartController;
 use App\Controllers\Storefront\CategoryController;
 use App\Controllers\Storefront\CheckoutController;
+use App\Controllers\Storefront\CompareController;
 use App\Controllers\Storefront\FaqController;
 use App\Controllers\Storefront\HomeController;
 use App\Controllers\Storefront\PaymentController;
@@ -63,6 +64,8 @@ return static function (Router $router): void {
         $r->get('/robots.txt', [SeoController::class, 'robots']);
 
         $r->get('/cart', [CartController::class, 'index']);
+
+        $r->get('/compare', [CompareController::class, 'index']);
 
         // ── Blog / magazine ──
         $r->get('/blog', [BlogController::class, 'index']);

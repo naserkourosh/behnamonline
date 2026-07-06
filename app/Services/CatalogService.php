@@ -52,6 +52,7 @@ final class CatalogService
         return [
             'categories'   => $categories,
             'flashSale'    => $this->products->flashSale(8),
+            'flashEndsAt'  => $this->products->flashSoonestEnd(),
             'sections'     => $sections,
             'brands'       => $this->brands->allActive(),
             'reviews'      => $this->reviews->latestApproved(6),
@@ -84,6 +85,7 @@ final class CatalogService
             'min_price'   => $query['min_price'] ?? '',
             'max_price'   => $query['max_price'] ?? '',
             'in_stock'    => !empty($query['in_stock']),
+            'on_sale'     => !empty($query['on_sale']),
             'min_rating'  => $query['min_rating'] ?? '',
             'search'      => $query['q'] ?? '',
         ];

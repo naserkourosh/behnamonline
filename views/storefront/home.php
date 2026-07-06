@@ -56,11 +56,18 @@ if (($slides[0]['image'] ?? null)) {
     $this->push('head', '<link rel="preload" as="image" href="' . e((string) $slides[0]['image']) . '" fetchpriority="high">');
 }
 
-$flashEnds = (string) setting('flash_sale_ends_at', date('Y-m-d H:i:s', time() + 7200));
-$remaining = max(0, strtotime($flashEnds) - time());
-if ($remaining <= 0) {
-    // Campaign expired/misaligned — roll to end of today so the countdown stays live.
-    $remaining = strtotime('tomorrow') - time();
+/** @var ?string $flashEndsAt */
+$flashEndsAt = $flashEndsAt ?? null;
+if ($flashEndsAt !== null) {
+    // Real engine: count down to the soonest-ending active flash sale.
+    $remaining = max(0, strtotime($flashEndsAt) - time());
+} else {
+    $flashEnds = (string) setting('flash_sale_ends_at', date('Y-m-d H:i:s', time() + 7200));
+    $remaining = max(0, strtotime($flashEnds) - time());
+    if ($remaining <= 0) {
+        // Campaign expired/misaligned — roll to end of today so the countdown stays live.
+        $remaining = strtotime('tomorrow') - time();
+    }
 }
 $h = str_pad((string) intdiv($remaining, 3600), 2, '0', STR_PAD_LEFT);
 $m = str_pad((string) intdiv($remaining % 3600, 60), 2, '0', STR_PAD_LEFT);

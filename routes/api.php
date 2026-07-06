@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Controllers\Api\CartApiController;
+use App\Controllers\Api\CompareApiController;
 use App\Controllers\Api\IntegrationApiController;
 use App\Controllers\Api\SearchApiController;
 use App\Controllers\Api\ShippingApiController;
@@ -31,6 +32,10 @@ return static function (Router $router): void {
         $r->get('/api/shipping/quote', [ShippingApiController::class, 'quote']);
 
         $r->post('/api/wishlist', [WishlistApiController::class, 'toggle'], [VerifyCsrf::class]);
+
+        $r->post('/api/compare/toggle', [CompareApiController::class, 'toggle'], [VerifyCsrf::class]);
+        $r->post('/api/compare/remove', [CompareApiController::class, 'remove'], [VerifyCsrf::class]);
+        $r->post('/api/compare/clear', [CompareApiController::class, 'clear'], [VerifyCsrf::class]);
     });
 
     // Accounting / inventory integration API (هلو / محک). Machine-to-machine:

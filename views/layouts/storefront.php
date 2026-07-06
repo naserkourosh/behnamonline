@@ -67,6 +67,7 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
     <?php $this->partial('footer'); ?>
     <?php $this->partial('bottom-nav'); ?>
     <?php $this->partial('floating-support'); ?>
+    <?php $this->partial('compare-bar'); ?>
     <?php $this->partial('popup'); ?>
 
     <!-- Toast container -->

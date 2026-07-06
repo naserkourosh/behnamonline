@@ -12,6 +12,7 @@ final class ProductRepository extends BaseRepository
     private const CARD_COLUMNS = "
         p.id, p.name, p.slug, p.price, p.old_price, p.stock, p.reserved,
         p.low_stock_threshold, p.rating_avg, p.rating_count, p.is_new, p.is_featured,
+        p.on_flash_sale, p.flash_sale_ends_at,
         b.name AS brand_name, b.slug AS brand_slug,
         (SELECT i.path FROM product_images i WHERE i.product_id = p.id AND i.is_primary = 1 ORDER BY i.sort LIMIT 1) AS image,
         (SELECT i.alt  FROM product_images i WHERE i.product_id = p.id AND i.is_primary = 1 ORDER BY i.sort LIMIT 1) AS image_alt,
@@ -24,6 +25,7 @@ final class ProductRepository extends BaseRepository
         'price_desc' => 'p.price DESC',
         'rating'     => 'p.rating_avg DESC, p.rating_count DESC',
         'bestselling'=> 'p.view_count DESC',
+        'discount'   => '(COALESCE(p.old_price, p.price) - p.price) DESC, p.id DESC',
         'default'    => 'p.sort DESC, p.is_featured DESC, p.id DESC',
     ];
 
@@ -58,10 +60,22 @@ final class ProductRepository extends BaseRepository
         );
     }
 
-    /** @return list<array<string,mixed>> */
+    /** @return list<array<string,mixed>> Products whose flash-sale window is currently open. */
     public function flashSale(int $limit = 5): array
     {
         return $this->cards(['flag_flash' => true], 'default', $limit);
+    }
+
+    /** The soonest flash-sale end time among active flash products, or null. */
+    public function flashSoonestEnd(): ?string
+    {
+        $v = $this->scalar(
+            'SELECT MIN(flash_sale_ends_at) FROM products
+              WHERE is_active = 1 AND on_flash_sale = 1
+                AND flash_sale_ends_at IS NOT NULL AND flash_sale_ends_at > ?',
+            [date('Y-m-d H:i:s')]
+        );
+        return $v !== null && $v !== false ? (string) $v : null;
     }
 
     /** @return list<array<string,mixed>> */
@@ -281,15 +295,16 @@ final class ProductRepository extends BaseRepository
             'INSERT INTO products
                 (category_id, brand_id, name, slug, sku, barcode, short_desc, description, aparat_embed,
                  price, old_price, stock, weight_grams, length_cm, width_cm, height_cm, low_stock_threshold,
-                 is_active, is_new, is_featured, on_flash_sale,
+                 is_active, is_new, is_featured, on_flash_sale, flash_sale_ends_at,
                  expiration_date, sort, seo_title, seo_description, created_at, updated_at)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             [
                 $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
                 $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
                 $d['stock'], $d['weight_grams'], $d['length_cm'], $d['width_cm'], $d['height_cm'],
                 $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
-                $d['on_flash_sale'], $d['expiration_date'], $d['sort'], $d['seo_title'], $d['seo_description'], $now, $now,
+                $d['on_flash_sale'], $d['flash_sale_ends_at'], $d['expiration_date'], $d['sort'],
+                $d['seo_title'], $d['seo_description'], $now, $now,
             ]
         );
         return $this->lastInsertId();
@@ -302,7 +317,7 @@ final class ProductRepository extends BaseRepository
             'UPDATE products SET category_id=?, brand_id=?, name=?, slug=?, sku=?, barcode=?, short_desc=?,
                 description=?, aparat_embed=?, price=?, old_price=?, stock=?, weight_grams=?, length_cm=?,
                 width_cm=?, height_cm=?, low_stock_threshold=?,
-                is_active=?, is_new=?, is_featured=?, on_flash_sale=?, expiration_date=?, sort=?,
+                is_active=?, is_new=?, is_featured=?, on_flash_sale=?, flash_sale_ends_at=?, expiration_date=?, sort=?,
                 seo_title=?, seo_description=?, updated_at=?
               WHERE id=?',
             [
@@ -310,7 +325,7 @@ final class ProductRepository extends BaseRepository
                 $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
                 $d['stock'], $d['weight_grams'], $d['length_cm'], $d['width_cm'], $d['height_cm'],
                 $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
-                $d['on_flash_sale'], $d['expiration_date'], $d['sort'], $d['seo_title'], $d['seo_description'],
+                $d['on_flash_sale'], $d['flash_sale_ends_at'], $d['expiration_date'], $d['sort'], $d['seo_title'], $d['seo_description'],
                 date('Y-m-d H:i:s'), $id,
             ]
         );
@@ -583,8 +598,15 @@ final class ProductRepository extends BaseRepository
             $clauses[] = 'p.rating_avg >= ?';
             $params[]  = (float) $filters['min_rating'];
         }
+        if (!empty($filters['on_sale'])) {
+            $clauses[] = '(p.old_price IS NOT NULL AND p.old_price > p.price)';
+        }
         if (!empty($filters['flag_flash'])) {
-            $clauses[] = 'p.on_flash_sale = 1';
+            // Only *active* flash sales (auto-expires when the window passes).
+            // Compare against the app-tz "now" (not MySQL NOW()) so this agrees
+            // with PHP flash_active() even when the DB server tz differs.
+            $clauses[] = 'p.on_flash_sale = 1 AND p.flash_sale_ends_at IS NOT NULL AND p.flash_sale_ends_at > ?';
+            $params[]  = date('Y-m-d H:i:s');
         }
         if (!empty($filters['flag_featured'])) {
             $clauses[] = 'p.is_featured = 1';

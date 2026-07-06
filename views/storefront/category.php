@@ -15,6 +15,7 @@ $basePath = '/' . trim(parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?
 $activeFilterCount = (int) (!empty($filters['min_price']) || !empty($filters['max_price']))
     + count((array) ($filters['brand_ids'] ?? []))
     + (int) !empty($filters['in_stock'])
+    + (int) !empty($filters['on_sale'])
     + (int) !empty($filters['min_rating']);
 
 $this->meta([
@@ -29,11 +30,12 @@ $sorts = [
     'price_asc'   => 'ارزان‌ترین',
     'price_desc'  => 'گران‌ترین',
     'rating'      => 'بیشترین امتیاز',
+    'discount'    => 'بیشترین تخفیف',
 ];
 
 // Build hidden fields preserving filters when changing sort.
 $hidden = '';
-foreach (['q' => $filters['search'] ?? '', 'min_price' => $filters['min_price'] ?? '', 'max_price' => $filters['max_price'] ?? '', 'in_stock' => !empty($filters['in_stock']) ? '1' : '', 'min_rating' => $filters['min_rating'] ?? ''] as $k => $v) {
+foreach (['q' => $filters['search'] ?? '', 'min_price' => $filters['min_price'] ?? '', 'max_price' => $filters['max_price'] ?? '', 'in_stock' => !empty($filters['in_stock']) ? '1' : '', 'on_sale' => !empty($filters['on_sale']) ? '1' : '', 'min_rating' => $filters['min_rating'] ?? ''] as $k => $v) {
     if ($v !== '' && $v !== null) {
         $hidden .= '<input type="hidden" name="' . e($k) . '" value="' . e($v) . '">';
     }

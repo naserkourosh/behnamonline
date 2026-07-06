@@ -156,6 +156,15 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
                 </div>
             <?php endif; ?>
 
+            <?php if (flash_active($p)): ?>
+                <div class="mt-5 flex items-center justify-between rounded-2xl border border-[#F4D9DC] bg-gradient-to-l from-[#FBF1F2] to-[#F8E7E9] px-4 py-3">
+                    <span class="text-[12.5px] font-extrabold text-secondary">⚡ پیشنهاد شگفت‌انگیز</span>
+                    <span class="js-flash-cd flex items-center gap-1 rounded-lg bg-secondary px-3 py-1.5 text-[13px] font-bold text-white" data-countdown="<?= (int) strtotime((string) $p['flash_sale_ends_at']) ?>">
+                        <span class="js-cd-text nums" dir="ltr">--:--:--</span>
+                    </span>
+                </div>
+            <?php endif; ?>
+
             <!-- price + stock -->
             <div class="mt-5 flex items-center justify-between rounded-2xl bg-surface p-4">
                 <div>
@@ -169,6 +178,11 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
                     <div class="mt-1 text-[10px] text-[#999]">برای ارسال امروز سفارش دهید</div>
                 </div>
             </div>
+
+            <button type="button" class="js-compare mt-3 flex items-center gap-2 text-[12.5px] font-semibold text-secondary" data-id="<?= (int) $p['id'] ?>">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span class="js-compare-label"><?= (new \App\Services\CompareService())->has((int) $p['id']) ? 'در لیست مقایسه ✓' : 'افزودن به مقایسه' ?></span>
+            </button>
 
             <!-- desktop inline add-to-cart -->
             <div class="mt-5 hidden items-center gap-3 md:flex">

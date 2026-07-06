@@ -37,9 +37,13 @@ $minRating      = (string) ($filters['min_rating'] ?? '');
 
     <div>
         <div class="mb-3 text-[13px] font-bold text-[#333]">وضعیت</div>
-        <label class="flex cursor-pointer items-center justify-between">
+        <label class="mb-2.5 flex cursor-pointer items-center justify-between">
             <span class="text-[12.5px] text-[#555]">فقط کالاهای موجود</span>
             <input type="checkbox" name="in_stock" value="1" class="h-5 w-5 accent-secondary" <?= !empty($filters['in_stock']) ? 'checked' : '' ?>>
+        </label>
+        <label class="flex cursor-pointer items-center justify-between">
+            <span class="text-[12.5px] text-[#555]">فقط تخفیف‌دار 🏷️</span>
+            <input type="checkbox" name="on_sale" value="1" class="h-5 w-5 accent-secondary" <?= !empty($filters['on_sale']) ? 'checked' : '' ?>>
         </label>
     </div>
 

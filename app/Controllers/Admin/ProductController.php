@@ -253,6 +253,9 @@ final class ProductController extends AdminController
             'is_new'              => $request->input('is_new') ? 1 : 0,
             'is_featured'         => $request->input('is_featured') ? 1 : 0,
             'on_flash_sale'       => $request->input('on_flash_sale') ? 1 : 0,
+            'flash_sale_ends_at'  => (($fe = trim((string) $request->input('flash_sale_ends_at', ''))) !== ''
+                                        && ($ts = strtotime(str_replace('T', ' ', $fe))) !== false)
+                                        ? date('Y-m-d H:i:s', $ts) : null,
             'expiration_date'     => preg_match('/^\d{4}-\d{2}-\d{2}$/', $exp) ? $exp : null,
             'seo_title'           => trim((string) $request->input('seo_title', '')) ?: null,
             'seo_description'     => trim((string) $request->input('seo_description', '')) ?: null,
