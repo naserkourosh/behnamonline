@@ -37,7 +37,7 @@ $v = static fn (string $k, $d = '') => e($post[$k] ?? $d);
                         <option value="published" <?= ($post['status'] ?? '') === 'published' ? 'selected' : '' ?>>منتشرشده</option>
                     </select>
                 </div>
-                <div class="mb-3"><label class="<?= $lbl ?>">تاریخ انتشار <span class="font-normal text-[#aaa]">(خالی=اکنون)</span></label><input name="published_at" value="<?= $v('published_at') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="2026-07-02 10:00:00"></div>
+                <div class="mb-3"><label class="<?= $lbl ?>">تاریخ انتشار <span class="font-normal text-[#aaa]">(خالی=اکنون)</span></label><input name="published_at" value="<?= $v('published_at') ?>" dir="ltr" class="js-jdatetime <?= $inp ?> text-left"></div>
                 <label class="flex items-center justify-between">
                     <span class="text-[12.5px] text-[#555]">مطلب ویژه</span>
                     <input type="checkbox" name="is_featured" value="1" class="h-5 w-5 accent-secondary" <?= ($post['is_featured'] ?? 0) ? 'checked' : '' ?>>

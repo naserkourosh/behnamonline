@@ -81,6 +81,58 @@
 }
 
 @layer components {
+  /* Jalali date picker (admin forms) */
+  .jdp-wrap {
+    @apply relative;
+  }
+  .jdp-input {
+    @apply w-full cursor-pointer rounded-xl2 border border-line bg-white px-3.5 py-2.5 text-left text-[13px] outline-none focus:border-secondary;
+  }
+  .jdp-panel {
+    @apply absolute right-0 top-full z-50 mt-1.5 w-[264px] rounded-2xl border border-line bg-white p-3 shadow-card;
+    direction: rtl;
+  }
+  .jdp-head {
+    @apply mb-2 flex items-center justify-between;
+  }
+  .jdp-title {
+    @apply text-[12.5px] font-bold text-secondary;
+  }
+  .jdp-nav {
+    @apply flex h-7 w-7 items-center justify-center rounded-lg border border-line text-[16px] leading-none text-secondary hover:bg-pink;
+  }
+  .jdp-grid {
+    @apply grid grid-cols-7 gap-1 text-center;
+  }
+  .jdp-wd {
+    @apply py-1 text-[10px] font-bold text-[#aaa];
+  }
+  .jdp-day {
+    @apply rounded-lg py-1.5 text-[11.5px] text-[#444] hover:bg-pink hover:text-secondary;
+  }
+  .jdp-day.is-today {
+    @apply font-extrabold text-secondary ring-1 ring-secondary/40;
+  }
+  .jdp-day.is-sel {
+    @apply bg-secondary font-bold text-white hover:bg-secondary hover:text-white;
+  }
+  .jdp-time {
+    @apply mt-2 flex items-center justify-center gap-1.5 border-t border-line2 pt-2 text-[11px] text-[#666];
+    direction: ltr;
+  }
+  .jdp-time input {
+    @apply w-11 rounded-lg border border-line bg-surface py-1 text-center text-[12px] outline-none focus:border-secondary;
+  }
+  .jdp-foot {
+    @apply mt-2 flex items-center justify-between border-t border-line2 pt-2;
+  }
+  .jdp-today {
+    @apply rounded-lg bg-pink px-3 py-1 text-[11px] font-bold text-secondary;
+  }
+  .jdp-clear {
+    @apply rounded-lg px-3 py-1 text-[11px] font-semibold text-danger;
+  }
+
   /* Horizontal scroll rails (hidden scrollbar) like the design rails */
   .hscroll {
     scrollbar-width: none;

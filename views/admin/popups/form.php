@@ -51,8 +51,8 @@ $v = static fn (string $k, $d = '') => e($popup[$k] ?? $d);
             </div>
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">زمان‌بندی</h3>
-                <div class="mb-3"><label class="<?= $lbl ?>">شروع</label><input name="starts_at" value="<?= $v('starts_at') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="YYYY-MM-DD"></div>
-                <div class="mb-3"><label class="<?= $lbl ?>">پایان</label><input name="ends_at" value="<?= $v('ends_at') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="YYYY-MM-DD"></div>
+                <div class="mb-3"><label class="<?= $lbl ?>">شروع</label><input name="starts_at" value="<?= $v('starts_at') ?>" dir="ltr" class="js-jdate <?= $inp ?> text-left"></div>
+                <div class="mb-3"><label class="<?= $lbl ?>">پایان</label><input name="ends_at" value="<?= $v('ends_at') ?>" dir="ltr" class="js-jdate <?= $inp ?> text-left"></div>
                 <div class="mb-3"><label class="<?= $lbl ?>">ترتیب</label><input name="sort" value="<?= $v('sort', '0') ?>" dir="ltr" class="<?= $inp ?> text-left"></div>
                 <label class="flex items-center justify-between"><span class="text-[12.5px] text-[#555]">فعال</span><input type="checkbox" name="is_active" value="1" class="h-5 w-5 accent-secondary" <?= ($popup['is_active'] ?? 1) ? 'checked' : '' ?>></label>
             </div>

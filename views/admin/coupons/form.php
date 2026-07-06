@@ -39,8 +39,8 @@ $ltr = ' dir="ltr" ';
                 <div><label class="<?= $lbl ?>">سقف هر کاربر</label><input name="per_user_limit" value="<?= $v('per_user_limit') ?>" <?= $ltr ?> class="<?= $inp ?> text-left" placeholder="خالی = نامحدود"></div>
             </div>
             <div class="mb-3 grid grid-cols-2 gap-3">
-                <div><label class="<?= $lbl ?>">شروع (YYYY-MM-DD)</label><input name="starts_at" value="<?= $v('starts_at') ?>" <?= $ltr ?> class="<?= $inp ?> text-left" placeholder="خالی = بدون محدودیت"></div>
-                <div><label class="<?= $lbl ?>">پایان</label><input name="ends_at" value="<?= $v('ends_at') ?>" <?= $ltr ?> class="<?= $inp ?> text-left" placeholder="خالی = بدون محدودیت"></div>
+                <div><label class="<?= $lbl ?>">شروع <span class="font-normal text-[#aaa]">(خالی = بدون محدودیت)</span></label><input name="starts_at" value="<?= $v('starts_at') ?>" <?= $ltr ?> class="js-jdate <?= $inp ?> text-left"></div>
+                <div><label class="<?= $lbl ?>">پایان</label><input name="ends_at" value="<?= $v('ends_at') ?>" <?= $ltr ?> class="js-jdate <?= $inp ?> text-left"></div>
             </div>
             <label class="flex items-center justify-between pt-1"><span class="text-[12.5px] text-[#555]">فعال</span><input type="checkbox" name="is_active" value="1" class="h-5 w-5 accent-secondary" <?= ($coupon['is_active'] ?? 1) ? 'checked' : '' ?>></label>
         </div>

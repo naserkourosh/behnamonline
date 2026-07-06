@@ -32,6 +32,8 @@ $labels = [
                     <label class="<?= $lbl ?>"><?= e($labels[$key] ?? $key) ?></label>
                     <?php if ($key === 'announcement_text'): ?>
                         <textarea name="<?= e($key) ?>" rows="2" class="<?= $inp ?>"><?= e((string) $current) ?></textarea>
+                    <?php elseif ($key === 'flash_sale_ends_at'): ?>
+                        <input name="<?= e($key) ?>" value="<?= e((string) $current) ?>" dir="ltr" class="js-jdatetime <?= $inp ?> text-left">
                     <?php else: ?>
                         <input name="<?= e($key) ?>" value="<?= e((string) $current) ?>" class="<?= $inp ?> <?= $type === 'int' ? 'text-left' : '' ?>" <?= $type === 'int' ? 'dir="ltr"' : '' ?>>
                     <?php endif; ?>

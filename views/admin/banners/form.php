@@ -48,8 +48,8 @@ $place = (string) ($item['placement'] ?? 'hero');
             <div class="mb-3"><label class="<?= $lbl ?>">رنگ/گرادیان پس‌زمینه (بدون تصویر)</label><input name="bg_color" value="<?= $v('bg_color') ?>" <?= $ltr ?> class="<?= $inp ?> text-left" placeholder="linear-gradient(155deg,#F4E4E6,#E8C5C8)"></div>
             <div class="mb-3 grid grid-cols-3 gap-3">
                 <div><label class="<?= $lbl ?>">ترتیب</label><input name="sort" value="<?= $v('sort', '0') ?>" <?= $ltr ?> class="<?= $inp ?> text-left"></div>
-                <div><label class="<?= $lbl ?>">شروع</label><input name="starts_at" value="<?= $v('starts_at') ?>" type="date" <?= $ltr ?> class="<?= $inp ?> text-left"></div>
-                <div><label class="<?= $lbl ?>">پایان</label><input name="ends_at" value="<?= $v('ends_at') ?>" type="date" <?= $ltr ?> class="<?= $inp ?> text-left"></div>
+                <div><label class="<?= $lbl ?>">شروع</label><input name="starts_at" value="<?= $v('starts_at') ?>" <?= $ltr ?> class="js-jdate <?= $inp ?> text-left"></div>
+                <div><label class="<?= $lbl ?>">پایان</label><input name="ends_at" value="<?= $v('ends_at') ?>" <?= $ltr ?> class="js-jdate <?= $inp ?> text-left"></div>
             </div>
             <label class="flex items-center justify-between pt-1"><span class="text-[12.5px] text-[#555]">فعال</span><input type="checkbox" name="is_active" value="1" class="h-5 w-5 accent-secondary" <?= ($item['is_active'] ?? 1) ? 'checked' : '' ?>></label>
         </div>

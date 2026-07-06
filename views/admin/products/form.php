@@ -76,8 +76,8 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
                     </label>
                 <?php endforeach; ?>
                 <div class="mt-3 border-t border-line2 pt-3">
-                    <label class="<?= $lbl ?>">پایان پیشنهاد شگفت‌انگیز <span class="font-normal text-[#aaa]">(YYYY-MM-DD HH:MM)</span></label>
-                    <input name="flash_sale_ends_at" value="<?= $v('flash_sale_ends_at') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="2026-07-10 18:00">
+                    <label class="<?= $lbl ?>">پایان پیشنهاد شگفت‌انگیز</label>
+                    <input name="flash_sale_ends_at" value="<?= $v('flash_sale_ends_at') ?>" dir="ltr" class="js-jdatetime <?= $inp ?> text-left">
                     <p class="mt-1 text-[10.5px] leading-5 text-[#aaa]">با فعال‌بودن «پیشنهاد شگفت‌انگیز»، تا این زمان شمارش معکوس نمایش داده می‌شود و سپس حراج به‌صورت خودکار پایان می‌یابد.</p>
                 </div>
                 <div class="mt-3 border-t border-line2 pt-3">
@@ -94,7 +94,7 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
                 <div class="mb-3"><label class="<?= $lbl ?>">آستانه هشدار موجودی</label><input name="low_stock_threshold" value="<?= $v('low_stock_threshold', '5') ?>" dir="ltr" class="<?= $inp ?> text-left"></div>
                 <div class="mb-3"><label class="<?= $lbl ?>">SKU</label><input name="sku" value="<?= $v('sku') ?>" dir="ltr" class="<?= $inp ?> text-left"></div>
                 <div class="mb-3"><label class="<?= $lbl ?>">بارکد</label><input name="barcode" value="<?= $v('barcode') ?>" dir="ltr" class="<?= $inp ?> text-left"></div>
-                <div><label class="<?= $lbl ?>">تاریخ انقضا <span class="font-normal text-[#aaa]">(YYYY-MM-DD)</span></label><input name="expiration_date" value="<?= $v('expiration_date') ?>" dir="ltr" class="<?= $inp ?> text-left" placeholder="2027-08-01"></div>
+                <div><label class="<?= $lbl ?>">تاریخ انقضا</label><input name="expiration_date" value="<?= $v('expiration_date') ?>" dir="ltr" class="js-jdate <?= $inp ?> text-left"></div>
             </div>
 
             <div class="rounded-2xl border border-line2 bg-white p-5">

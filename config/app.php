@@ -17,7 +17,9 @@ return [
     'wordmark' => 'BEHNAM',
 
     'session' => [
-        'lifetime' => (int) Env::get('SESSION_LIFETIME', 120),
+        // Seconds. Cookie lifetime + server-side GC; default one year so
+        // customers (and admins) stay signed in across visits.
+        'lifetime' => (int) Env::get('SESSION_LIFETIME', 60 * 60 * 24 * 365),
         'secure'   => (bool) Env::get('SECURE_COOKIES', false),
         'name'     => 'behnam_session',
     ],

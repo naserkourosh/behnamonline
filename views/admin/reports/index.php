@@ -40,8 +40,8 @@ $link = 'rounded-xl2 border px-3.5 py-2 text-[12px] font-semibold transition';
             <?php endforeach; ?>
         </div>
         <div class="ms-auto flex flex-wrap items-end gap-2">
-            <div><label class="mb-1 block text-[11px] text-[#888]">از تاریخ</label><input type="date" name="from" value="<?= e($from) ?>" dir="ltr" class="rounded-xl2 border border-line px-3 py-2 text-[12px] outline-none focus:border-secondary"></div>
-            <div><label class="mb-1 block text-[11px] text-[#888]">تا تاریخ</label><input type="date" name="to" value="<?= e($to) ?>" dir="ltr" class="rounded-xl2 border border-line px-3 py-2 text-[12px] outline-none focus:border-secondary"></div>
+            <div><label class="mb-1 block text-[11px] text-[#888]">از تاریخ</label><input name="from" value="<?= e($from) ?>" dir="ltr" class="js-jdate rounded-xl2 border border-line px-3 py-2 text-[12px] outline-none focus:border-secondary"></div>
+            <div><label class="mb-1 block text-[11px] text-[#888]">تا تاریخ</label><input name="to" value="<?= e($to) ?>" dir="ltr" class="js-jdate rounded-xl2 border border-line px-3 py-2 text-[12px] outline-none focus:border-secondary"></div>
             <button class="btn-primary px-5 py-2 text-[12.5px]">اعمال</button>
         </div>
     </div>
@@ -70,7 +70,7 @@ $link = 'rounded-xl2 border px-3.5 py-2 text-[12px] font-semibold transition';
                 <?php foreach ($series as $s): $h = (int) round((int) $s['revenue'] / $maxBar * 100); ?>
                     <div class="flex h-full min-w-[20px] flex-1 flex-col items-center justify-end gap-1.5">
                         <div class="w-full rounded-t-md bg-gradient-to-b from-secondary to-secondary-light" style="height: <?= max(2, $h) ?>%" title="<?= jdate((string) $s['d'] . ' 00:00:00') ?> — <?= money((int) $s['revenue']) ?> ت (<?= fa((int) $s['orders']) ?> سفارش)"></div>
-                        <span class="whitespace-nowrap text-[8.5px] text-[#bbb] nums"><?= fa(date('n/j', strtotime((string) $s['d']))) ?></span>
+                        <span class="whitespace-nowrap text-[8.5px] text-[#bbb] nums"><?= jdate((string) $s['d'], 'n/j') ?></span>
                     </div>
                 <?php endforeach; ?>
             </div>

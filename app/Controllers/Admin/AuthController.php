@@ -51,7 +51,7 @@ final class AuthController extends Controller
             return $this->redirect(url('/admin/login'));
         }
 
-        $result = AdminAuthService::attempt($username, $password);
+        $result = AdminAuthService::attempt($username, $password, (bool) $request->input('remember'));
         if (!$result['ok']) {
             Session::flash('error', $result['message'] ?? 'ورود ناموفق بود.');
             Session::flash('__old', ['username' => $username]);

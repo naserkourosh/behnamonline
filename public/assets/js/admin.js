@@ -303,4 +303,181 @@
       if (!$(".js-menu-label").val()) { $(".js-menu-label").val($opt.data("label")); }
     }
   });
+
+  /* ── Jalali date picker (تقویم شمسی) ─────────────────────────
+     Attach `.js-jdate` (date) or `.js-jdatetime` (date+time) to a text
+     input holding a Gregorian value; it becomes a hidden carrier while a
+     visible input shows the Jalali date and opens a popup calendar. The
+     form still submits Gregorian (YYYY-MM-DD [HH:MM:00]) — no PHP changes. */
+
+  // Integer division/modulo truncated toward zero (NOT Math.floor — the
+  // jalaali algorithm relies on truncation for negative intermediates).
+  function jdiv(a, b) { return ~~(a / b); }
+  function jmod(a, b) { return a - ~~(a / b) * b; }
+
+  var JD = {
+    faD: "۰۱۲۳۴۵۶۷۸۹",
+    fa: function (s) { return String(s).replace(/[0-9]/g, function (c) { return JD.faD[+c]; }); },
+    pad: function (n) { return String(n).padStart(2, "0"); },
+    months: ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"],
+    isLeap: function (jy) { return JD.jalCal(jy).leap === 0; },
+    jalCal: function (jy) {
+      var breaks = [-61, 9, 38, 199, 426, 686, 756, 818, 1111, 1181, 1210, 1635, 2060, 2097, 2192, 2262, 2324, 2394, 2456, 3178];
+      var gy = jy + 621, leapJ = -14, jp = breaks[0], jm, jump = 0, n, i;
+      for (i = 1; i < breaks.length; i += 1) {
+        jm = breaks[i]; jump = jm - jp;
+        if (jy < jm) { break; }
+        leapJ = leapJ + jdiv(jump, 33) * 8 + jdiv(jmod(jump, 33), 4);
+        jp = jm;
+      }
+      n = jy - jp;
+      leapJ = leapJ + jdiv(n, 33) * 8 + jdiv(jmod(n, 33) + 3, 4);
+      if (jmod(jump, 33) === 4 && jump - n === 4) { leapJ += 1; }
+      var leapG = jdiv(gy, 4) - jdiv((jdiv(gy, 100) + 1) * 3, 4) - 150;
+      var march = 20 + leapJ - leapG;
+      if (jump - n < 6) { n = n - jump + jdiv(jump + 4, 33) * 33; }
+      var leap = jmod(jmod(n + 1, 33) - 1, 4);
+      if (leap === -1) { leap = 4; }
+      return { leap: leap, gy: gy, march: march };
+    },
+    j2d: function (jy, jm, jd) {
+      var r = JD.jalCal(jy);
+      return JD.g2d(r.gy, 3, r.march) + (jm - 1) * 31 - jdiv(jm, 7) * (jm - 7) + jd - 1;
+    },
+    d2j: function (jdn) {
+      var gy = JD.d2g(jdn).gy, jy = gy - 621, r = JD.jalCal(jy);
+      var jdn1f = JD.g2d(gy, 3, r.march), k = jdn - jdn1f, jm, jd;
+      if (k >= 0) {
+        if (k <= 185) { jm = 1 + jdiv(k, 31); jd = jmod(k, 31) + 1; return { jy: jy, jm: jm, jd: jd }; }
+        k -= 186;
+      } else {
+        jy -= 1; k += 179;
+        if (r.leap === 1) { k += 1; }
+      }
+      jm = 7 + jdiv(k, 30); jd = jmod(k, 30) + 1;
+      return { jy: jy, jm: jm, jd: jd };
+    },
+    g2d: function (gy, gm, gd) {
+      var d = jdiv((gy + jdiv(gm - 8, 6) + 100100) * 1461, 4)
+        + jdiv(153 * jmod(gm + 9, 12) + 2, 5) + gd - 34840408;
+      return d - jdiv(jdiv(gy + 100100 + jdiv(gm - 8, 6), 100) * 3, 4) + 752;
+    },
+    d2g: function (jdn) {
+      var j = 4 * jdn + 139361631;
+      j = j + jdiv(jdiv(4 * jdn + 183187720, 146097) * 3, 4) * 4 - 3908;
+      var i = jdiv(jmod(j, 1461), 4) * 5 + 308;
+      var gd = jdiv(jmod(i, 153), 5) + 1;
+      var gm = jmod(jdiv(i, 153), 12) + 1;
+      var gy = jdiv(j, 1461) - 100100 + jdiv(8 - gm, 6);
+      return { gy: gy, gm: gm, gd: gd };
+    },
+    toJalali: function (gy, gm, gd) { return JD.d2j(JD.g2d(gy, gm, gd)); },
+    toGregorian: function (jy, jm, jd) { return JD.d2g(JD.j2d(jy, jm, jd)); },
+    monthLen: function (jy, jm) { return jm <= 6 ? 31 : (jm <= 11 ? 30 : (JD.isLeap(jy) ? 30 : 29)); },
+  };
+
+  function jdpInit($input) {
+    var withTime = $input.hasClass("js-jdatetime");
+    var todayJ = (function () { var t = new Date(); return JD.toJalali(t.getFullYear(), t.getMonth() + 1, t.getDate()); })();
+    var sel = null, hh = "00", mm = "00";
+
+    // Parse the existing Gregorian value (if any).
+    var m = /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2}))?/.exec($.trim($input.val() || ""));
+    if (m) {
+      sel = JD.toJalali(+m[1], +m[2], +m[3]);
+      hh = m[4] || "00"; mm = m[5] || "00";
+    }
+    var view = { jy: (sel || todayJ).jy, jm: (sel || todayJ).jm };
+
+    var $vis = $('<input type="text" readonly class="jdp-input" placeholder="انتخاب تاریخ…">')
+      .attr("dir", "ltr").attr("aria-label", "انتخاب تاریخ");
+    if ($input.attr("class")) { $vis.addClass($input.attr("class").replace(/js-jdate(time)?/g, "")); }
+    var $panel = $('<div class="jdp-panel hidden"></div>');
+    var $wrap = $('<div class="jdp-wrap"></div>');
+    $input.after($wrap);
+    $wrap.append($vis).append($panel);
+    $input.prop("type", "hidden").appendTo($wrap);
+
+    function label() {
+      if (!sel) { $vis.val(""); return; }
+      var t = JD.fa(sel.jy + "/" + JD.pad(sel.jm) + "/" + JD.pad(sel.jd));
+      if (withTime) { t += "  " + JD.fa(hh + ":" + mm); }
+      $vis.val(t);
+    }
+    function commit() {
+      if (!sel) { $input.val(""); return; }
+      var g = JD.toGregorian(sel.jy, sel.jm, sel.jd);
+      var v = g.gy + "-" + JD.pad(g.gm) + "-" + JD.pad(g.gd);
+      if (withTime) { v += " " + hh + ":" + mm + ":00"; }
+      $input.val(v).trigger("change");
+    }
+    function render() {
+      var first = JD.j2d(view.jy, view.jm, 1);
+      var g = JD.d2g(first);
+      var wd = (new Date(g.gy, g.gm - 1, g.gd).getDay() + 1) % 7; // Saturday-first
+      var len = JD.monthLen(view.jy, view.jm);
+      var html = '<div class="jdp-head">'
+        + '<button type="button" class="jdp-nav" data-nav="-1">‹</button>'
+        + '<span class="jdp-title">' + JD.months[view.jm - 1] + " " + JD.fa(view.jy) + "</span>"
+        + '<button type="button" class="jdp-nav" data-nav="1">›</button></div>'
+        + '<div class="jdp-grid">';
+      ["ش", "ی", "د", "س", "چ", "پ", "ج"].forEach(function (w) { html += '<span class="jdp-wd">' + w + "</span>"; });
+      var i;
+      for (i = 0; i < wd; i += 1) { html += "<span></span>"; }
+      for (i = 1; i <= len; i += 1) {
+        var cls = "jdp-day";
+        if (sel && sel.jy === view.jy && sel.jm === view.jm && sel.jd === i) { cls += " is-sel"; }
+        if (todayJ.jy === view.jy && todayJ.jm === view.jm && todayJ.jd === i) { cls += " is-today"; }
+        html += '<button type="button" class="' + cls + '" data-day="' + i + '">' + JD.fa(i) + "</button>";
+      }
+      html += "</div>";
+      if (withTime) {
+        html += '<div class="jdp-time"><label>ساعت</label>'
+          + '<input type="text" class="jdp-h" inputmode="numeric" maxlength="2" value="' + hh + '">'
+          + "<span>:</span>"
+          + '<input type="text" class="jdp-m" inputmode="numeric" maxlength="2" value="' + mm + '"></div>';
+      }
+      html += '<div class="jdp-foot"><button type="button" class="jdp-today">امروز</button><button type="button" class="jdp-clear">حذف</button></div>';
+      $panel.html(html);
+    }
+
+    $vis.on("click focus", function () { render(); $panel.removeClass("hidden"); });
+    $(document).on("mousedown", function (e) {
+      if (!$wrap[0].contains(e.target)) { $panel.addClass("hidden"); }
+    });
+    $panel.on("click", ".jdp-nav", function () {
+      view.jm += +$(this).data("nav");
+      if (view.jm > 12) { view.jm = 1; view.jy += 1; }
+      if (view.jm < 1) { view.jm = 12; view.jy -= 1; }
+      render();
+    });
+    $panel.on("click", ".jdp-day", function () {
+      sel = { jy: view.jy, jm: view.jm, jd: +$(this).data("day") };
+      label(); commit(); render();
+      if (!withTime) { $panel.addClass("hidden"); }
+    });
+    $panel.on("input", ".jdp-h, .jdp-m", function () {
+      var isH = $(this).hasClass("jdp-h");
+      var v = String($(this).val()).replace(/[^0-9]/g, "");
+      var n = Math.min(isH ? 23 : 59, +v || 0);
+      if (isH) { hh = JD.pad(n); } else { mm = JD.pad(n); }
+      if (sel) { label(); commit(); }
+    });
+    $panel.on("click", ".jdp-today", function () {
+      sel = { jy: todayJ.jy, jm: todayJ.jm, jd: todayJ.jd };
+      view = { jy: todayJ.jy, jm: todayJ.jm };
+      label(); commit(); render();
+      if (!withTime) { $panel.addClass("hidden"); }
+    });
+    $panel.on("click", ".jdp-clear", function () {
+      sel = null;
+      $input.val("").trigger("change");
+      label();
+      $panel.addClass("hidden");
+    });
+
+    label();
+  }
+
+  $(".js-jdate, .js-jdatetime").each(function () { jdpInit($(this)); });
 })(jQuery);

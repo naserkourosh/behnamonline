@@ -38,6 +38,10 @@
                         </button>
                     </div>
                 </div>
+                <label class="flex cursor-pointer items-center justify-between">
+                    <span class="text-[12px] text-[#666]">مرا به خاطر بسپار <span class="text-[10px] text-[#aaa]">(تا ۳۰ روز)</span></span>
+                    <input type="checkbox" name="remember" value="1" checked class="h-5 w-5 accent-secondary">
+                </label>
                 <button type="submit" class="btn-primary w-full py-3.5 text-[14px]">ورود</button>
             </form>
         </div>
