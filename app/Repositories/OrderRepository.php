@@ -57,9 +57,14 @@ final class OrderRepository extends BaseRepository
      * Settle a paid order WITHOUT a tracking code. The postal tracking code
      * is issued by the admin only after the parcel actually ships.
      */
-    public function markPaidProcessing(int $id): void
+    /**
+     * Atomically claim the unpaid→paid transition. Returns the affected row
+     * count: 0 means the order was ALREADY paid (double gateway callback or a
+     * concurrent admin confirm) and the caller must skip stock/promotions.
+     */
+    public function markPaidProcessing(int $id): int
     {
-        $this->execute(
+        return $this->execute(
             'UPDATE orders SET payment_status = ?, status = ?, updated_at = ?
               WHERE id = ? AND payment_status <> ?',
             ['paid', 'processing', date('Y-m-d H:i:s'), $id, 'paid']

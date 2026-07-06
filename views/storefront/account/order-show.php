@@ -37,6 +37,13 @@ $st = order_status((string) $order['status']);
                     <?php if (!empty($order['postal_code'])): ?><div class="text-[#999]">کد پستی: <span class="nums"><?= e($order['postal_code']) ?></span></div><?php endif; ?>
                 </div>
             </div>
+
+            <?php if (!empty($order['note'])): ?>
+            <div class="rounded-2xl border border-line2 bg-white p-4">
+                <div class="mb-2 text-[13px] font-bold text-secondary">توضیحات شما</div>
+                <p class="whitespace-pre-line text-[12.5px] leading-7 text-[#666]"><?= e($order['note']) ?></p>
+            </div>
+            <?php endif; ?>
         </div>
 
         <div class="space-y-3">

@@ -49,6 +49,13 @@ $payments = ['unpaid' => 'پرداخت‌نشده', 'paid' => 'پرداخت شد
             <?php if (!empty($order['postal_code'])): ?><div class="text-[#999]">کد پستی: <span class="nums"><?= e($order['postal_code']) ?></span></div><?php endif; ?>
             <div class="mt-2 text-[#999]">روش پرداخت: <?= e($order['payment_method']) ?></div>
         </div>
+
+        <?php if (!empty($order['note'])): ?>
+        <div class="rounded-2xl border border-[#F2E3C4] bg-[#FFF9EC] p-5 text-[12.5px] leading-7">
+            <div class="mb-1.5 flex items-center gap-2 text-[14px] font-bold text-[#8a6a2a]">💬 توضیحات مشتری</div>
+            <p class="whitespace-pre-line text-[#6a5a3a]"><?= e($order['note']) ?></p>
+        </div>
+        <?php endif; ?>
     </div>
 
     <!-- Manage -->

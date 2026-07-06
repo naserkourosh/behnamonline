@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controllers\Storefront;
 
 use App\Controllers\Controller;
+use App\Core\RateLimiter;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
@@ -28,6 +29,12 @@ final class AuthController extends Controller
         $mobile = en_num((string) $request->input('mobile', ''));
         if (!preg_match('/^09\d{9}$/', $mobile)) {
             return $this->json(['ok' => false, 'error' => 'شماره موبایل معتبر نیست.'], 422);
+        }
+
+        // Per-IP flood guard: OtpService already throttles per mobile, but a
+        // single IP could still SMS-bomb many DIFFERENT numbers.
+        if (!(new RateLimiter())->attempt('otp_send', $request->ip(), 5, 600)) {
+            return $this->json(['ok' => false, 'error' => 'درخواست‌های زیاد؛ چند دقیقه بعد دوباره تلاش کنید.'], 429);
         }
 
         Session::set('login_mobile', $mobile);

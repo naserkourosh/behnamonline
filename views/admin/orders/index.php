@@ -29,7 +29,7 @@ $sel = 'rounded-xl2 border border-line bg-white px-3 py-2 text-[12.5px] outline-
             <tbody>
                 <?php foreach ($items as $o): ?>
                     <tr class="border-b border-line2 last:border-0 hover:bg-surface/50">
-                        <td class="p-3"><a href="<?= e(url('/admin/orders/' . $o['id'])) ?>" class="font-bold text-secondary nums"><?= e($o['order_number']) ?></a></td>
+                        <td class="p-3"><a href="<?= e(url('/admin/orders/' . $o['id'])) ?>" class="font-bold text-secondary nums"><?= e($o['order_number']) ?></a><?php if (!empty($o['note'])): ?> <span title="این سفارش توضیحات مشتری دارد" class="cursor-help text-[12px]">💬</span><?php endif; ?></td>
                         <td class="p-3 text-center text-[#444]"><?= e($o['receiver_name'] ?: '—') ?><div class="text-[10px] text-[#aaa] nums" dir="ltr"><?= e($o['mobile']) ?></div></td>
                         <td class="p-3 text-center nums"><?= fa((int) $o['item_count']) ?></td>
                         <td class="p-3 text-center font-bold text-[#333] nums"><?= money((int) $o['total']) ?></td>

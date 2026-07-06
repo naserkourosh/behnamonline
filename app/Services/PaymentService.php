@@ -128,6 +128,13 @@ final class PaymentService
      */
     private function settle(int $orderId, array $order): void
     {
+        // Claim the unpaid→paid transition FIRST: if another callback (or a
+        // concurrent admin confirm) already settled this order, do nothing —
+        // otherwise stock would be decremented twice.
+        if ($this->orders->markPaidProcessing($orderId) === 0) {
+            return;
+        }
+
         foreach ($this->orders->items($orderId) as $item) {
             if ($item['product_id'] !== null) {
                 $this->products->decrementStock((int) $item['product_id'], (int) $item['qty']);
@@ -136,8 +143,6 @@ final class PaymentService
                 $this->products->decrementVariantStock((int) $item['variant_id'], (int) $item['qty']);
             }
         }
-
-        $this->orders->markPaidProcessing($orderId);
 
         $this->finalizePromotions(array_merge($order, ['id' => $orderId]));
 

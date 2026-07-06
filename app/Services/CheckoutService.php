@@ -68,6 +68,11 @@ final class CheckoutService
 
         // Create the order as PENDING/UNPAID. Stock is decremented and the
         // order settled only after the payment gateway confirms (PaymentService).
+        // Order + items are one transaction: a failure mid-way must not leave
+        // a header-only order behind.
+        $pdo = \App\Core\Database::connection();
+        $pdo->beginTransaction();
+        try {
         $orderId = $this->orders->create([
             'order_number'   => 'BH-TMP',
             'user_id'        => $userId,
@@ -102,6 +107,12 @@ final class CheckoutService
                 'unit_price'    => $item['unit_price'],
                 'line_total'    => $item['line_total'],
             ]);
+        }
+
+        $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            throw $e;
         }
 
         // Notify the customer that the order is placed and awaiting payment,

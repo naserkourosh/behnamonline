@@ -82,7 +82,9 @@ final class OrderController extends AdminController
         $sms = new SmsManager();
 
         // Confirming payment (e.g. card-to-card) → decrement stock, notify.
-        if ((string) $order['payment_status'] !== 'paid' && $payment === 'paid') {
+        // markPaidProcessing() atomically claims the transition; 0 rows means
+        // the gateway already settled it concurrently — skip the side effects.
+        if ($payment === 'paid' && $this->orders->markPaidProcessing($id) > 0) {
             $products = new ProductRepository();
             foreach ($this->orders->items($id) as $it) {
                 if ($it['product_id'] !== null) {
