@@ -172,9 +172,73 @@
   $(document).on("click", ".js-menu-open", function () { menu(true); });
   $(document).on("click", ".js-menu-close, .js-menu-overlay", function () { menu(false); });
 
-  /* ── chat balloon ────────────────────────────────────────── */
-  $(document).on("click", ".js-chat-toggle", function () { $(".js-chat-panel").toggleClass("hidden"); });
-  $(document).on("click", ".js-chat-close", function () { $(".js-chat-panel").addClass("hidden"); });
+  /* ── live chat (گفتگوی آنلاین) ───────────────────────────── */
+  var chatLastId = 0, chatTimer = null;
+  function chatBubble(m) {
+    var $b;
+    if (m.sender === "customer") {
+      $b = $('<div class="max-w-[220px] rounded-2xl rounded-br-sm bg-secondary px-3 py-2.5 text-[11.5px] leading-7 text-white"></div>').text(m.body);
+      return $('<div class="flex justify-end gap-2"></div>').append($b);
+    }
+    $b = $('<div class="max-w-[220px] rounded-2xl rounded-bl-sm border border-line bg-white px-3 py-2.5 text-[11.5px] leading-7 text-[#444]"></div>').text(m.body);
+    return $('<div class="flex gap-2"></div>')
+      .append('<div class="h-6 w-6 flex-none rounded-full bg-primary"></div>').append($b);
+  }
+  function chatAppend(msgs) {
+    if (!msgs || !msgs.length) { return; }
+    var $box = $(".js-chat-msgs");
+    var added = false;
+    msgs.forEach(function (m) {
+      if (m.id <= chatLastId) { return; } // already rendered (poll/send race)
+      chatLastId = m.id;
+      $box.append(chatBubble(m));
+      added = true;
+    });
+    if (added) { $box.scrollTop($box[0].scrollHeight); }
+  }
+  function chatPoll() {
+    $.getJSON(CFG.baseUrl + "/api/chat/poll?after=" + chatLastId, function (res) {
+      if (!res.ok || !res.active) { return; }
+      chatAppend(res.messages);
+      $(".js-chat-status").toggleClass("hidden", res.status !== "closed");
+    });
+  }
+  function chatStartPolling() {
+    var $p = $(".js-chat-panel");
+    if (chatTimer || !$p.data("chat") || String($p.data("active")) !== "1") { return; }
+    chatPoll();
+    chatTimer = setInterval(chatPoll, 4000);
+  }
+  function chatStopPolling() {
+    if (chatTimer) { clearInterval(chatTimer); chatTimer = null; }
+  }
+  $(document).on("click", ".js-chat-toggle", function () {
+    var $p = $(".js-chat-panel").toggleClass("hidden");
+    if ($p.hasClass("hidden")) { chatStopPolling(); } else { chatStartPolling(); }
+  });
+  $(document).on("click", ".js-chat-close", function () {
+    $(".js-chat-panel").addClass("hidden");
+    chatStopPolling();
+  });
+  $(document).on("submit", ".js-chat-form", function (e) {
+    e.preventDefault();
+    var $form = $(this);
+    var $input = $form.find(".js-chat-input");
+    var text = $.trim($input.val());
+    if (!text) { return; }
+    var name = $.trim($form.find(".js-chat-name").val() || "");
+    $input.prop("disabled", true);
+    api("POST", "/api/chat/send", { message: text, name: name }).done(function (res) {
+      if (!res.ok) { toast(res.error || "خطا در ارسال پیام", "error"); return; }
+      chatAppend([{ id: res.message_id, sender: "customer", body: text }]);
+      $input.val("");
+      $form.find(".js-chat-name").remove();
+      $(".js-chat-status").addClass("hidden");
+      $(".js-chat-panel").data("active", "1");
+      chatStartPolling();
+    }).fail(function () { toast("خطا در ارسال پیام", "error"); })
+      .always(function () { $input.prop("disabled", false).trigger("focus"); });
+  });
 
   /* ── search suggest ──────────────────────────────────────── */
   var searchTimer = null;

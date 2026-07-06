@@ -21,6 +21,7 @@ $nav = [
     ['banners',    '/admin/banners',    'بنرها',         '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="1.6"/><path d="M21 16l-5-4-4 3-3-2-6 4"/>'],
     ['media',      '/admin/media',      'کتابخانه رسانه','<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'],
     ['blog',       '/admin/blog',       'مجله',          '<path d="M4 4h11l5 5v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z"/><path d="M14 4v5h5M8 13h8M8 17h5"/>'],
+    ['support',    '/admin/chat',       'گفتگوی آنلاین', '<path d="M8 10h8M8 14h5M21 12a8 8 0 0 1-11.5 7.2L4 20l.8-5.3A8 8 0 1 1 21 12z" stroke-linecap="round"/>'],
     ['support',    '/admin/tickets',    'تیکت‌ها',       '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>'],
     ['support',    '/admin/faq',        'سوالات متداول', '<circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/>'],
     ['accounting', '/admin/accounting', 'حسابداری',      '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/>'],
@@ -32,6 +33,16 @@ $nav = [
 $isActive = static function (string $href) use ($path): bool {
     return $href === '/admin' ? $path === '/admin' : str_starts_with($path, $href);
 };
+
+// Unread live-chat badge (customer messages no admin has opened yet).
+$chatUnread = 0;
+if (admin_can('support')) {
+    try {
+        $chatUnread = (new \App\Repositories\ChatRepository())->adminUnreadTotal();
+    } catch (\Throwable) {
+        $chatUnread = 0;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -60,7 +71,10 @@ $isActive = static function (string $href) use ($path): bool {
                 $active = $isActive($href); ?>
                 <a href="<?= e(url($href)) ?>" class="mb-1 flex items-center gap-3 rounded-xl2 px-3.5 py-2.5 text-[13px] transition <?= $active ? 'bg-pink font-bold text-secondary' : 'text-[#555] hover:bg-surface' ?>">
                     <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><?= $icon ?></svg>
-                    <?= e($label) ?>
+                    <span class="flex-1"><?= e($label) ?></span>
+                    <?php if ($href === '/admin/chat' && $chatUnread > 0): ?>
+                        <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white nums"><?= fa($chatUnread) ?></span>
+                    <?php endif; ?>
                 </a>
             <?php endforeach; ?>
         </nav>

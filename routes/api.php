@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Controllers\Api\CartApiController;
+use App\Controllers\Api\ChatApiController;
 use App\Controllers\Api\CompareApiController;
 use App\Controllers\Api\IntegrationApiController;
 use App\Controllers\Api\SearchApiController;
@@ -36,6 +37,10 @@ return static function (Router $router): void {
         $r->post('/api/compare/toggle', [CompareApiController::class, 'toggle'], [VerifyCsrf::class]);
         $r->post('/api/compare/remove', [CompareApiController::class, 'remove'], [VerifyCsrf::class]);
         $r->post('/api/compare/clear', [CompareApiController::class, 'clear'], [VerifyCsrf::class]);
+
+        // Live chat (گفتگوی آنلاین) — conversation bound to the session.
+        $r->get('/api/chat/poll', [ChatApiController::class, 'poll']);
+        $r->post('/api/chat/send', [ChatApiController::class, 'send'], [VerifyCsrf::class]);
     });
 
     // Accounting / inventory integration API (هلو / محک). Machine-to-machine:

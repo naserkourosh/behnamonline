@@ -20,6 +20,7 @@ final class SettingController extends AdminController
         'show_stock_qty'          => 'bool',
         'low_stock_threshold'     => 'int',
         'flash_sale_ends_at'      => 'string',
+        'chat_enabled'            => 'bool',
     ];
 
     public function index(Request $request): Response

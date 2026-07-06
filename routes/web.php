@@ -29,6 +29,7 @@ use App\Controllers\Admin\FaqController as AdminFaqController;
 use App\Controllers\Admin\MediaController as AdminMediaController;
 use App\Controllers\Admin\TicketController as AdminTicketController;
 use App\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Controllers\Admin\ChatController as AdminChatController;
 use App\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Controllers\Admin\MenuController as AdminMenuController;
@@ -249,6 +250,13 @@ return static function (Router $router): void {
             $x->get('/admin/tickets/{id}', [AdminTicketController::class, 'show']);
             $x->post('/admin/tickets/{id}/reply', [AdminTicketController::class, 'reply'], [VerifyCsrf::class]);
             $x->post('/admin/tickets/{id}/status', [AdminTicketController::class, 'status'], [VerifyCsrf::class]);
+
+            // Live chat (گفتگوی آنلاین)
+            $x->get('/admin/chat', [AdminChatController::class, 'index']);
+            $x->get('/admin/chat/{id}', [AdminChatController::class, 'show']);
+            $x->get('/admin/chat/{id}/poll', [AdminChatController::class, 'poll']);
+            $x->post('/admin/chat/{id}/send', [AdminChatController::class, 'send'], [VerifyCsrf::class]);
+            $x->post('/admin/chat/{id}/close', [AdminChatController::class, 'close'], [VerifyCsrf::class]);
 
             // Accounting export + integrations (Holoo / Mahak / Torob / API)
             $x->get('/admin/accounting', [AdminAccountingController::class, 'index']);

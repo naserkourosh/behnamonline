@@ -46,11 +46,15 @@ final class Jalali
             $gy = (int) date('Y', $ts);
             $gm = (int) date('n', $ts);
             $gd = (int) date('j', $ts);
+            $hh = date('H', $ts);
+            $ii = date('i', $ts);
         } else {
             $parts = preg_split('/[-\/ :T]/', $date) ?: [];
             $gy = (int) ($parts[0] ?? date('Y'));
             $gm = (int) ($parts[1] ?? date('n'));
             $gd = (int) ($parts[2] ?? date('j'));
+            $hh = str_pad((string) (int) ($parts[3] ?? 0), 2, '0', STR_PAD_LEFT);
+            $ii = str_pad((string) (int) ($parts[4] ?? 0), 2, '0', STR_PAD_LEFT);
         }
 
         [$jy, $jm, $jd] = self::toJalali($gy, $gm, $gd);
@@ -62,6 +66,8 @@ final class Jalali
             'd' => str_pad((string) $jd, 2, '0', STR_PAD_LEFT),
             'j' => (string) $jd,
             'F' => self::MONTHS[$jm - 1] ?? '',
+            'H' => $hh,
+            'i' => $ii,
         ];
 
         return \fa(strtr($format, $replacements));
