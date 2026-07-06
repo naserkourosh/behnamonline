@@ -148,12 +148,11 @@ final class CheckoutService
         }
         $products = implode('، ', $names);
 
-        $message = (new \App\Repositories\SmsTemplateRepository())->render(
+        (new \App\Services\Sms\SmsManager())->sendTemplate(
+            (string) ($address['mobile'] ?? ''),
             'order_ready',
             ['name' => $name, 'order' => $orderNumber, 'products' => $products],
             "کاربر گرامی {$name}،\nسفارش شما شامل {$products} ثبت شد و آمادهٔ پرداخت است.\nبهنام"
         );
-
-        (new \App\Services\Sms\SmsManager())->send((string) ($address['mobile'] ?? ''), $message, 'order');
     }
 }

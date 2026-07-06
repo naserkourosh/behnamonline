@@ -43,12 +43,13 @@ final class OtpService
 
         $brand   = (string) Config::get('app.name', 'بهنام');
         $message = "کد تایید {$brand}: {$code}\nاین کد تا " . ((int) ($ttl / 60)) . " دقیقه معتبر است.";
-        (new SmsManager())->send($mobile, $message, 'otp');
+        // Goes via the service-line pattern when configured (see SmsManager).
+        (new SmsManager())->sendOtp($mobile, $code, $message);
 
         $result = ['ok' => true, 'message' => 'کد تایید ارسال شد.', 'resend_wait' => $resendWait];
 
         // In debug/mock mode, expose the code so local testing is frictionless.
-        if ((bool) Config::get('app.debug', false) && (string) Config::get('sms.driver', 'mock') === 'mock') {
+        if ((bool) Config::get('app.debug', false) && \App\Services\Sms\SmsConfig::driver() === 'mock') {
             $result['dev_code'] = $code;
         }
 

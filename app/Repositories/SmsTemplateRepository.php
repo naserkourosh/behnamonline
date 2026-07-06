@@ -20,11 +20,11 @@ final class SmsTemplateRepository extends BaseRepository
         return $this->selectOne('SELECT * FROM sms_templates WHERE tkey = ? LIMIT 1', [$key]);
     }
 
-    public function update(string $key, string $body, bool $active): void
+    public function update(string $key, string $body, bool $active, ?string $patternBodyId = null): void
     {
         $this->execute(
-            'UPDATE sms_templates SET body = ?, is_active = ?, updated_at = ? WHERE tkey = ?',
-            [$body, $active ? 1 : 0, date('Y-m-d H:i:s'), $key]
+            'UPDATE sms_templates SET body = ?, is_active = ?, pattern_body_id = ?, updated_at = ? WHERE tkey = ?',
+            [$body, $active ? 1 : 0, $patternBodyId !== '' ? $patternBodyId : null, date('Y-m-d H:i:s'), $key]
         );
     }
 

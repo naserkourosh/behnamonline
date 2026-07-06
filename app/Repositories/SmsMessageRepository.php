@@ -8,11 +8,11 @@ use App\Core\BaseRepository;
 
 final class SmsMessageRepository extends BaseRepository
 {
-    public function log(string $mobile, string $body, string $kind, bool $ok, string $driver): void
+    public function log(string $mobile, string $body, string $kind, bool $ok, string $driver, ?int $campaignId = null): void
     {
         $this->execute(
-            'INSERT INTO sms_messages (mobile, body, kind, status, driver, created_at) VALUES (?,?,?,?,?,?)',
-            [$mobile, $body, $kind, $ok ? 'sent' : 'failed', $driver, date('Y-m-d H:i:s')]
+            'INSERT INTO sms_messages (mobile, body, kind, status, driver, campaign_id, created_at) VALUES (?,?,?,?,?,?,?)',
+            [$mobile, $body, $kind, $ok ? 'sent' : 'failed', $driver, $campaignId, date('Y-m-d H:i:s')]
         );
     }
 

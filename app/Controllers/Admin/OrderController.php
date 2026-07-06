@@ -96,23 +96,23 @@ final class OrderController extends AdminController
             }
             // Consume coupon + award loyalty points (idempotent per order).
             (new \App\Services\PaymentService())->finalizePromotions($order);
-            $templates = new \App\Repositories\SmsTemplateRepository();
             // No tracking code at payment time — it is sent when the parcel ships.
-            $sms->send((string) $order['mobile'], $templates->render(
+            $sms->sendTemplate(
+                (string) $order['mobile'],
                 'payment_confirmed',
                 ['order' => (string) $order['order_number'], 'tracking' => ''],
                 "بهنام\nپرداخت سفارش {$order['order_number']} تایید شد. ✅\nسفارش شما در حال آماده‌سازی است."
-            ), 'order');
+            );
         }
 
         // Shipping notification.
         if ((string) $order['status'] !== 'shipped' && $status === 'shipped') {
-            $templates = $templates ?? new \App\Repositories\SmsTemplateRepository();
-            $sms->send((string) $order['mobile'], $templates->render(
+            $sms->sendTemplate(
+                (string) $order['mobile'],
                 'order_shipped',
                 ['order' => (string) $order['order_number'], 'tracking' => (string) ($tracking ?? '')],
                 "بهنام\nسفارش {$order['order_number']} ارسال شد. 🚚" . ($tracking ? "\nکد رهگیری: {$tracking}" : '')
-            ), 'order');
+            );
         }
 
         $this->orders->adminUpdate($id, $status, $payment, $tracking ?: null);

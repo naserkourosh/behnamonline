@@ -270,6 +270,10 @@ return static function (Router $router): void {
             // SMS
             $x->get('/admin/sms', [AdminSmsController::class, 'index']);
             $x->post('/admin/sms/send', [AdminSmsController::class, 'send'], [VerifyCsrf::class]);
+            $x->post('/admin/sms/campaign', [AdminSmsController::class, 'campaign'], [VerifyCsrf::class]);
+            $x->post('/admin/sms/settings', [AdminSmsController::class, 'settings'], [VerifyCsrf::class]);
+            $x->get('/admin/sms/audience-count', [AdminSmsController::class, 'audienceCount']);
+            $x->get('/admin/sms/credit', [AdminSmsController::class, 'credit']);
             $x->post('/admin/sms/templates', [AdminSmsController::class, 'templates'], [VerifyCsrf::class]);
 
             // Settings

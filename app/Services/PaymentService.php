@@ -146,12 +146,12 @@ final class PaymentService
 
         $this->finalizePromotions(array_merge($order, ['id' => $orderId]));
 
-        $message = (new \App\Repositories\SmsTemplateRepository())->render(
+        (new SmsManager())->sendTemplate(
+            (string) $order['mobile'],
             'order_paid',
             ['order' => (string) $order['order_number'], 'tracking' => ''],
             "بهنام\nسفارش {$order['order_number']} با موفقیت پرداخت شد. ✅\nپس از ارسال مرسوله، کد رهگیری پستی برای شما پیامک می‌شود."
         );
-        (new SmsManager())->send((string) $order['mobile'], $message, 'order');
     }
 
     /**
