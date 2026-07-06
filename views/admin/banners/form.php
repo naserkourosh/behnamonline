@@ -31,19 +31,22 @@ $place = (string) ($item['placement'] ?? 'hero');
             <h3 class="mb-4 text-[14px] font-bold text-[#333]">نمایش</h3>
             <div class="mb-3"><label class="<?= $lbl ?>">جایگاه</label>
                 <select name="placement" class="<?= $inp ?>">
-                    <option value="hero"  <?= $place === 'hero'  ? 'selected' : '' ?>>اسلایدر اصلی صفحه اول</option>
-                    <option value="promo" <?= $place === 'promo' ? 'selected' : '' ?>>باکس تبلیغاتی کنار اسلایدر</option>
-                    <option value="strip" <?= $place === 'strip' ? 'selected' : '' ?>>نوار تبلیغاتی</option>
+                    <option value="hero"   <?= $place === 'hero'   ? 'selected' : '' ?>>اسلایدر اصلی صفحه اول</option>
+                    <option value="promo"  <?= $place === 'promo'  ? 'selected' : '' ?>>باکس تبلیغاتی کنار اسلایدر</option>
+                    <option value="strip"  <?= $place === 'strip'  ? 'selected' : '' ?>>نوار تبلیغاتی</option>
+                    <option value="inline" <?= $place === 'inline' ? 'selected' : '' ?>>بنر تصویری میان صفحه (بین ردیف‌های محصولات)</option>
                 </select>
+                <p class="mt-1 text-[10.5px] leading-5 text-[#aaa]">اندازه پیشنهادی تصویر: اسلایدر ۱۶۰۰×۶۰۰ · باکس کنار اسلایدر ۷۲۰×۴۳۰ · نوار ۱۲۰۰×۲۰۰ · بنر میان صفحه ۱۶۰۰×۳۵۰</p>
             </div>
             <div class="mb-3"><label class="<?= $lbl ?>">تصویر</label>
-                <?php if (!empty($item['image'])): ?>
-                    <div class="mb-2 flex items-center gap-3">
-                        <img src="<?= e(asset((string) $item['image'])) ?>" alt="" class="h-14 w-24 rounded-lg object-cover">
-                        <label class="flex items-center gap-1.5 text-[11px] text-danger"><input type="checkbox" name="remove_image" value="1" class="h-4 w-4 accent-danger"> حذف تصویر</label>
-                    </div>
-                <?php endif; ?>
-                <input type="file" name="image" accept="image/*" class="w-full text-[12px] text-[#666] file:mr-2 file:rounded-lg file:border-0 file:bg-pink file:px-3 file:py-1.5 file:text-[12px] file:font-semibold file:text-secondary">
+                <div class="js-banner-img-box mb-2 <?= empty($item['image']) ? 'hidden' : '' ?>">
+                    <img src="<?= !empty($item['image']) ? e(asset((string) $item['image'])) : '' ?>" alt="پیش‌نمایش بنر" class="js-banner-img-preview max-h-40 w-full rounded-xl border border-line2 object-cover">
+                    <?php if (!empty($item['image'])): ?>
+                        <label class="mt-2 flex items-center gap-1.5 text-[11px] text-danger"><input type="checkbox" name="remove_image" value="1" class="h-4 w-4 accent-danger"> حذف تصویر فعلی (بدون جایگزین)</label>
+                    <?php endif; ?>
+                </div>
+                <input type="file" name="image" accept="image/*" class="js-banner-img-input w-full text-[12px] text-[#666] file:mr-2 file:rounded-lg file:border-0 file:bg-pink file:px-3 file:py-1.5 file:text-[12px] file:font-semibold file:text-secondary">
+                <p class="mt-1 text-[10.5px] text-[#aaa]"><?= $isEdit ? 'انتخاب فایل جدید، تصویر فعلی را جایگزین می‌کند (پیش‌نمایش بلافاصله نمایش داده می‌شود).' : 'JPG/PNG/WebP تا ۳ مگابایت.' ?></p>
             </div>
             <div class="mb-3"><label class="<?= $lbl ?>">رنگ/گرادیان پس‌زمینه (بدون تصویر)</label><input name="bg_color" value="<?= $v('bg_color') ?>" <?= $ltr ?> class="<?= $inp ?> text-left" placeholder="linear-gradient(155deg,#F4E4E6,#E8C5C8)"></div>
             <div class="mb-3 grid grid-cols-3 gap-3">

@@ -295,6 +295,39 @@
     }
   });
 
+  /* Banners: quick on/off toggle from the list (AJAX) */
+  $(document).on("change", ".js-banner-toggle", function () {
+    var $t = $(this);
+    $t.prop("disabled", true);
+    $.ajax({
+      method: "POST",
+      url: $t.data("url"),
+      headers: { "X-CSRF-Token": csrf(), "X-Requested-With": "XMLHttpRequest" },
+      dataType: "json",
+    }).done(function (res) {
+      if (res && res.ok) {
+        $t.prop("checked", res.active);
+        $t.closest("td").find(".js-banner-state")
+          .text(res.active ? "فعال" : "غیرفعال")
+          .toggleClass("text-success", res.active)
+          .toggleClass("text-danger", !res.active);
+      }
+    }).fail(function () { $t.prop("checked", !$t.prop("checked")); })
+      .always(function () { $t.prop("disabled", false); });
+  });
+
+  /* Banners: live image preview when a new file is picked */
+  $(document).on("change", ".js-banner-img-input", function () {
+    var file = this.files && this.files[0];
+    if (!file || !window.FileReader) { return; }
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      $(".js-banner-img-box").removeClass("hidden")
+        .find(".js-banner-img-preview").attr("src", e.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+
   /* Menu builder: quick-fill from category */
   $(document).on("change", ".js-menu-cat", function () {
     var $opt = $(this).find("option:selected");

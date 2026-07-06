@@ -146,6 +146,30 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
     </div>
 </section>
 
+<!-- ── Promo strip banners (نوار تبلیغاتی، admin-managed) ──── -->
+<?php $stripBanners = $stripBanners ?? []; ?>
+<?php if ($stripBanners !== []): ?>
+<section class="container-page pt-8 md:pt-12">
+    <div class="grid gap-4 <?= count($stripBanners) > 1 ? 'md:grid-cols-2' : '' ?>">
+        <?php foreach ($stripBanners as $sb):
+            $bg = !empty($sb['image'])
+                ? "url('" . e(asset((string) $sb['image'])) . "') center/cover no-repeat"
+                : ((string) ($sb['bg_color'] ?? '') ?: 'linear-gradient(120deg,#5C2D46,#7c4862)'); ?>
+            <a href="<?= e(url((string) ($sb['link_url'] ?? '/category') ?: '/category')) ?>"
+               class="card-rise relative flex items-center justify-between gap-4 overflow-hidden rounded-2xl px-5 py-4 md:px-8 md:py-5" style="background:<?= $bg ?>">
+                <?php if (!empty($sb['image'])): ?><div class="absolute inset-0 bg-secondary/40"></div><?php endif; ?>
+                <div class="relative min-w-0">
+                    <?php if (!empty($sb['kicker'])): ?><div class="mb-1 text-[10px] font-bold tracking-wide text-white/80"><?= e($sb['kicker']) ?></div><?php endif; ?>
+                    <div class="truncate text-[14px] font-extrabold text-white md:text-[17px]"><?= e($sb['title']) ?></div>
+                    <?php if (!empty($sb['subtitle'])): ?><div class="mt-0.5 truncate text-[11px] text-white/85"><?= e($sb['subtitle']) ?></div><?php endif; ?>
+                </div>
+                <span class="relative flex-none rounded-full bg-white px-4 py-2 text-[11.5px] font-bold text-secondary md:px-5"><?= e((string) ($sb['cta_label'] ?? 'مشاهده') ?: 'مشاهده') ?> ›</span>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
+
 <!-- ── Flash sale ─────────────────────────────────────────── -->
 <?php if ($flashSale !== []): ?>
 <section class="container-page pt-8 md:pt-12">
@@ -173,8 +197,9 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
 </section>
 <?php endif; ?>
 
-<!-- ── Per-category rails ─────────────────────────────────── -->
-<?php foreach ($sections as $section): ?>
+<!-- ── Per-category rails (بنرهای تصویری میان صفحه بین ردیف‌ها) ── -->
+<?php $inlineBanners = $inlineBanners ?? []; ?>
+<?php foreach ($sections as $si => $section): ?>
 <section class="pt-9 md:pt-12">
     <div class="container-page mb-4 flex items-baseline justify-between md:mb-6">
         <h2 class="section-title"><?= e($section['category']['name']) ?></h2>
@@ -188,6 +213,23 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
         <?php endforeach; ?>
     </div>
 </section>
+<?php if (isset($inlineBanners[$si])): $ib = $inlineBanners[$si]; ?>
+<section class="container-page pt-9 md:pt-12">
+    <a href="<?= e(url((string) ($ib['link_url'] ?? '/category') ?: '/category')) ?>" class="card-rise relative block overflow-hidden rounded-2xl md:rounded-3xl">
+        <?php if (!empty($ib['image'])): ?>
+            <img src="<?= e(asset((string) $ib['image'])) ?>" alt="<?= e($ib['title']) ?>" loading="lazy" decoding="async" class="h-28 w-full object-cover md:h-44">
+        <?php else: ?>
+            <div class="flex h-28 w-full items-center justify-center md:h-44" style="background:<?= (string) ($ib['bg_color'] ?? '') ?: 'linear-gradient(120deg,#5C2D46,#7c4862)' ?>">
+                <div class="px-6 text-center">
+                    <?php if (!empty($ib['kicker'])): ?><div class="mb-1 text-[10px] font-bold text-white/80"><?= e($ib['kicker']) ?></div><?php endif; ?>
+                    <div class="text-[15px] font-extrabold text-white md:text-[20px]"><?= e($ib['title']) ?></div>
+                    <?php if (!empty($ib['subtitle'])): ?><div class="mt-1 text-[11px] text-white/85 md:text-[12.5px]"><?= e($ib['subtitle']) ?></div><?php endif; ?>
+                </div>
+            </div>
+        <?php endif; ?>
+    </a>
+</section>
+<?php endif; ?>
 <?php endforeach; ?>
 
 <!-- ── Brands ─────────────────────────────────────────────── -->

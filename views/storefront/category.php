@@ -100,7 +100,7 @@ foreach ((array) ($filters['brand_ids'] ?? []) as $bid) {
         <aside class="hidden w-64 flex-none md:block">
             <div class="sticky top-44 rounded-2xl border border-line2 bg-white p-5">
                 <div class="mb-4 text-[15px] font-bold text-secondary">فیلترها</div>
-                <?php $this->partial('category-filters', ['brands' => $brands, 'filters' => $filters, 'action' => $action, 'sort' => $sort]); ?>
+                <?php $this->partial('category-filters', ['brands' => $brands, 'filters' => $filters, 'action' => $action, 'sort' => $sort, 'allCategories' => $allCategories]); ?>
             </div>
         </aside>
 
@@ -136,6 +136,6 @@ foreach ((array) ($filters['brand_ids'] ?? []) as $bid) {
         <button type="button" class="js-filter-close text-2xl text-[#999]" aria-label="بستن">&times;</button>
     </div>
     <div class="px-5">
-        <?php $this->partial('category-filters', ['brands' => $brands, 'filters' => $filters, 'action' => $action, 'sort' => $sort]); ?>
+        <?php $this->partial('category-filters', ['brands' => $brands, 'filters' => $filters, 'action' => $action, 'sort' => $sort, 'allCategories' => $allCategories]); ?>
     </div>
 </div>

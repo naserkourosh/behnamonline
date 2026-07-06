@@ -207,6 +207,7 @@ return static function (Router $router): void {
             $x->get('/admin/banners/{id}/edit', [AdminBannerController::class, 'edit']);
             $x->post('/admin/banners/{id}', [AdminBannerController::class, 'update'], [VerifyCsrf::class]);
             $x->post('/admin/banners/{id}/delete', [AdminBannerController::class, 'destroy'], [VerifyCsrf::class]);
+            $x->post('/admin/banners/{id}/toggle', [AdminBannerController::class, 'toggle'], [VerifyCsrf::class]);
 
             // Shipping zones / methods
             $x->get('/admin/shipping', [AdminShippingController::class, 'index']);

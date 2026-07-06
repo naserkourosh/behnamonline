@@ -91,6 +91,23 @@ final class BannerController extends AdminController
         return $this->redirect(url('/admin/banners/' . $id . '/edit'));
     }
 
+    /** AJAX: quick on/off from the banners list. */
+    public function toggle(Request $request): Response
+    {
+        if ($r = $this->guard('banners')) {
+            return $r;
+        }
+        $id   = (int) $request->param('id');
+        $item = $this->repo->find($id);
+        if ($item === null) {
+            return $this->json(['ok' => false], 404);
+        }
+        $on = !((int) $item['is_active'] === 1);
+        $this->repo->setActive($id, $on);
+        $this->audit($request, $on ? 'activate' : 'deactivate', 'banner', $id, (string) $item['title']);
+        return $this->json(['ok' => true, 'active' => $on]);
+    }
+
     public function destroy(Request $request): Response
     {
         if ($r = $this->guard('banners')) {
@@ -111,7 +128,7 @@ final class BannerController extends AdminController
     private function collect(Request $request): array
     {
         $placement = (string) $request->input('placement', 'hero');
-        if (!in_array($placement, ['hero', 'promo', 'strip'], true)) {
+        if (!in_array($placement, ['hero', 'promo', 'strip', 'inline'], true)) {
             $placement = 'hero';
         }
         $date = static function ($v): ?string {

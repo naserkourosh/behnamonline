@@ -332,6 +332,18 @@
     $(".js-filter-overlay").toggleClass("hidden", !open);
     $(".js-filter-sheet").toggleClass("hidden", !open);
   }
+
+  // Sidebar filters: category dropdown navigates, brand search narrows the list.
+  $(document).on("change", ".js-filter-cat", function () {
+    window.location.href = $(this).val();
+  });
+  $(document).on("input", ".js-brand-search", function () {
+    var q = $.trim($(this).val()).toLowerCase();
+    $(this).closest("form").find(".js-brand-item").each(function () {
+      var name = String($(this).data("name") || "");
+      $(this).toggleClass("hidden", q !== "" && name.indexOf(q) === -1);
+    });
+  });
   $(document).on("click", ".js-filter-open", function () { filterSheet(true); });
   $(document).on("click", ".js-filter-close, .js-filter-overlay", function () { filterSheet(false); });
   $(document).on("change", ".js-sort", function () { $(this).closest("form").submit(); });

@@ -59,6 +59,8 @@ final class CatalogService
             'posts'        => $this->demoPosts(),
             'heroBanners'  => $banners->activeByPlacement('hero', 6),
             'promoBanners' => $banners->activeByPlacement('promo', 2),
+            'stripBanners' => $banners->activeByPlacement('strip', 2),
+            'inlineBanners' => $banners->activeByPlacement('inline', 4),
         ];
     }
 

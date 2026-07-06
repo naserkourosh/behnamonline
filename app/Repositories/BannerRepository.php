@@ -38,6 +38,11 @@ final class BannerRepository extends BaseRepository
         return $this->selectOne('SELECT * FROM banners WHERE id = ? LIMIT 1', [$id]);
     }
 
+    public function setActive(int $id, bool $on): void
+    {
+        $this->execute('UPDATE banners SET is_active = ? WHERE id = ?', [$on ? 1 : 0, $id]);
+    }
+
     /** @param array<string,mixed> $d */
     public function insert(array $d): int
     {

@@ -1,6 +1,6 @@
 <?php
 /** @var list<array<string,mixed>> $items */
-$placeLabels = ['hero' => 'اسلایدر اصلی', 'promo' => 'باکس تبلیغاتی', 'strip' => 'نوار'];
+$placeLabels = ['hero' => 'اسلایدر اصلی', 'promo' => 'باکس تبلیغاتی', 'strip' => 'نوار', 'inline' => 'بنر میان صفحه'];
 ?>
 <div class="mb-4 flex items-center justify-between">
     <span class="text-[13px] font-semibold text-[#555] nums"><?= fa(count($items)) ?> بنر</span>
@@ -39,9 +39,13 @@ $placeLabels = ['hero' => 'اسلایدر اصلی', 'promo' => 'باکس تبل
                         <td class="p-3 text-center text-[#666] nums"><?= fa((int) $b['sort']) ?></td>
                         <td class="p-3 text-center text-[10.5px] text-[#999] nums"><?= $b['ends_at'] ? jdate((string) $b['ends_at']) : 'بدون محدودیت' ?></td>
                         <td class="p-3 text-center">
-                            <?php if ($expired): ?><span class="rounded-lg bg-surface px-2 py-1 text-[10px] font-bold text-[#999]">منقضی</span>
-                            <?php elseif ((int) $b['is_active']): ?><span class="rounded-lg bg-[#E7F7F0] px-2 py-1 text-[10px] font-bold text-success">فعال</span>
-                            <?php else: ?><span class="rounded-lg bg-[#FDECEC] px-2 py-1 text-[10px] font-bold text-danger">غیرفعال</span><?php endif; ?>
+                            <div class="flex flex-col items-center gap-1">
+                                <label class="relative inline-flex cursor-pointer items-center" title="روشن/خاموش">
+                                    <input type="checkbox" class="js-banner-toggle peer sr-only" data-url="<?= e(url('/admin/banners/' . $b['id'] . '/toggle')) ?>" <?= (int) $b['is_active'] ? 'checked' : '' ?>>
+                                    <span class="h-5 w-9 rounded-full bg-[#ddd] transition peer-checked:bg-success after:absolute after:right-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:after:-translate-x-4"></span>
+                                </label>
+                                <span class="js-banner-state text-[9.5px] font-bold <?= $expired ? 'text-[#999]' : ((int) $b['is_active'] ? 'text-success' : 'text-danger') ?>"><?= $expired ? 'منقضی' : ((int) $b['is_active'] ? 'فعال' : 'غیرفعال') ?></span>
+                            </div>
                         </td>
                         <td class="p-3">
                             <div class="flex items-center justify-center gap-2.5">
