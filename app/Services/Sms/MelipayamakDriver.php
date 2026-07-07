@@ -20,19 +20,25 @@ final class MelipayamakDriver implements SmsDriver
 {
     private const PATH = 'https://rest.payamak-panel.com/api/SendSMS/%s';
 
-    /** SendSMS error codes documented by Melipayamak (a RecId is much longer). */
+    /**
+     * Error codes documented by Melipayamak (a RecId is much longer).
+     * Positive codes: SendSMS. Negative codes: BaseServiceNumber (pattern).
+     */
     private const ERRORS = [
         '0'  => 'نام کاربری یا رمز عبور اشتباه است',
         '2'  => 'اعتبار پنل کافی نیست',
         '3'  => 'محدودیت ارسال روزانه',
         '4'  => 'محدودیت در حجم ارسال',
         '5'  => 'شماره فرستنده معتبر نیست',
-        '6'  => 'سامانه در حال بروزرسانی است',
+        '6'  => 'سامانه در حال بروزرسانی است (یا حساب/خط هنوز مجاز به ارسال وب‌سرویسی نیست)',
         '7'  => 'متن حاوی کلمهٔ فیلترشده است',
         '9'  => 'ارسال از خطوط عمومی از طریق وب‌سرویس ممکن نیست',
         '10' => 'کاربر مورد نظر فعال نیست',
         '11' => 'ارسال نشد',
         '12' => 'مدارک کاربر کامل نیست',
+        '-1' => 'دسترسی وب‌سرویس فعال نیست',
+        '-5' => 'متغیرهای ارسالی با الگوی (پترن) تاییدشده مطابقت ندارد — تعداد/ترتیب متغیرها را چک کنید',
+        '-6' => 'کد الگو (bodyId) نامعتبر است یا هنوز تایید نشده',
     ];
 
     public function send(string $mobile, string $message): bool
