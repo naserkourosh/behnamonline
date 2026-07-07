@@ -157,6 +157,27 @@
     @apply btn border border-primary bg-white text-secondary hover:bg-pink;
   }
 
+  /* Async-button loading state: JS swaps the label for a spinner + text. */
+  .btn-spinner {
+    display: inline-block;
+    flex: none;
+    height: 1em;
+    width: 1em;
+    vertical-align: -0.125em;
+    border-radius: 9999px;
+    border: 2px solid currentColor;
+    border-inline-start-color: transparent;
+    animation: btn-spin 0.7s linear infinite;
+  }
+  @keyframes btn-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .is-loading {
+    @apply pointer-events-none opacity-70;
+  }
+
   /* Section heading with the little accent bar from the design */
   .section-title {
     @apply flex items-center gap-2 text-base font-bold text-secondary md:text-xl;

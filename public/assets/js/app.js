@@ -548,6 +548,25 @@
       clear: function () { $boxes.val(""); $boxes.first().trigger("focus"); },
     };
   }
+  /* Swap a button's label for a spinner while an async call is in flight.
+     btnReset restores the original label; harmless on detached nodes. */
+  function btnLoading($btns, text) {
+    $btns.each(function () {
+      var $b = $(this);
+      if ($b.data("loading")) return;
+      $b.data("loading", 1).data("orig-html", $b.html())
+        .prop("disabled", true).addClass("is-loading")
+        .html('<span class="btn-spinner"></span> ' + text);
+    });
+  }
+  function btnReset($btns) {
+    $btns.each(function () {
+      var $b = $(this);
+      if (!$b.data("loading")) return;
+      $b.data("loading", 0).prop("disabled", false)
+        .removeClass("is-loading").html($b.data("orig-html"));
+    });
+  }
   function startResend($el, seconds) {
     var t = seconds;
     function tick() {
@@ -635,13 +654,18 @@
     }
     $(document).on("click", ".js-ck-send", function () {
       if (!$('input[name="ship_opt"]:checked').length) { toast("لطفاً روش ارسال را انتخاب کنید.", "error"); return; }
-      var $btn = $(this).prop("disabled", true);
+      // Lock BOTH order buttons (desktop aside + mobile sticky bar); keep the
+      // spinner through the redirect to the payment page on success.
+      var $btns = $(".js-ck-send");
+      btnLoading($btns, "در حال ثبت سفارش…");
       api("POST", "/checkout/place", ckPayload()).done(function (res) {
-        if (!res.ok) { toast(res.error || "خطا در ثبت سفارش", "error"); return; }
+        if (!res.ok) { toast(res.error || "خطا در ثبت سفارش", "error"); btnReset($btns); return; }
         updateCount(0);
         window.location.href = res.payment_url;
-      }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا در ثبت سفارش", "error"); })
-        .always(function () { $btn.prop("disabled", false); });
+      }).fail(function (xhr) {
+        toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا در ثبت سفارش", "error");
+        btnReset($btns);
+      });
     });
   }
 
@@ -653,7 +677,7 @@
     function lgSend($btn) {
       var mobile = toEn($("#lg-mobile").val()).replace(/[^0-9]/g, "");
       if (!/^09\d{9}$/.test(mobile)) { toast("شماره موبایل معتبر نیست.", "error"); return; }
-      $btn && $btn.prop("disabled", true);
+      $btn && btnLoading($btn, "در حال ارسال…");
       api("POST", "/login/send-otp", { mobile: mobile }).done(function (res) {
         if (!res.ok) { toast(res.error || "خطا", "error"); return; }
         $(".js-lg-mobile").text(mobile);
@@ -663,10 +687,10 @@
         if (lgStop) lgStop();
         lgStop = startResend($(".js-lg-resend"), res.resend_wait || 90);
       }).fail(function (xhr) { toast((xhr.responseJSON && xhr.responseJSON.error) || "خطا", "error"); })
-        .always(function () { $btn && $btn.prop("disabled", false); });
+        .always(function () { $btn && btnReset($btn); });
     }
     $(document).on("click", ".js-lg-send", function () { lgSend($(this)); });
-    $(document).on("click", "#login-page .js-resend", function () { lgSend(); });
+    $(document).on("click", "#login-page .js-resend", function () { lgSend($(this)); });
     $(document).on("click", ".js-lg-change", function () { $("#lg-step-otp").addClass("hidden"); $("#lg-step-mobile").removeClass("hidden"); });
     $(document).on("click", ".js-lg-verify", function () {
       var code = lgOtp.value();
