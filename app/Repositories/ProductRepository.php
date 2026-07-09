@@ -10,7 +10,7 @@ final class ProductRepository extends BaseRepository
 {
     /** Columns selected for product "cards" (lists, rails, grids). */
     private const CARD_COLUMNS = "
-        p.id, p.name, p.slug, p.price, p.old_price, p.stock, p.reserved,
+        p.id, p.name, p.slug, p.price, p.old_price, p.stock, p.reserved, p.is_out_of_stock, p.track_stock,
         p.low_stock_threshold, p.rating_avg, p.rating_count, p.is_new, p.is_featured,
         p.on_flash_sale, p.flash_sale_ends_at,
         b.name AS brand_name, b.slug AS brand_slug,
@@ -207,7 +207,7 @@ final class ProductRepository extends BaseRepository
         $offset = max(0, $offset);
         [$where, $params] = $this->adminWhere($filters);
         return $this->selectAll(
-            "SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock, p.reserved, p.sort,
+            "SELECT p.id, p.name, p.slug, p.price, p.old_price, p.stock, p.reserved, p.is_out_of_stock, p.track_stock, p.sort,
                     p.is_active, p.is_new, p.is_featured,
                     b.name AS brand_name, c.name AS category_name,
                     (SELECT i.path FROM product_images i WHERE i.product_id = p.id AND i.is_primary = 1 ORDER BY i.sort LIMIT 1) AS image
@@ -243,17 +243,11 @@ final class ProductRepository extends BaseRepository
 
         $q = trim((string) ($filters['q'] ?? ''));
         if ($q !== '') {
-            // Fast name match via the ngram FULLTEXT index; SKU by prefix (indexed).
-            $ft = self::ftBoolean($q);
-            if ($ft !== null) {
-                $clauses[] = '(MATCH (p.name) AGAINST (? IN BOOLEAN MODE) OR p.sku LIKE ?)';
-                $params[]  = $ft;
-                $params[]  = $q . '%';
-            } else {
-                $clauses[] = '(p.name LIKE ? OR p.sku LIKE ?)';
-                $params[]  = '%' . $q . '%';
-                $params[]  = '%' . $q . '%';
-            }
+            // Plain LIKE so behavior is identical on MySQL and MariaDB
+            // (production is MariaDB, which lacks the ngram FULLTEXT parser).
+            $clauses[] = '(p.name LIKE ? OR p.sku LIKE ?)';
+            $params[]  = '%' . $q . '%';
+            $params[]  = '%' . $q . '%';
         }
         if (!empty($filters['category'])) {
             $clauses[] = 'EXISTS (SELECT 1 FROM product_categories pc WHERE pc.product_id = p.id AND pc.category_id = ?)';
@@ -268,9 +262,9 @@ final class ProductRepository extends BaseRepository
             $params[]  = (int) $filters['tag'];
         }
         if (($filters['stock'] ?? '') === 'in') {
-            $clauses[] = '(p.stock - p.reserved) > 0';
+            $clauses[] = '(p.is_out_of_stock = 0 AND (p.track_stock = 0 OR (p.stock - p.reserved) > 0))';
         } elseif (($filters['stock'] ?? '') === 'out') {
-            $clauses[] = '(p.stock - p.reserved) <= 0';
+            $clauses[] = '(p.is_out_of_stock = 1 OR (p.track_stock = 1 AND (p.stock - p.reserved) <= 0))';
         }
 
         return [implode(' AND ', $clauses), $params];
@@ -294,14 +288,14 @@ final class ProductRepository extends BaseRepository
         $this->execute(
             'INSERT INTO products
                 (category_id, brand_id, name, slug, sku, barcode, short_desc, description, aparat_embed,
-                 price, old_price, stock, weight_grams, length_cm, width_cm, height_cm, low_stock_threshold,
+                 price, old_price, stock, is_out_of_stock, track_stock, weight_grams, length_cm, width_cm, height_cm, low_stock_threshold,
                  is_active, is_new, is_featured, on_flash_sale, flash_sale_ends_at,
                  expiration_date, sort, seo_title, seo_description, created_at, updated_at)
-             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
             [
                 $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
                 $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
-                $d['stock'], $d['weight_grams'], $d['length_cm'], $d['width_cm'], $d['height_cm'],
+                $d['stock'], $d['is_out_of_stock'], $d['track_stock'], $d['weight_grams'], $d['length_cm'], $d['width_cm'], $d['height_cm'],
                 $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
                 $d['on_flash_sale'], $d['flash_sale_ends_at'], $d['expiration_date'], $d['sort'],
                 $d['seo_title'], $d['seo_description'], $now, $now,
@@ -315,7 +309,7 @@ final class ProductRepository extends BaseRepository
     {
         $this->execute(
             'UPDATE products SET category_id=?, brand_id=?, name=?, slug=?, sku=?, barcode=?, short_desc=?,
-                description=?, aparat_embed=?, price=?, old_price=?, stock=?, weight_grams=?, length_cm=?,
+                description=?, aparat_embed=?, price=?, old_price=?, stock=?, is_out_of_stock=?, track_stock=?, weight_grams=?, length_cm=?,
                 width_cm=?, height_cm=?, low_stock_threshold=?,
                 is_active=?, is_new=?, is_featured=?, on_flash_sale=?, flash_sale_ends_at=?, expiration_date=?, sort=?,
                 seo_title=?, seo_description=?, updated_at=?
@@ -323,7 +317,7 @@ final class ProductRepository extends BaseRepository
             [
                 $d['category_id'], $d['brand_id'], $d['name'], $d['slug'], $d['sku'], $d['barcode'],
                 $d['short_desc'], $d['description'], $d['aparat_embed'], $d['price'], $d['old_price'],
-                $d['stock'], $d['weight_grams'], $d['length_cm'], $d['width_cm'], $d['height_cm'],
+                $d['stock'], $d['is_out_of_stock'], $d['track_stock'], $d['weight_grams'], $d['length_cm'], $d['width_cm'], $d['height_cm'],
                 $d['low_stock_threshold'], $d['is_active'], $d['is_new'], $d['is_featured'],
                 $d['on_flash_sale'], $d['flash_sale_ends_at'], $d['expiration_date'], $d['sort'], $d['seo_title'], $d['seo_description'],
                 date('Y-m-d H:i:s'), $id,
@@ -341,12 +335,13 @@ final class ProductRepository extends BaseRepository
         return (int) $this->scalar('SELECT COUNT(*) FROM products WHERE slug = ? AND id <> ?', [$slug, $exceptId]) > 0;
     }
 
-    public function addImage(int $productId, string $path, string $alt, string $title, bool $isPrimary, bool $isHover, int $sort): void
+    public function addImage(int $productId, string $path, string $alt, string $title, bool $isPrimary, bool $isHover, int $sort): int
     {
         $this->execute(
             'INSERT INTO product_images (product_id, path, alt, title, sort, is_primary, is_hover) VALUES (?,?,?,?,?,?,?)',
             [$productId, $path, $alt, $title, $sort, $isPrimary ? 1 : 0, $isHover ? 1 : 0]
         );
+        return $this->lastInsertId();
     }
 
     /** @return array<string,mixed>|null */
@@ -615,41 +610,14 @@ final class ProductRepository extends BaseRepository
             $clauses[] = 'p.is_new = 1';
         }
         if (!empty($filters['search'])) {
-            // Customer-facing search: ngram FULLTEXT on the product name (no
-            // leading-wildcard full scan). Falls back to LIKE for 1-char terms.
+            // Plain LIKE: works the same on MySQL and MariaDB (no ngram
+            // FULLTEXT dependency); catalog size keeps the scan cheap.
             $search = trim((string) $filters['search']);
-            $ft = self::ftBoolean($search);
-            if ($ft !== null) {
-                $clauses[] = 'MATCH (p.name) AGAINST (? IN BOOLEAN MODE)';
-                $params[]  = $ft;
-            } else {
-                $clauses[] = 'p.name LIKE ?';
-                $params[]  = '%' . $search . '%';
-            }
+            $clauses[] = 'p.name LIKE ?';
+            $params[]  = '%' . $search . '%';
         }
 
         return [implode(' AND ', $clauses), $params];
     }
 
-    /**
-     * Build a safe BOOLEAN-mode FULLTEXT term from user input: strips the
-     * boolean operators so input can't break the query, then requires each
-     * word (≥2 chars, the ngram token size) as a prefix match. Returns null
-     * when nothing usable remains (caller should fall back to LIKE).
-     */
-    private static function ftBoolean(string $q): ?string
-    {
-        $clean = preg_replace('/[+\-@><()~*"]+/u', ' ', $q) ?? '';
-        $clean = trim((string) preg_replace('/\s+/u', ' ', $clean));
-        if ($clean === '') {
-            return null;
-        }
-        $tokens = [];
-        foreach (explode(' ', $clean) as $tok) {
-            if (mb_strlen($tok) >= 2) {
-                $tokens[] = '+' . $tok . '*';
-            }
-        }
-        return $tokens === [] ? null : implode(' ', $tokens);
-    }
 }

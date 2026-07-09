@@ -106,7 +106,7 @@ if (!function_exists('asset')) {
     function asset(string $path): string
     {
         $path = ltrim($path, '/');
-        $full = BASE_PATH . '/public/' . $path;
+        $full = PUBLIC_PATH . '/' . $path;
         $version = is_file($full) ? '?v=' . filemtime($full) : '';
         return '/' . $path . $version;
     }

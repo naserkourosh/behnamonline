@@ -10,6 +10,13 @@
 
 declare(strict_types=1);
 
+// Web root on disk. public/index.php defines it as its own directory (which
+// on a real host may be public_html, OUTSIDE the app folder); this fallback
+// covers CLI scripts that only define BASE_PATH.
+if (!defined('PUBLIC_PATH')) {
+    define('PUBLIC_PATH', BASE_PATH . '/public');
+}
+
 // Load Composer's autoloader if the user later runs `composer install`.
 $composer = dirname(__DIR__, 2) . '/vendor/autoload.php';
 if (is_file($composer)) {

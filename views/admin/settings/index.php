@@ -7,8 +7,7 @@ $labels = [
     'announcement_text'       => 'متن نوار اعلان بالای سایت',
     'show_announcement'       => 'نمایش نوار اعلان',
     'free_shipping_threshold' => 'حداقل مبلغ ارسال رایگان (تومان)',
-    'show_stock_qty'          => 'نمایش تعداد موجودی به مشتری',
-    'low_stock_threshold'     => 'آستانه نمایش «تنها N عدد»',
+    'low_stock_threshold'     => 'آستانه هشدار «تنها N عدد» (برای محصولات با کنترل موجودی)',
     'flash_sale_ends_at'      => 'پایان پیشنهاد شگفت‌انگیز (YYYY-MM-DD HH:MM:SS)',
     'chat_enabled'            => 'فعال‌سازی گفتگوی آنلاین (چت پشتیبانی)',
 ];

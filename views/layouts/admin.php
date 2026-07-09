@@ -76,6 +76,11 @@ if (admin_can('support')) {
                         <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-bold text-white nums"><?= fa($chatUnread) ?></span>
                     <?php endif; ?>
                 </a>
+                <?php if ($href === '/admin/products'): ?>
+                    <a href="<?= e(url('/admin/products/create')) ?>" class="mb-1 flex items-center gap-2 rounded-xl2 py-2 pe-3.5 ps-11 text-[12px] transition <?= $path === '/admin/products/create' ? 'bg-pink font-bold text-secondary' : 'text-[#888] hover:bg-surface' ?>">
+                        <span class="text-[13px] leading-none">+</span> افزودن محصول
+                    </a>
+                <?php endif; ?>
             <?php endforeach; ?>
         </nav>
     </aside>

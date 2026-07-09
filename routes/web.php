@@ -138,6 +138,8 @@ return static function (Router $router): void {
             $x->post('/admin/products/{id}/delete', [AdminProductController::class, 'destroy'], [VerifyCsrf::class]);
             $x->post('/admin/products/{id}/sort', [AdminProductController::class, 'sort'], [VerifyCsrf::class]);
             $x->post('/admin/products/{id}/images', [AdminProductController::class, 'uploadImages'], [VerifyCsrf::class]);
+            $x->get('/admin/products/library-images', [AdminProductController::class, 'libraryImages']);
+            $x->post('/admin/products/{id}/images/from-library', [AdminProductController::class, 'attachLibraryImages'], [VerifyCsrf::class]);
             $x->post('/admin/products/images/{img}/delete', [AdminProductController::class, 'deleteImage'], [VerifyCsrf::class]);
 
             // Categories

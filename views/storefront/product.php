@@ -12,9 +12,26 @@ $p         = $product;
 $price     = (int) $p['price'];
 $old       = (int) $p['old_price'];
 $discount  = discount_percent($old, $price);
-$available = (int) $p['stock'] - (int) $p['reserved'];
-$showQty   = (bool) setting('show_stock_qty', true);
+// Per-product stock model: اتمام موجودی is absolute; otherwise کنترل موجودی
+// makes the numeric count govern (shown + zero blocks); else free selling.
+$oos       = !empty($p['is_out_of_stock']);
+$tracked   = !$oos && !empty($p['track_stock']);
+$available = $oos ? 0 : ($tracked ? (int) $p['stock'] - (int) $p['reserved'] : 9999);
+$showQty   = $tracked;
 $lowAt     = (int) setting('low_stock_threshold', 5);
+if ($oos) {
+    // The manual flag wins: variants must not re-enable the buy button.
+    foreach ($variants as &$vv) {
+        $vv['stock'] = 0;
+    }
+    unset($vv);
+} elseif (!$tracked) {
+    // Untracked stock: variants must never render as unavailable either.
+    foreach ($variants as &$vv) {
+        $vv['stock'] = 9999;
+    }
+    unset($vv);
+}
 
 $images    = $images !== [] ? $images : [['path' => 'assets/images/placeholder-product.svg', 'alt' => $p['name'], 'title' => $p['name']]];
 $mainImg   = $images[0];
@@ -85,7 +102,7 @@ if ($variants !== []) {
 
 $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
     if ($avail <= 0) {
-        return ['ناموجود', 'text-danger'];
+        return ['اتمام موجودی', 'text-danger'];
     }
     if ($showQty && $avail <= $lowAt) {
         return ['تنها ' . fa($avail) . ' عدد در انبار', 'text-warning'];
@@ -106,11 +123,11 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
         <span class="text-[#777]"><?= e($p['name']) ?></span>
     </nav>
 
-    <div id="js-pdp" data-id="<?= (int) $p['id'] ?>" class="grid gap-7 md:grid-cols-2 md:gap-12">
+    <div id="js-pdp" data-id="<?= (int) $p['id'] ?>" data-showqty="<?= $showQty ? 1 : 0 ?>" class="grid gap-7 md:grid-cols-2 md:gap-12">
         <!-- gallery -->
         <div>
-            <div class="relative aspect-square overflow-hidden rounded-3xl bg-[#F3EBE2]">
-                <img id="js-gallery-main" src="<?= e(asset((string) $mainImg['path'])) ?>" alt="<?= e($mainImg['alt'] ?: $p['name']) ?>" title="<?= e($mainImg['title'] ?: $p['name']) ?>" class="h-full w-full cursor-zoom-in object-cover js-zoom">
+            <div class="relative aspect-square overflow-hidden rounded-3xl bg-white">
+                <img id="js-gallery-main" src="<?= e(asset((string) $mainImg['path'])) ?>" alt="<?= e($mainImg['alt'] ?: $p['name']) ?>" title="<?= e($mainImg['title'] ?: $p['name']) ?>" class="h-full w-full cursor-zoom-in object-contain js-zoom">
                 <?php if ($discount > 0): ?>
                     <span class="badge-discount absolute right-3.5 top-3.5 text-[11px]">٪<?= fa($discount) ?></span>
                 <?php endif; ?>
@@ -120,7 +137,7 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
                 <?php foreach (array_slice($images, 0, 4) as $i => $img): ?>
                     <button type="button" class="js-thumb aspect-square w-1/4 overflow-hidden rounded-xl2 border-2 <?= $i === 0 ? 'border-secondary' : 'border-transparent' ?>"
                             data-src="<?= e(asset((string) $img['path'])) ?>" data-alt="<?= e($img['alt'] ?: $p['name']) ?>">
-                        <img src="<?= e(asset((string) $img['path'])) ?>" alt="<?= e($img['alt'] ?: $p['name']) ?>" loading="lazy" class="h-full w-full object-cover">
+                        <img src="<?= e(asset((string) $img['path'])) ?>" alt="<?= e($img['alt'] ?: $p['name']) ?>" loading="lazy" class="h-full w-full bg-white object-contain">
                     </button>
                 <?php endforeach; ?>
             </div>
@@ -187,14 +204,14 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
             <!-- desktop inline add-to-cart -->
             <div class="mt-5 hidden items-center gap-3 md:flex">
                 <button type="button" class="js-wishlist flex h-12 w-12 flex-none items-center justify-center rounded-xl2 border border-primary text-secondary" data-id="<?= (int) $p['id'] ?>" aria-label="علاقه‌مندی">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.4-9.4-8.6C1 9.3 2.6 5.6 6 5.6c2 0 3 1.1 4 2.6 1-1.5 2-2.6 4-2.6 3.4 0 5 3.7 3.4 6.8C19 16.6 12 21 12 21z"/></svg>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </button>
                 <div class="flex flex-none items-center overflow-hidden rounded-xl2 bg-surface">
                     <button type="button" class="js-qty-dec flex h-12 w-10 items-center justify-center text-[20px] text-secondary">−</button>
                     <span class="js-qty w-8 text-center font-bold text-[#333] nums" data-qty="1">۱</span>
                     <button type="button" class="js-qty-inc flex h-12 w-10 items-center justify-center text-[20px] text-secondary">+</button>
                 </div>
-                <button type="button" class="js-pdp-add btn-primary flex-1 py-3.5 text-[14px]" <?= $available <= 0 ? 'disabled' : '' ?>>افزودن به سبد</button>
+                <button type="button" class="js-pdp-add btn-primary flex-1 py-3.5 text-[14px]" <?= $available <= 0 ? 'disabled' : '' ?>><?= $available <= 0 ? 'اتمام موجودی' : 'افزودن به سبد' ?></button>
             </div>
         </div>
     </div>
@@ -304,12 +321,12 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
 <!-- mobile sticky add-to-cart -->
 <div class="fixed bottom-0 left-1/2 z-50 flex w-full max-w-mobile -translate-x-1/2 items-center gap-3 border-t border-line bg-white px-4 pb-4 pt-3 shadow-nav md:hidden">
     <button type="button" class="js-wishlist flex h-12 w-12 flex-none items-center justify-center rounded-xl2 border border-primary text-secondary" aria-label="علاقه‌مندی">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.4-9.4-8.6C1 9.3 2.6 5.6 6 5.6c2 0 3 1.1 4 2.6 1-1.5 2-2.6 4-2.6 3.4 0 5 3.7 3.4 6.8C19 16.6 12 21 12 21z"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <div class="flex flex-none items-center overflow-hidden rounded-xl2 bg-surface">
         <button type="button" class="js-qty-dec flex h-12 w-9 items-center justify-center text-[20px] text-secondary">−</button>
         <span class="js-qty w-7 text-center font-bold text-[#333] nums" data-qty="1">۱</span>
         <button type="button" class="js-qty-inc flex h-12 w-9 items-center justify-center text-[20px] text-secondary">+</button>
     </div>
-    <button type="button" class="js-pdp-add btn-primary flex-1 py-3.5 text-[14px]" <?= $available <= 0 ? 'disabled' : '' ?>>افزودن به سبد</button>
+    <button type="button" class="js-pdp-add btn-primary flex-1 py-3.5 text-[14px]" <?= $available <= 0 ? 'disabled' : '' ?>><?= $available <= 0 ? 'اتمام موجودی' : 'افزودن به سبد' ?></button>
 </div>

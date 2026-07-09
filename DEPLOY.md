@@ -2,7 +2,7 @@
 
 ## پیش‌نیازهای هاست
 - **PHP 8.3** با اکستنشن‌های: `pdo_mysql` ، `curl` ، `gd` (کپچای ادمین) ، `mbstring` ، `fileinfo`
-- **MySQL 8** (یک دیتابیس + کاربر اختصاصی)
+- **MySQL 8 یا MariaDB 10.4+** (یک دیتابیس + کاربر اختصاصی) — پروژه با هر دو سازگار است
 - Apache با `mod_rewrite` (فایل `public/.htaccess` آماده است) — هاست اشتراکی cPanel/DirectAdmin کافی است
 - **SSL/HTTPS** فعال (Let's Encrypt رایگان کافی است)
 

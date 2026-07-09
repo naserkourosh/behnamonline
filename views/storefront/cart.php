@@ -15,7 +15,7 @@ $items = $summary['items'];
     <?php if ($items === []): ?>
         <div class="rounded-3xl border border-line2 bg-surface py-20 text-center">
             <div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white text-secondary">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 6h18" stroke-linecap="round"/><path d="M16 10a4 4 0 0 1-8 0" stroke-linecap="round"/></svg>
             </div>
             <p class="text-[14px] text-[#666]">سبد خرید شما خالی است.</p>
             <a href="<?= e(url('/category')) ?>" class="btn-primary mt-5 px-7 py-3 text-[13px]">شروع خرید</a>
@@ -41,8 +41,8 @@ $items = $summary['items'];
                 <div id="js-cart-items" class="flex flex-col gap-3">
                     <?php foreach ($items as $it): ?>
                         <div class="js-cart-row flex gap-3.5 rounded-2xl border border-line2 bg-white p-3" data-id="<?= (int) $it['id'] ?>">
-                            <a href="<?= e(url('/product/' . $it['slug'])) ?>" class="aspect-[7/8] w-20 flex-none overflow-hidden rounded-xl2 bg-[#F3EBE2]">
-                                <img src="<?= e(asset((string) $it['image'])) ?>" alt="<?= e($it['image_alt']) ?>" loading="lazy" class="h-full w-full object-cover">
+                            <a href="<?= e(url('/product/' . $it['slug'])) ?>" class="aspect-[7/8] w-20 flex-none overflow-hidden rounded-xl2 bg-white">
+                                <img src="<?= e(asset((string) $it['image'])) ?>" alt="<?= e($it['image_alt']) ?>" loading="lazy" class="h-full w-full object-contain">
                             </a>
                             <div class="flex flex-1 flex-col">
                                 <div class="flex items-start justify-between">

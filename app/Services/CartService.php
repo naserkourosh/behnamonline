@@ -36,8 +36,15 @@ final class CartService
             return ['ok' => false, 'message' => 'محصول یافت نشد.', 'summary' => $this->summary()];
         }
 
+        // Manual «اتمام موجودی» flag blocks the sale unconditionally.
+        if (!empty($product['is_out_of_stock'])) {
+            return ['ok' => false, 'message' => 'موجودی این محصول به پایان رسیده است.', 'summary' => $this->summary()];
+        }
+
+        // Counts only govern when this product's «کنترل موجودی انبار» is on.
+        $tracked   = !empty($product['track_stock']);
         $unitPrice = (int) $product['price'];
-        $available = (int) $product['stock'] - (int) $product['reserved'];
+        $available = $tracked ? (int) $product['stock'] - (int) $product['reserved'] : PHP_INT_MAX;
 
         if ($variantId !== null) {
             $variant = $this->products->findVariant($variantId, $productId);
@@ -47,7 +54,7 @@ final class CartService
             if ($variant['price_override'] !== null) {
                 $unitPrice = (int) $variant['price_override'];
             }
-            $available = (int) $variant['stock'];
+            $available = $tracked ? (int) $variant['stock'] : PHP_INT_MAX;
         }
 
         if ($available <= 0) {
@@ -86,8 +93,8 @@ final class CartService
                 $this->carts->removeLine($lineId, $cartId);
                 break;
             }
-            $available = $item['variant_id'] !== null
-                ? PHP_INT_MAX // variant stock validated on add; keep simple here
+            $available = (empty($item['track_stock']) || $item['variant_id'] !== null)
+                ? PHP_INT_MAX // untracked product / variant validated on add
                 : (int) $item['stock'] - (int) $item['reserved'];
             $this->carts->setQty($lineId, $cartId, min($qty, max(1, $available)));
             break;

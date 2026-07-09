@@ -13,7 +13,12 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
     <?= csrf_field() ?>
     <div class="mb-4 flex items-center justify-between">
         <a href="<?= e(url('/admin/products')) ?>" class="text-[12px] text-mauve">‹ بازگشت به محصولات</a>
-        <button class="btn-primary px-6 py-2.5 text-[13px]"><?= $isEdit ? 'ذخیره تغییرات' : 'ایجاد محصول' ?></button>
+        <div class="flex items-center gap-2">
+            <?php if ($isEdit): ?>
+                <a href="<?= e(url('/product/' . $product['slug'])) ?>" target="_blank" rel="noopener" class="btn-outline px-4 py-2.5 text-[12.5px]">مشاهده در سایت ↗</a>
+            <?php endif; ?>
+            <button class="btn-primary px-6 py-2.5 text-[13px]"><?= $isEdit ? 'ذخیره تغییرات' : 'ایجاد محصول' ?></button>
+        </div>
     </div>
 
     <div class="grid gap-5 lg:grid-cols-3">
@@ -69,7 +74,7 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
         <div class="space-y-5">
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">انتشار</h3>
-                <?php foreach ([['is_active', 'فعال (نمایش در سایت)', 1], ['is_new', 'محصول جدید', 0], ['is_featured', 'ویژه', 0], ['on_flash_sale', 'پیشنهاد شگفت‌انگیز', 0]] as [$k, $label, $def]): ?>
+                <?php foreach ([['is_active', 'فعال (نمایش در سایت)', 1], ['is_out_of_stock', 'اتمام موجودی (غیرقابل خرید)', 0], ['track_stock', 'کنترل موجودی انبار (فروش طبق تعداد + نمایش تعداد)', 0], ['is_new', 'محصول جدید', 0], ['is_featured', 'ویژه', 0], ['on_flash_sale', 'پیشنهاد شگفت‌انگیز', 0]] as [$k, $label, $def]): ?>
                     <label class="mb-2.5 flex items-center justify-between">
                         <span class="text-[12.5px] text-[#555]"><?= e($label) ?></span>
                         <input type="checkbox" name="<?= $k ?>" value="1" class="h-5 w-5 accent-secondary" <?= $flag($k, $def) ? 'checked' : '' ?>>
@@ -135,11 +140,21 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">برچسب‌ها</h3>
                 <input type="text" class="js-tag-filter <?= $inp ?> mb-3" placeholder="جستجوی برچسب…">
-                <div class="js-tag-groups max-h-72 space-y-3 overflow-y-auto pe-1">
-                    <?php foreach ($tagGroups as $groupName => $rows): ?>
-                        <div class="js-tag-group">
-                            <div class="mb-1.5 text-[11px] font-bold text-mauve"><?= e($groupName) ?></div>
-                            <div class="flex flex-wrap gap-2">
+                <div class="mb-3 flex gap-2">
+                    <input type="text" id="js-new-tag-name" class="<?= $inp ?>" placeholder="برچسب جدید…">
+                    <button type="button" class="js-tag-create flex-none rounded-xl2 bg-pink px-4 text-[12px] font-semibold text-secondary" data-url="<?= e(url('/admin/tags')) ?>">+ ساخت</button>
+                </div>
+                <div id="js-new-tags" class="mb-3 flex flex-wrap gap-2"></div>
+                <div class="js-tag-groups max-h-72 space-y-2 overflow-y-auto pe-1">
+                    <?php foreach ($tagGroups as $groupName => $rows):
+                        // Groups holding an already-selected tag start open.
+                        $hasChecked = array_filter($rows, fn ($t) => in_array((int) $t['id'], $tagIds, true)) !== [];
+                    ?>
+                        <details class="js-tag-group rounded-xl2 border border-line2" <?= $hasChecked ? 'open' : '' ?>>
+                            <summary class="cursor-pointer select-none px-3 py-2 text-[11px] font-bold text-mauve">
+                                <?= e($groupName) ?> <span class="font-normal text-[#bbb] nums">(<?= fa(count($rows)) ?>)</span>
+                            </summary>
+                            <div class="flex flex-wrap gap-2 px-3 pb-3">
                                 <?php foreach ($rows as $t): $on = in_array((int) $t['id'], $tagIds, true); ?>
                                     <label class="js-tag-item cursor-pointer" data-name="<?= e($t['name']) ?>">
                                         <input type="checkbox" name="tags[]" value="<?= (int) $t['id'] ?>" class="peer sr-only" <?= $on ? 'checked' : '' ?>>
@@ -147,7 +162,7 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
                                     </label>
                                 <?php endforeach; ?>
                             </div>
-                        </div>
+                        </details>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -156,11 +171,10 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
             <!-- Images -->
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">تصاویر</h3>
-                <?php if ($images !== []): ?>
-                    <div class="mb-3 space-y-3">
-                        <?php foreach ($images as $img): ?>
+                <div id="js-image-list" class="mb-3 space-y-3 <?= $images === [] ? 'hidden' : '' ?>">
+                    <?php foreach ($images as $img): ?>
                             <div class="js-image-tile flex gap-3 rounded-xl2 border border-line p-2.5" data-id="<?= (int) $img['id'] ?>">
-                                <img src="<?= e(asset((string) $img['path'])) ?>" alt="" class="h-16 w-16 flex-none rounded-lg object-cover">
+                                <img src="<?= e(asset((string) $img['path'])) ?>" alt="" class="h-16 w-16 flex-none rounded-lg bg-white object-contain">
                                 <div class="flex-1 space-y-1.5">
                                     <input name="img_alt[<?= (int) $img['id'] ?>]" value="<?= e($img['alt']) ?>" placeholder="متن جایگزین (alt)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">
                                     <input name="img_title[<?= (int) $img['id'] ?>]" value="<?= e($img['title']) ?>" placeholder="عنوان (title)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">
@@ -170,12 +184,19 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
                                     </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-                <label class="<?= $lbl ?>">افزودن تصویر</label>
-                <input type="file" name="images[]" accept="image/*" multiple class="w-full text-[12px] text-[#666] file:mr-2 file:rounded-lg file:border-0 file:bg-pink file:px-3 file:py-1.5 file:text-[12px] file:font-semibold file:text-secondary">
-                <p class="mt-1.5 text-[11px] text-[#aaa]">فرمت‌های مجاز: JPG, PNG, WEBP, GIF — حداکثر ۳ مگابایت.</p>
+                    <?php endforeach; ?>
+                </div>
+                <div class="mb-2 flex items-center justify-between">
+                    <label class="<?= $lbl ?> !mb-0">افزودن تصویر</label>
+                    <button type="button" class="js-lib-open rounded-lg bg-pink px-3 py-1.5 text-[12px] font-semibold text-secondary" data-attach-url="<?= $isEdit ? e(url('/admin/products/' . $product['id'] . '/images/from-library')) : '' ?>" data-list-url="<?= e(url('/admin/products/library-images')) ?>">📁 انتخاب از کتابخانه</button>
+                </div>
+                <input type="file" name="images[]" accept="image/*" multiple class="js-img-upload w-full text-[12px] text-[#666] file:mr-2 file:rounded-lg file:border-0 file:bg-pink file:px-3 file:py-1.5 file:text-[12px] file:font-semibold file:text-secondary" <?= $isEdit ? 'data-url="' . e(url('/admin/products/' . $product['id'] . '/images')) . '"' : '' ?>>
+                <div id="js-new-previews" class="mt-2 flex flex-wrap gap-2"></div>
+                <p class="mt-1.5 text-[11px] text-[#aaa]">
+                    فرمت‌های مجاز: JPG, PNG, WEBP, GIF — حداکثر ۳ مگابایت.
+                    <?= $isEdit ? 'تصاویر بلافاصله پس از انتخاب آپلود و به فهرست بالا اضافه می‌شوند.' : 'تصاویر پس از «ایجاد محصول» ذخیره می‌شوند.' ?>
+                    <span id="js-img-status" class="font-bold text-secondary"></span>
+                </p>
             </div>
         </div>
     </div>
@@ -184,3 +205,22 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
     <template id="tpl-spec"><div class="js-row flex gap-2"><input name="attr_key[]" placeholder="ویژگی" class="<?= $inp ?>"><input name="attr_value[]" placeholder="مقدار" class="<?= $inp ?>"><button type="button" class="js-del-row flex-none rounded-lg px-2 text-danger">✕</button></div></template>
     <template id="tpl-variant"><div class="js-row grid grid-cols-[1fr_1fr_1fr_auto] gap-2"><input name="var_label[]" placeholder="عنوان" class="<?= $inp ?>"><input name="var_sku[]" placeholder="SKU" dir="ltr" class="<?= $inp ?> text-left"><input name="var_price[]" placeholder="قیمت" dir="ltr" class="<?= $inp ?> text-left"><div class="flex gap-1"><input name="var_stock[]" placeholder="موجودی" dir="ltr" class="<?= $inp ?> w-20 text-left"><button type="button" class="js-del-row rounded-lg px-2 text-danger">✕</button></div></div></template>
 </form>
+
+<!-- Media-library picker modal (outside the form; buttons are type=button).
+     Edit mode attaches via AJAX; create mode adds hidden library_paths[]
+     inputs that store() imports after the product is created. -->
+<div id="js-lib-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+    <div class="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+        <div class="flex items-center justify-between border-b border-line2 p-4">
+            <h3 class="text-[14px] font-bold text-[#333]">انتخاب از کتابخانه تصاویر</h3>
+            <button type="button" class="js-lib-close px-1 text-[18px] leading-none text-[#999]">✕</button>
+        </div>
+        <div id="js-lib-grid" class="grid flex-1 grid-cols-3 gap-2.5 overflow-y-auto p-4 sm:grid-cols-5">
+            <p class="col-span-full py-8 text-center text-[12px] text-[#999]">در حال بارگذاری…</p>
+        </div>
+        <div class="flex items-center justify-between border-t border-line2 p-4">
+            <span id="js-lib-count" class="text-[12px] text-[#888]"></span>
+            <button type="button" class="js-lib-attach btn-primary px-5 py-2 text-[13px]" disabled>افزودن انتخاب‌شده‌ها</button>
+        </div>
+    </div>
+</div>

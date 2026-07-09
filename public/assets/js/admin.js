@@ -39,7 +39,8 @@
   $(document).on("click", ".js-add-variant", function () { addRow("tpl-variant", ".js-variants"); });
   $(document).on("click", ".js-del-row", function () { $(this).closest(".js-row").remove(); });
 
-  // Live filter for the (possibly large) grouped tag picker on the product form.
+  // Live filter for the (possibly large) grouped tag picker on the product
+  // form. Groups are <details> accordions: searching opens matching groups.
   $(document).on("input", ".js-tag-filter", function () {
     var q = ($(this).val() || "").toString().trim().toLowerCase();
     $(".js-tag-item").each(function () {
@@ -47,7 +48,166 @@
       $(this).toggle(q === "" || name.indexOf(q) !== -1);
     });
     $(".js-tag-group").each(function () {
-      $(this).toggle($(this).find(".js-tag-item:visible").length > 0);
+      var any = $(this).find(".js-tag-item:visible").length > 0;
+      $(this).toggle(any);
+      if (q !== "" && any) { this.open = true; }
+    });
+  });
+
+  /* Create a new tag inline from the product form (appears pre-checked). */
+  $(document).on("click", ".js-tag-create", function () {
+    var $btn = $(this), name = $.trim($("#js-new-tag-name").val() || "");
+    if (name === "") { return; }
+    $btn.prop("disabled", true);
+    $.ajax({
+      method: "POST", url: $btn.data("url"),
+      headers: { "X-CSRF-Token": csrf(), "X-Requested-With": "XMLHttpRequest" },
+      data: { name: name }, dataType: "json",
+    }).done(function (res) {
+      if (!res.ok) { window.alert(res.error || "خطا در ساخت برچسب"); return; }
+      $("#js-new-tags").append(
+        '<label class="js-tag-item cursor-pointer" data-name="' + res.name + '">' +
+          '<input type="checkbox" name="tags[]" value="' + res.id + '" class="peer sr-only" checked>' +
+          '<span class="inline-block rounded-lg border border-line px-3 py-1.5 text-[11.5px] text-[#777] transition peer-checked:border-secondary peer-checked:bg-pink peer-checked:text-secondary">' + res.name + '</span>' +
+        '</label>'
+      );
+      $("#js-new-tag-name").val("");
+    }).fail(function () {
+      window.alert("خطا در ساخت برچسب");
+    }).always(function () {
+      $btn.prop("disabled", false);
+    });
+  });
+
+  /* ── Product form: instant image upload + media-library picker ── */
+
+  /* Build an image tile matching the PHP-rendered ones so alt/title/primary
+     of freshly added images are saved on the next form submit. */
+  function imageTile(img) {
+    return (
+      '<div class="js-image-tile flex gap-3 rounded-xl2 border border-line p-2.5" data-id="' + img.id + '">' +
+        '<img src="/' + img.path + '" alt="" class="h-16 w-16 flex-none rounded-lg bg-white object-contain">' +
+        '<div class="flex-1 space-y-1.5">' +
+          '<input name="img_alt[' + img.id + ']" placeholder="متن جایگزین (alt)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">' +
+          '<input name="img_title[' + img.id + ']" placeholder="عنوان (title)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">' +
+          '<div class="flex items-center justify-between">' +
+            '<label class="flex items-center gap-1.5 text-[11px] text-[#666]"><input type="radio" name="primary_image" value="' + img.id + '" class="accent-secondary"> تصویر اصلی</label>' +
+            '<button type="button" class="js-del-image text-[11px] text-danger" data-url="/admin/products/images/' + img.id + '/delete">حذف</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+  function appendTiles(added) {
+    var $list = $("#js-image-list").removeClass("hidden");
+    (added || []).forEach(function (img) { $list.append(imageTile(img)); });
+  }
+
+  /* Edit mode: upload immediately on file selection (keeps unsaved form
+     edits). Create mode (no data-url): show local previews until save. */
+  $(document).on("change", ".js-img-upload", function () {
+    var input = this, $inp = $(input), url = $inp.data("url");
+    if (!input.files || !input.files.length) { return; }
+
+    if (!url) {
+      var $prev = $("#js-new-previews").empty();
+      $.each(input.files, function (_, f) {
+        $prev.append('<img src="' + URL.createObjectURL(f) + '" class="h-16 w-16 rounded-lg border border-line bg-white object-contain">');
+      });
+      return;
+    }
+
+    var fd = new FormData();
+    $.each(input.files, function (_, f) { fd.append("images[]", f); });
+    var $status = $("#js-img-status").text("در حال آپلود…");
+    $inp.prop("disabled", true);
+    $.ajax({
+      method: "POST", url: url, data: fd, processData: false, contentType: false,
+      headers: { "X-CSRF-Token": csrf(), "X-Requested-With": "XMLHttpRequest" },
+      dataType: "json",
+    }).done(function (res) {
+      appendTiles(res.added);
+      $status.text(res.added && res.added.length ? "✓ " + res.added.length + " تصویر افزوده شد" : "تصویری پذیرفته نشد (فرمت/حجم را چک کنید)");
+    }).fail(function () {
+      $status.text("خطا در آپلود؛ دوباره تلاش کنید");
+    }).always(function () {
+      $inp.prop("disabled", false).val("");
+      setTimeout(function () { $status.text(""); }, 4000);
+    });
+  });
+
+  /* Library picker modal. The list is re-fetched on EVERY open so images
+     uploaded moments ago (which also land in the library) show up at once. */
+  function libSelected() { return $("#js-lib-grid .js-lib-item.border-secondary"); }
+  function libRefresh() {
+    var n = libSelected().length;
+    $("#js-lib-count").text(n ? n + " تصویر انتخاب شده" : "");
+    $(".js-lib-attach").prop("disabled", n === 0);
+  }
+  $(document).on("click", ".js-lib-open", function () {
+    var $btn = $(this);
+    $("#js-lib-modal").removeClass("hidden").addClass("flex").data("attach-url", $btn.data("attach-url") || "");
+    var $grid = $("#js-lib-grid").html('<p class="col-span-full py-8 text-center text-[12px] text-[#999]">در حال بارگذاری…</p>');
+    libRefresh();
+    $.getJSON($btn.data("list-url"), function (res) {
+      $grid.empty();
+      if (!res.items || !res.items.length) {
+        $grid.append('<p class="col-span-full py-8 text-center text-[12px] text-[#999]">تصویری در کتابخانه نیست. از بخش «کتابخانه رسانه» تصویر اضافه کنید.</p>');
+        return;
+      }
+      res.items.forEach(function (it) {
+        $grid.append(
+          '<button type="button" class="js-lib-item overflow-hidden rounded-xl2 border-2 border-line" data-path="' + it.path + '" title="' + it.name + '">' +
+            '<img src="/' + it.path + '" alt="" class="h-24 w-full bg-white object-contain" loading="lazy">' +
+          '</button>'
+        );
+      });
+    });
+  });
+  $(document).on("click", ".js-lib-item", function () {
+    $(this).toggleClass("border-secondary border-line");
+    libRefresh();
+  });
+  $(document).on("click", ".js-lib-close", function () {
+    $("#js-lib-modal").addClass("hidden").removeClass("flex");
+  });
+  $(document).on("click", "#js-lib-modal", function (e) {
+    if (e.target === this) { $("#js-lib-modal").addClass("hidden").removeClass("flex"); }
+  });
+  $(document).on("click", ".js-lib-attach", function () {
+    var paths = libSelected().map(function () { return $(this).data("path"); }).get();
+    if (!paths.length) { return; }
+    var attachUrl = $("#js-lib-modal").data("attach-url");
+
+    // CREATE mode (no product yet): queue paths as hidden inputs — store()
+    // imports them right after the product row is created.
+    if (!attachUrl) {
+      var $prev = $("#js-new-previews");
+      var $form = $prev.closest("form");
+      paths.forEach(function (p) {
+        if ($form.find('input[name="library_paths[]"][value="' + p + '"]').length) { return; }
+        $form.append('<input type="hidden" name="library_paths[]" value="' + p + '">');
+        $prev.append('<img src="/' + p + '" class="h-16 w-16 rounded-lg border border-line bg-white object-contain">');
+      });
+      libSelected().removeClass("border-secondary").addClass("border-line");
+      libRefresh();
+      $("#js-lib-modal").addClass("hidden").removeClass("flex");
+      return;
+    }
+
+    var $btn = $(this).prop("disabled", true).text("در حال افزودن…");
+    $.ajax({
+      method: "POST", url: attachUrl,
+      headers: { "X-CSRF-Token": csrf(), "X-Requested-With": "XMLHttpRequest" },
+      data: { paths: paths }, dataType: "json",
+    }).done(function (res) {
+      appendTiles(res.added);
+      libSelected().removeClass("border-secondary").addClass("border-line");
+      libRefresh();
+      $("#js-lib-modal").addClass("hidden").removeClass("flex");
+    }).always(function () {
+      $btn.text("افزودن انتخاب‌شده‌ها");
+      libRefresh();
     });
   });
 

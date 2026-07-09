@@ -63,14 +63,22 @@ $hasFilter = $filters['q'] !== '' || $filters['category'] || $filters['brand'] |
                     <tr class="border-b border-line2 last:border-0 hover:bg-surface/50">
                         <td class="p-3">
                             <div class="flex items-center gap-3">
-                                <img src="<?= e(asset((string) ($p['image'] ?: 'assets/images/placeholder-product.svg'))) ?>" alt="" class="h-11 w-11 flex-none rounded-lg object-cover">
+                                <img src="<?= e(asset((string) ($p['image'] ?: 'assets/images/placeholder-product.svg'))) ?>" alt="" class="h-11 w-11 flex-none rounded-lg bg-white object-contain">
                                 <a href="<?= e(url('/admin/products/' . $p['id'] . '/edit')) ?>" class="font-semibold text-[#333] hover:text-secondary"><?= e($p['name']) ?></a>
                             </div>
                         </td>
                         <td class="p-3 text-center text-[#666]"><?= e($p['category_name'] ?: '—') ?></td>
                         <td class="p-3 text-center text-[#666]"><?= e($p['brand_name'] ?: '—') ?></td>
                         <td class="p-3 text-center font-bold text-secondary nums"><?= money((int) $p['price']) ?></td>
-                        <td class="p-3 text-center"><span class="nums <?= (int) $p['stock'] <= 0 ? 'text-danger' : ((int) $p['stock'] <= 5 ? 'text-warning' : 'text-[#444]') ?>"><?= fa((int) $p['stock']) ?></span></td>
+                        <td class="p-3 text-center">
+                            <?php if (!empty($p['is_out_of_stock'])): ?>
+                                <span class="rounded-lg bg-[#FDECEC] px-2 py-1 text-[10px] font-bold text-danger">اتمام موجودی</span>
+                            <?php elseif (!empty($p['track_stock'])): ?>
+                                <span class="nums <?= (int) $p['stock'] <= 0 ? 'font-bold text-danger' : ((int) $p['stock'] <= 5 ? 'text-warning' : 'text-[#444]') ?>" title="کنترل موجودی فعال"><?= fa((int) $p['stock']) ?></span>
+                            <?php else: ?>
+                                <span class="text-[13px] text-[#bbb]" title="بدون کنترل موجودی — فروش آزاد">∞</span>
+                            <?php endif; ?>
+                        </td>
                         <td class="p-3 text-center">
                             <input type="number" value="<?= (int) $p['sort'] ?>" data-url="<?= e(url('/admin/products/' . $p['id'] . '/sort')) ?>" class="js-sort-input w-16 rounded-lg border border-line bg-surface px-2 py-1 text-center text-[12px] nums outline-none focus:border-secondary" title="ترتیب نمایش">
                         </td>

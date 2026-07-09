@@ -32,7 +32,7 @@ $label = 'border-b border-line2 bg-surface p-3 text-right text-[12px] font-bold 
                             <td class="<?= $cell ?> min-w-[160px]">
                                 <button type="button" class="js-compare-remove mb-2 text-[11px] font-semibold text-danger" data-id="<?= (int) $p['id'] ?>">✕ حذف</button>
                                 <a href="<?= e(url('/product/' . $p['slug'])) ?>" class="block">
-                                    <img src="<?= e(asset($img)) ?>" alt="<?= e((string) ($p['image_alt'] ?: $p['name'])) ?>" loading="lazy" decoding="async" class="mx-auto mb-2 h-24 w-24 rounded-xl object-cover">
+                                    <img src="<?= e(asset($img)) ?>" alt="<?= e((string) ($p['image_alt'] ?: $p['name'])) ?>" loading="lazy" decoding="async" class="mx-auto mb-2 h-24 w-24 rounded-xl bg-white object-contain">
                                     <span class="clamp-2 text-[12px] font-semibold leading-6 text-[#333]"><?= e($p['name']) ?></span>
                                 </a>
                             </td>
@@ -66,9 +66,11 @@ $label = 'border-b border-line2 bg-surface p-3 text-right text-[12px] font-bold 
                     <!-- availability -->
                     <tr>
                         <td class="<?= $label ?>">موجودی</td>
-                        <?php foreach ($products as $p): $avail = (int) $p['stock'] - (int) ($p['reserved'] ?? 0); ?>
+                        <?php foreach ($products as $p):
+                            $avail = !empty($p['is_out_of_stock']) ? 0
+                                : (!empty($p['track_stock']) ? (int) $p['stock'] - (int) ($p['reserved'] ?? 0) : 1); ?>
                             <td class="<?= $cell ?>">
-                                <?php if ($avail > 0): ?><span class="font-semibold text-success">موجود</span><?php else: ?><span class="font-semibold text-danger">ناموجود</span><?php endif; ?>
+                                <?php if ($avail > 0): ?><span class="font-semibold text-success">موجود</span><?php else: ?><span class="font-semibold text-danger">اتمام موجودی</span><?php endif; ?>
                             </td>
                         <?php endforeach; ?>
                     </tr>

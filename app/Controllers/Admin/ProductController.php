@@ -104,6 +104,7 @@ final class ProductController extends AdminController
         $this->products->syncCategories($id, $categoryIds);
         $this->saveRelations($request, $id);
         $this->handleUploads($id);
+        $this->attachLibraryPaths($request, $id);
         $this->products->ensurePrimary($id);
 
         $this->audit($request, 'create', 'product', $id, $data['name']);
@@ -165,10 +166,56 @@ final class ProductController extends AdminController
         if ($this->products->findById($id) === null) {
             return $this->notFound();
         }
-        $this->handleUploads($id);
+        $added = $this->handleUploads($id);
         $this->products->ensurePrimary($id);
+
+        // The edit form uploads via AJAX so new images appear without losing
+        // unsaved field edits; the redirect stays as a no-JS fallback.
+        if ($request->wantsJson()) {
+            return $this->json(['ok' => true, 'added' => $added]);
+        }
         Session::flash('success', 'تصاویر افزوده شد.');
         return $this->redirect(url('/admin/products/' . $id . '/edit'));
+    }
+
+    /** AJAX: media-library images for the "انتخاب از کتابخانه" picker. */
+    public function libraryImages(Request $request): Response
+    {
+        if (!\App\Services\AdminAuthService::can('products')) {
+            return $this->json(['ok' => false], 403);
+        }
+        $items = [];
+        foreach ((new \App\Services\MediaLibraryService())->list('', 150) as $f) {
+            if (!$f['is_video']) {
+                $items[] = ['path' => (string) $f['path'], 'name' => (string) $f['name']];
+            }
+        }
+        return $this->json(['ok' => true, 'items' => $items]);
+    }
+
+    /** AJAX: attach selected library images to a product (copies the files). */
+    public function attachLibraryImages(Request $request): Response
+    {
+        if (!\App\Services\AdminAuthService::can('products')) {
+            return $this->json(['ok' => false], 403);
+        }
+        $id = (int) $request->param('id');
+        if ($this->products->findById($id) === null) {
+            return $this->json(['ok' => false], 404);
+        }
+        $media = new MediaService();
+        $added = [];
+        $sort  = 50;
+        foreach (array_slice((array) $request->input('paths', []), 0, 20) as $p) {
+            $path = $media->importFromLibrary((string) $p, 'products');
+            if ($path !== null) {
+                $imgId   = $this->products->addImage($id, $path, '', '', false, false, $sort++);
+                $added[] = ['id' => $imgId, 'path' => $path];
+            }
+        }
+        $this->products->ensurePrimary($id);
+        $this->audit($request, 'update', 'product', $id, 'library-images +' . count($added));
+        return $this->json(['ok' => true, 'added' => $added]);
     }
 
     public function deleteImage(Request $request): Response
@@ -249,6 +296,8 @@ final class ProductController extends AdminController
             'height_cm'           => max(0, $int($request->input('height_cm', 0))),
             'low_stock_threshold' => max(0, $int($request->input('low_stock_threshold', 5))),
             'sort'                => $int($request->input('sort', 0)),
+            'is_out_of_stock'     => $request->input('is_out_of_stock') ? 1 : 0,
+            'track_stock'         => $request->input('track_stock') ? 1 : 0,
             'is_active'           => $request->input('is_active') ? 1 : 0,
             'is_new'              => $request->input('is_new') ? 1 : 0,
             'is_featured'         => $request->input('is_featured') ? 1 : 0,
@@ -309,12 +358,30 @@ final class ProductController extends AdminController
         }
     }
 
-    private function handleUploads(int $productId): void
+    /**
+     * Import media-library images queued as hidden library_paths[] inputs on
+     * the CREATE form (the edit form attaches them live via AJAX instead).
+     */
+    private function attachLibraryPaths(Request $request, int $productId): void
+    {
+        $media = new MediaService();
+        $sort  = 40;
+        foreach (array_slice((array) $request->input('library_paths', []), 0, 20) as $p) {
+            $path = $media->importFromLibrary((string) $p, 'products');
+            if ($path !== null) {
+                $this->products->addImage($productId, $path, '', '', false, false, $sort++);
+            }
+        }
+    }
+
+    /** @return list<array{id:int,path:string}> Newly stored images. */
+    private function handleUploads(int $productId): array
     {
         if (empty($_FILES['images']) || !is_array($_FILES['images']['name'])) {
-            return;
+            return [];
         }
         $media = new MediaService();
+        $added = [];
         $count = count($_FILES['images']['name']);
         for ($i = 0; $i < $count; $i++) {
             $file = [
@@ -326,9 +393,11 @@ final class ProductController extends AdminController
             ];
             $path = $media->store($file, 'products');
             if ($path !== null) {
-                $this->products->addImage($productId, $path, '', '', false, false, $i + 10);
+                $imgId   = $this->products->addImage($productId, $path, '', '', false, false, $i + 10);
+                $added[] = ['id' => $imgId, 'path' => $path];
             }
         }
+        return $added;
     }
 
     private function uniqueSlug(string $base, int $exceptId): string

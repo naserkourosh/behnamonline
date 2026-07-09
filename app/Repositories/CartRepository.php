@@ -29,7 +29,7 @@ final class CartRepository extends BaseRepository
     {
         return $this->selectAll(
             "SELECT ci.id, ci.product_id, ci.variant_id, ci.qty, ci.unit_price,
-                    p.name, p.slug, p.stock, p.reserved, p.old_price,
+                    p.name, p.slug, p.stock, p.reserved, p.is_out_of_stock, p.track_stock, p.old_price,
                     p.weight_grams, p.length_cm, p.width_cm, p.height_cm,
                     b.name AS brand_name,
                     v.label AS variant_label,

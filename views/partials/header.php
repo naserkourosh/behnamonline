@@ -27,10 +27,10 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
             <?= $logo ?>
             <div class="flex gap-4 text-secondary">
                 <a href="<?= e(url('/category')) ?>" aria-label="علاقه‌مندی" class="text-secondary">
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.4-9.4-8.6C1 9.3 2.6 5.6 6 5.6c2 0 3 1.1 4 2.6 1-1.5 2-2.6 4-2.6 3.4 0 5 3.7 3.4 6.8C19 16.6 12 21 12 21z"/></svg>
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                 </a>
                 <a href="<?= e(url('/cart')) ?>" class="relative text-secondary" aria-label="سبد خرید">
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 6h18" stroke-linecap="round"/><path d="M16 10a4 4 0 0 1-8 0" stroke-linecap="round"/></svg>
                     <span class="js-cart-count absolute -left-1.5 -top-1.5 flex h-[15px] min-w-[15px] items-center justify-center rounded-full bg-gold px-1 text-[8px] font-bold text-white <?= $cartCount > 0 ? '' : 'hidden' ?>"><?= fa($cartCount) ?></span>
                 </a>
             </div>
@@ -59,11 +59,11 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
             </form>
             <div class="flex items-center gap-6 text-secondary">
                 <a href="<?= e(url('/category')) ?>" class="flex flex-col items-center gap-1">
-                    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.4-9.4-8.6C1 9.3 2.6 5.6 6 5.6c2 0 3 1.1 4 2.6 1-1.5 2-2.6 4-2.6 3.4 0 5 3.7 3.4 6.8C19 16.6 12 21 12 21z"/></svg>
+                    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     <span class="text-[10px] text-[#8a7080]">علاقه‌مندی</span>
                 </a>
                 <a href="<?= e(url('/cart')) ?>" class="relative flex flex-col items-center gap-1">
-                    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 8h12l-1 12H7L6 8z"/><path d="M9 8a3 3 0 0 1 6 0"/></svg>
+                    <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 6h18" stroke-linecap="round"/><path d="M16 10a4 4 0 0 1-8 0" stroke-linecap="round"/></svg>
                     <span class="text-[10px] text-[#8a7080]">سبد خرید</span>
                     <span class="js-cart-count absolute -top-1.5 left-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[9px] font-bold text-white <?= $cartCount > 0 ? '' : 'hidden' ?>"><?= fa($cartCount) ?></span>
                 </a>

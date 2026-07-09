@@ -25,7 +25,7 @@ final class MediaLibraryService
 
     private function root(): string
     {
-        return BASE_PATH . '/public/uploads';
+        return PUBLIC_PATH . '/uploads';
     }
 
     /** @return list<string> Top-level folders under uploads/. */
@@ -70,7 +70,8 @@ final class MediaLibraryService
                 continue;
             }
             $abs  = str_replace('\\', '/', $file->getPathname());
-            $rel  = 'uploads' . explode('/public/uploads', $abs, 2)[1];
+            $rootAbs = str_replace('\\', '/', $this->root());
+            $rel  = 'uploads' . explode($rootAbs, $abs, 2)[1];
             $files[] = [
                 'path'     => $rel,
                 'name'     => $file->getFilename(),
@@ -153,7 +154,7 @@ final class MediaLibraryService
         if (!str_starts_with($path, 'uploads/') || str_contains($path, '..')) {
             return false;
         }
-        $full = BASE_PATH . '/public/' . $path;
+        $full = PUBLIC_PATH . '/' . $path;
         if (is_file($full)) {
             return @unlink($full);
         }

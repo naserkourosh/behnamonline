@@ -257,7 +257,7 @@
         var html = res.results.map(function (p) {
           return (
             '<a href="' + CFG.baseUrl + "/product/" + p.slug + '" class="flex items-center gap-3 border-b border-line2 px-3 py-2.5 hover:bg-surface">' +
-            '<img src="' + CFG.baseUrl + "/" + p.image + '" class="h-10 w-10 rounded-lg object-cover" alt="">' +
+            '<img src="' + CFG.baseUrl + "/" + p.image + '" class="h-10 w-10 rounded-lg bg-white object-contain" alt="">' +
             '<div class="flex-1"><div class="text-[12px] font-semibold text-[#333]">' + p.name + "</div>" +
             '<div class="text-[10px] text-mauve">' + (p.brand || "") + "</div></div>" +
             '<div class="text-[12px] font-bold text-secondary nums">' + money(p.price) + "</div></a>"
@@ -365,6 +365,21 @@
     });
   });
 
+  /* Infinite scroll: auto-click «نمایش محصولات بیشتر» as it nears the
+     viewport. The button stays as a no-JS/observer fallback and disappears
+     with its wrapper on the last page, which ends the observation. */
+  (function () {
+    var btn = document.querySelector(".js-load-more");
+    if (!btn || !("IntersectionObserver" in window)) { return; }
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && document.contains(btn) && !btn.disabled) {
+          $(btn).trigger("click");
+        }
+      });
+    }, { rootMargin: "700px 0px" }).observe(btn);
+  })();
+
   /* ── product detail page ─────────────────────────────────── */
   var $pdp = $("#js-pdp");
   if ($pdp.length) {
@@ -387,10 +402,11 @@
       $(".js-pdp-price").text(money($v.data("price")));
       var stock = parseInt($v.data("stock"), 10);
       var $st = $(".js-pdp-stock");
-      if (stock <= 0) { $st.text("ناموجود").attr("class", "js-pdp-stock text-[12px] font-bold text-danger"); }
-      else if (stock <= 5) { $st.text("تنها " + toFa(stock) + " عدد در انبار").attr("class", "js-pdp-stock text-[12px] font-bold text-warning"); }
+      var showQty = String($pdp.data("showqty")) === "1";
+      if (stock <= 0) { $st.text("اتمام موجودی").attr("class", "js-pdp-stock text-[12px] font-bold text-danger"); }
+      else if (showQty && stock <= 5) { $st.text("تنها " + toFa(stock) + " عدد در انبار").attr("class", "js-pdp-stock text-[12px] font-bold text-warning"); }
       else { $st.text("موجود در انبار").attr("class", "js-pdp-stock text-[12px] font-bold text-success"); }
-      $(".js-pdp-add").prop("disabled", stock <= 0);
+      $(".js-pdp-add").prop("disabled", stock <= 0).text(stock <= 0 ? "اتمام موجودی" : "افزودن به سبد");
     });
 
     $(document).on("click", ".js-pdp-add", function () {

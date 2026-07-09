@@ -15,8 +15,8 @@ $st = order_status((string) $order['status']);
         <div class="space-y-3 md:col-span-2">
             <?php foreach ($items as $it): ?>
                 <div class="flex gap-3.5 rounded-2xl border border-line2 bg-white p-3">
-                    <div class="aspect-square w-16 flex-none overflow-hidden rounded-xl2 bg-[#F3EBE2]">
-                        <img src="<?= e(asset((string) ($it['image'] ?: 'assets/images/placeholder-product.svg'))) ?>" alt="<?= e($it['name']) ?>" loading="lazy" class="h-full w-full object-cover">
+                    <div class="aspect-square w-16 flex-none overflow-hidden rounded-xl2 bg-white">
+                        <img src="<?= e(asset((string) ($it['image'] ?: 'assets/images/placeholder-product.svg'))) ?>" alt="<?= e($it['name']) ?>" loading="lazy" class="h-full w-full object-contain">
                     </div>
                     <div class="flex flex-1 flex-col justify-center">
                         <div class="text-[12.5px] font-semibold text-[#333]"><?= e($it['name']) ?></div>

@@ -177,6 +177,10 @@
   .is-loading {
     @apply pointer-events-none opacity-70;
   }
+  /* Disabled buy/action buttons must LOOK disabled (e.g. «اتمام موجودی»). */
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
 
   /* Section heading with the little accent bar from the design */
   .section-title {

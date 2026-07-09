@@ -36,6 +36,9 @@ final class TagController extends AdminController
         }
         $name = trim((string) $request->input('name', ''));
         if ($name === '') {
+            if ($request->wantsJson()) {
+                return $this->json(['ok' => false, 'error' => 'نام برچسب الزامی است.'], 422);
+            }
             Session::flash('error', 'نام برچسب الزامی است.');
             return $this->redirect(url('/admin/tags'));
         }
@@ -43,6 +46,11 @@ final class TagController extends AdminController
         $group = trim((string) $request->input('tag_group', '')) ?: null;
         $id = $this->repo->insert($name, $slug, $group);
         $this->audit($request, 'create', 'tag', $id, $name);
+
+        // The product form creates tags inline via AJAX.
+        if ($request->wantsJson()) {
+            return $this->json(['ok' => true, 'id' => $id, 'name' => $name]);
+        }
         Session::flash('success', 'برچسب افزوده شد.');
         return $this->redirect(url('/admin/tags'));
     }
