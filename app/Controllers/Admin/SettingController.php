@@ -18,8 +18,18 @@ final class SettingController extends AdminController
         'show_announcement'       => 'bool',
         'free_shipping_threshold' => 'int',
         'low_stock_threshold'     => 'int',
+        'show_ratings'            => 'bool',
+        'about_text'              => 'text',
+        'contact_phone'           => 'string',
+        'contact_email'           => 'string',
+        'contact_instagram'       => 'string',
+        'contact_address'         => 'text',
         'flash_sale_ends_at'      => 'string',
         'chat_enabled'            => 'bool',
+        'trust_badge_1_code'      => 'text',
+        'trust_badge_2_code'      => 'text',
+        'trust_badge_3_code'      => 'text',
+        'trust_badge_4_code'      => 'text',
     ];
 
     public function index(Request $request): Response

@@ -103,67 +103,91 @@
     (added || []).forEach(function (img) { $list.append(imageTile(img)); });
   }
 
-  /* Edit mode: upload immediately on file selection (keeps unsaved form
-     edits). Create mode (no data-url): show local previews until save. */
-  $(document).on("change", ".js-img-upload", function () {
-    var input = this, $inp = $(input), url = $inp.data("url");
-    if (!input.files || !input.files.length) { return; }
-
-    if (!url) {
-      var $prev = $("#js-new-previews").empty();
-      $.each(input.files, function (_, f) {
-        $prev.append('<img src="' + URL.createObjectURL(f) + '" class="h-16 w-16 rounded-lg border border-line bg-white object-contain">');
-      });
-      return;
-    }
-
-    var fd = new FormData();
-    $.each(input.files, function (_, f) { fd.append("images[]", f); });
-    var $status = $("#js-img-status").text("در حال آپلود…");
-    $inp.prop("disabled", true);
-    $.ajax({
-      method: "POST", url: url, data: fd, processData: false, contentType: false,
-      headers: { "X-CSRF-Token": csrf(), "X-Requested-With": "XMLHttpRequest" },
-      dataType: "json",
-    }).done(function (res) {
-      appendTiles(res.added);
-      $status.text(res.added && res.added.length ? "✓ " + res.added.length + " تصویر افزوده شد" : "تصویری پذیرفته نشد (فرمت/حجم را چک کنید)");
-    }).fail(function () {
-      $status.text("خطا در آپلود؛ دوباره تلاش کنید");
-    }).always(function () {
-      $inp.prop("disabled", false).val("");
-      setTimeout(function () { $status.text(""); }, 4000);
-    });
+  /* Warn before leaving a form with unsaved edits (product create/edit).
+     Saving (submit) clears the flag; browser shows its native prompt. */
+  var guardDirty = false;
+  $(document).on("input change", "form.js-guard-unsaved :input", function () { guardDirty = true; });
+  $(document).on("submit", "form.js-guard-unsaved", function () { guardDirty = false; });
+  window.addEventListener("beforeunload", function (e) {
+    if (guardDirty) { e.preventDefault(); e.returnValue = ""; }
   });
 
-  /* Library picker modal. The list is re-fetched on EVERY open so images
-     uploaded moments ago (which also land in the library) show up at once. */
+  /* WordPress-style media modal: tab 1 = library grid, tab 2 = upload.
+     The library list is re-fetched on EVERY open; uploads land in the media
+     library first and come back pre-selected. */
   function libSelected() { return $("#js-lib-grid .js-lib-item.border-secondary"); }
   function libRefresh() {
     var n = libSelected().length;
     $("#js-lib-count").text(n ? n + " تصویر انتخاب شده" : "");
     $(".js-lib-attach").prop("disabled", n === 0);
   }
-  $(document).on("click", ".js-lib-open", function () {
-    var $btn = $(this);
-    $("#js-lib-modal").removeClass("hidden").addClass("flex").data("attach-url", $btn.data("attach-url") || "");
+  function libTab(name) {
+    $(".js-lib-tab").each(function () {
+      var on = $(this).data("tab") === name;
+      $(this).toggleClass("border-secondary text-secondary", on)
+             .toggleClass("border-transparent text-[#888]", !on);
+    });
+    $("#js-lib-pane-library").toggleClass("hidden", name !== "library");
+    $("#js-lib-pane-upload").toggleClass("hidden", name !== "upload");
+  }
+  function libLoad(preselect) {
     var $grid = $("#js-lib-grid").html('<p class="col-span-full py-8 text-center text-[12px] text-[#999]">در حال بارگذاری…</p>');
-    libRefresh();
-    $.getJSON($btn.data("list-url"), function (res) {
+    $.getJSON($("#js-lib-modal").data("list-url"), function (res) {
       $grid.empty();
       if (!res.items || !res.items.length) {
-        $grid.append('<p class="col-span-full py-8 text-center text-[12px] text-[#999]">تصویری در کتابخانه نیست. از بخش «کتابخانه رسانه» تصویر اضافه کنید.</p>');
+        $grid.append('<p class="col-span-full py-8 text-center text-[12px] text-[#999]">تصویری در کتابخانه نیست — از تب «آپلود تصویر» اضافه کنید.</p>');
         return;
       }
       res.items.forEach(function (it) {
+        var sel = (preselect || []).indexOf(it.path) !== -1;
         $grid.append(
-          '<button type="button" class="js-lib-item overflow-hidden rounded-xl2 border-2 border-line" data-path="' + it.path + '" title="' + it.name + '">' +
+          '<button type="button" class="js-lib-item overflow-hidden rounded-xl2 border-2 ' + (sel ? "border-secondary" : "border-line") + '" data-path="' + it.path + '" title="' + it.name + '">' +
             '<img src="/' + it.path + '" alt="" class="h-24 w-full bg-white object-contain" loading="lazy">' +
           '</button>'
         );
       });
+      libRefresh();
+    });
+  }
+  $(document).on("click", ".js-lib-open", function () {
+    var $btn = $(this);
+    $("#js-lib-modal").removeClass("hidden").addClass("flex")
+      .data("attach-url", $btn.data("attach-url") || "")
+      .data("list-url", $btn.data("list-url"))
+      .data("upload-url", $btn.data("upload-url"));
+    $("#js-lib-upload-status").text("");
+    libTab("library");
+    libRefresh();
+    libLoad([]);
+  });
+  $(document).on("click", ".js-lib-tab", function () { libTab($(this).data("tab")); });
+
+  /* Upload tab: send to the media library, then show it selected in the grid. */
+  $(document).on("change", "#js-lib-upload-input", function () {
+    var input = this;
+    if (!input.files || !input.files.length) { return; }
+    var fd = new FormData();
+    $.each(input.files, function (_, f) { fd.append("files[]", f); });
+    fd.append("folder", "library");
+    var $status = $("#js-lib-upload-status").text("در حال آپلود…");
+    $.ajax({
+      method: "POST", url: $("#js-lib-modal").data("upload-url"), data: fd,
+      processData: false, contentType: false,
+      headers: { "X-CSRF-Token": csrf(), "X-Requested-With": "XMLHttpRequest" },
+      dataType: "json",
+    }).done(function (res) {
+      var paths = res.paths || (res.path ? [res.path] : []);
+      if (!res.ok || !paths.length) { $status.text(res.error || "فایل نامعتبر بود."); return; }
+      $status.text("✓ " + paths.length + " تصویر به کتابخانه اضافه شد");
+      libTab("library");
+      libLoad(paths);
+    }).fail(function () {
+      $status.text("خطا در آپلود؛ دوباره تلاش کنید.");
+    }).always(function () {
+      $(input).val("");
     });
   });
+
   $(document).on("click", ".js-lib-item", function () {
     $(this).toggleClass("border-secondary border-line");
     libRefresh();
@@ -179,15 +203,25 @@
     if (!paths.length) { return; }
     var attachUrl = $("#js-lib-modal").data("attach-url");
 
-    // CREATE mode (no product yet): queue paths as hidden inputs — store()
-    // imports them right after the product row is created.
+    // CREATE mode (no product yet): queue full tiles (hidden path + alt +
+    // remove) — store() imports queued_path[]/queued_alt[] after insert.
     if (!attachUrl) {
-      var $prev = $("#js-new-previews");
-      var $form = $prev.closest("form");
+      var $queued = $("#js-queued-list").removeClass("hidden");
       paths.forEach(function (p) {
-        if ($form.find('input[name="library_paths[]"][value="' + p + '"]').length) { return; }
-        $form.append('<input type="hidden" name="library_paths[]" value="' + p + '">');
-        $prev.append('<img src="/' + p + '" class="h-16 w-16 rounded-lg border border-line bg-white object-contain">');
+        if ($queued.find('input[name="queued_path[]"][value="' + p + '"]').length) { return; }
+        $queued.append(
+          '<div class="js-queued-tile flex gap-3 rounded-xl2 border border-line p-2.5">' +
+            '<img src="/' + p + '" alt="" class="h-16 w-16 flex-none rounded-lg bg-white object-contain">' +
+            '<div class="flex-1 space-y-1.5">' +
+              '<input type="hidden" name="queued_path[]" value="' + p + '">' +
+              '<input name="queued_alt[]" placeholder="متن جایگزین (alt)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">' +
+              '<div class="flex items-center justify-between">' +
+                '<span class="text-[10.5px] text-[#aaa]">با «ایجاد محصول» ذخیره می‌شود</span>' +
+                '<button type="button" class="js-queued-remove text-[11px] text-danger">حذف</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
       });
       libSelected().removeClass("border-secondary").addClass("border-line");
       libRefresh();
@@ -209,6 +243,13 @@
       $btn.text("افزودن انتخاب‌شده‌ها");
       libRefresh();
     });
+  });
+
+  /* Remove a queued (not yet saved) image tile on the create form */
+  $(document).on("click", ".js-queued-remove", function () {
+    var $list = $(this).closest("#js-queued-list");
+    $(this).closest(".js-queued-tile").remove();
+    if (!$list.find(".js-queued-tile").length) { $list.addClass("hidden"); }
   });
 
   /* Delete a product image via AJAX */

@@ -80,7 +80,25 @@ final class MenuController extends AdminController
             Session::flash('error', 'عنوان آیتم الزامی است.');
             return $this->redirect(url('/admin/menus/' . $menuId));
         }
-        $this->repo->addItem($menuId, null, $label, $url, $this->repo->maxSort($menuId) + 1);
+
+        // Optional parent → sub-menu (max 3 levels). Mega applies to
+        // TOP-LEVEL items only: children become columns, grandchildren links.
+        $parentId = (int) en_num((string) $request->input('parent_id', 0));
+        $isMega   = (bool) $request->input('is_mega');
+        if ($parentId > 0) {
+            $parent = $this->repo->findItem($parentId);
+            if ($parent === null || (int) $parent['menu_id'] !== $menuId) {
+                Session::flash('error', 'آیتم والد نامعتبر است.');
+                return $this->redirect(url('/admin/menus/' . $menuId));
+            }
+            if ($this->repo->itemDepth($parentId) >= 2) {
+                Session::flash('error', 'حداکثر سه سطح منو مجاز است.');
+                return $this->redirect(url('/admin/menus/' . $menuId));
+            }
+            $isMega = false;
+        }
+
+        $this->repo->addItem($menuId, $parentId > 0 ? $parentId : null, $label, $url, $this->repo->maxSort($menuId) + 1, $isMega);
         Session::flash('success', 'آیتم افزوده شد.');
         return $this->redirect(url('/admin/menus/' . $menuId));
     }

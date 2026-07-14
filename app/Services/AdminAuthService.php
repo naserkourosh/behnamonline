@@ -24,8 +24,8 @@ final class AdminAuthService
     /** Capabilities per role. 'super' has the '*' wildcard. */
     private const CAPS = [
         'super'   => ['*'],
-        'manager' => ['dashboard', 'reports', 'products', 'categories', 'brands', 'tags', 'orders', 'customers', 'menus', 'banners', 'inventory', 'blog', 'support', 'accounting', 'coupons', 'popups', 'media', 'shipping', 'sms', 'settings'],
-        'editor'  => ['dashboard', 'products', 'categories', 'brands', 'tags', 'inventory', 'blog', 'media', 'banners'],
+        'manager' => ['dashboard', 'reports', 'products', 'categories', 'brands', 'tags', 'orders', 'customers', 'menus', 'banners', 'pages', 'inventory', 'blog', 'support', 'reviews', 'accounting', 'coupons', 'popups', 'media', 'shipping', 'sms', 'settings'],
+        'editor'  => ['dashboard', 'products', 'categories', 'brands', 'tags', 'inventory', 'blog', 'media', 'banners', 'pages'],
     ];
 
     /**
@@ -47,9 +47,11 @@ final class AdminAuthService
         'popups'     => 'پاپ‌آپ‌ها',
         'banners'    => 'بنرها',
         'menus'      => 'منوها',
+        'pages'      => 'صفحات',
         'media'      => 'کتابخانه رسانه',
         'blog'       => 'مجله',
         'support'    => 'پشتیبانی و سوالات',
+        'reviews'    => 'دیدگاه‌های محصولات',
         'accounting' => 'حسابداری',
         'shipping'   => 'ارسال و مناطق',
         'sms'        => 'پیامک‌ها',

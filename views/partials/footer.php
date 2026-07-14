@@ -30,22 +30,54 @@ $wordmark = (string) config('app.wordmark', 'BEHNAM');
                 </p>
             </div>
             <?php
+            // صفحات CMS با تیک «نمایش در فوتر» به ستون دسترسی سریع اضافه می‌شوند.
+            $footerPageLinks = [];
+            try {
+                foreach ((new \App\Repositories\PageRepository())->footerPages() as $fp) {
+                    $footerPageLinks[] = [(string) $fp['title'], '/page/' . $fp['slug']];
+                }
+            } catch (\Throwable) {
+                // جدول pages هنوز مایگریت نشده — فوتر بدون آن هم باید کار کند.
+            }
             $cols = [
-                'دسترسی سریع' => ['درباره ما', 'تماس با ما', 'سوالات متداول', 'وبلاگ'],
-                'خدمات مشتریان' => ['پیگیری سفارش', 'شرایط بازگشت کالا', 'حریم خصوصی', 'قوانین فروشگاه'],
-                'دسته‌بندی‌ها' => ['مراقبت پوست', 'آرایش', 'عطر و ادکلن', 'مراقبت مو'],
+                'دسترسی سریع' => array_merge(
+                    [['درباره ما', '/about'], ['تماس با ما', '/contact'], ['سوالات متداول', '/faq'], ['مجله زیبایی', '/blog']],
+                    $footerPageLinks
+                ),
+                'خدمات مشتریان' => [['پیگیری سفارش', '/account/orders'], ['گفتگوی آنلاین', '/contact'], ['حساب کاربری', '/account'], ['مقایسه محصولات', '/compare']],
+                'دسته‌بندی‌ها' => [['همهٔ محصولات', '/category'], ['پیشنهاد شگفت‌انگیز', '/category?on_sale=1'], ['تازه‌ها', '/category?sort=newest'], ['پرفروش‌ها', '/category?sort=bestselling']],
             ];
             foreach ($cols as $title => $links): ?>
                 <div class="text-center md:text-right">
                     <div class="mb-3 text-[13px] font-bold text-secondary"><?= e($title) ?></div>
                     <ul class="space-y-2.5">
-                        <?php foreach ($links as $l): ?>
-                            <li><a href="#" class="text-[12px] text-[#777] transition hover:text-secondary"><?= e($l) ?></a></li>
+                        <?php foreach ($links as [$l, $u]): ?>
+                            <li><a href="<?= e(url($u)) ?>" class="text-[12px] text-[#777] transition hover:text-secondary"><?= e($l) ?></a></li>
                         <?php endforeach; ?>
                     </ul>
                 </div>
             <?php endforeach; ?>
         </div>
+        <?php
+        // نمادهای اعتماد (اینماد، ساماندهی و…) — کد HTML هر نماد در تنظیمات پنل
+        // ذخیره می‌شود و پس از پاک‌سازی (allowlist) اینجا رندر می‌شود.
+        $badgeCodes = [];
+        for ($bi = 1; $bi <= 4; $bi++) {
+            $bc = trim((string) setting('trust_badge_' . $bi . '_code', ''));
+            if ($bc !== '') {
+                $badgeCodes[] = $bc;
+            }
+        }
+        ?>
+        <?php if ($badgeCodes !== []): ?>
+            <div class="mt-8 flex flex-wrap items-center justify-center gap-4 border-t border-line pt-6">
+                <?php foreach (array_slice($badgeCodes, 0, 4) as $bc): ?>
+                    <div class="trust-badge flex h-[110px] w-[110px] items-center justify-center overflow-hidden rounded-2xl border border-line bg-white p-2">
+                        <?= html_clean($bc) ?>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
         <div class="mt-8 border-t border-line pt-5 text-center text-[10px] text-[#c4b3a2]">
             © ۱۴۰۴ <?= e($brand) ?> — تمام حقوق محفوظ است
         </div>

@@ -35,8 +35,9 @@ $place = (string) ($item['placement'] ?? 'hero');
                     <option value="promo"  <?= $place === 'promo'  ? 'selected' : '' ?>>باکس تبلیغاتی کنار اسلایدر</option>
                     <option value="strip"  <?= $place === 'strip'  ? 'selected' : '' ?>>نوار تبلیغاتی</option>
                     <option value="inline" <?= $place === 'inline' ? 'selected' : '' ?>>بنر تصویری میان صفحه (بین ردیف‌های محصولات)</option>
+                    <option value="poster" <?= $place === 'poster' ? 'selected' : '' ?>>پوستر تبلیغاتی صفحه اول (تصویر بزرگ، ۱ تا ۴ عدد)</option>
                 </select>
-                <p class="mt-1 text-[10.5px] leading-5 text-[#aaa]">اندازه پیشنهادی تصویر: اسلایدر ۱۶۰۰×۶۰۰ · باکس کنار اسلایدر ۷۲۰×۴۳۰ · نوار ۱۲۰۰×۲۰۰ · بنر میان صفحه ۱۶۰۰×۳۵۰</p>
+                <p class="mt-1 text-[10.5px] leading-5 text-[#aaa]">اندازه پیشنهادی تصویر: اسلایدر ۱۶۰۰×۶۰۰ · باکس کنار اسلایدر ۷۲۰×۴۳۰ · نوار ۱۲۰۰×۲۰۰ · بنر میان صفحه ۱۶۰۰×۳۵۰ · پوستر ۸۰۰×۵۰۰ (یک پوستر تنها: ۱۶۰۰×۵۰۰)</p>
             </div>
             <div class="mb-3"><label class="<?= $lbl ?>">تصویر</label>
                 <div class="js-banner-img-box mb-2 <?= empty($item['image']) ? 'hidden' : '' ?>">

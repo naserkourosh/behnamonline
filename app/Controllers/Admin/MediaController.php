@@ -74,10 +74,11 @@ final class MediaController extends AdminController
             $this->audit($request, 'upload', 'media', null, $folder . ' ×' . count($stored));
         }
 
-        // AJAX (editor image manager) → JSON with the uploaded file path.
+        // AJAX (editor image manager / product-form media modal) → JSON.
+        // 'path' kept for single-file consumers; 'paths' carries them all.
         if ($request->wantsJson()) {
             return $this->json($stored !== []
-                ? ['ok' => true, 'path' => $stored[0], 'url' => asset($stored[0])]
+                ? ['ok' => true, 'path' => $stored[0], 'url' => asset($stored[0]), 'paths' => $stored]
                 : ['ok' => false, 'error' => 'فایل نامعتبر بود.'], $stored !== [] ? 200 : 422);
         }
 

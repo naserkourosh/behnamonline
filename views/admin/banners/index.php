@@ -1,6 +1,6 @@
 <?php
 /** @var list<array<string,mixed>> $items */
-$placeLabels = ['hero' => 'اسلایدر اصلی', 'promo' => 'باکس تبلیغاتی', 'strip' => 'نوار', 'inline' => 'بنر میان صفحه'];
+$placeLabels = ['hero' => 'اسلایدر اصلی', 'promo' => 'باکس تبلیغاتی', 'strip' => 'نوار', 'inline' => 'بنر میان صفحه', 'poster' => 'پوستر تبلیغاتی'];
 ?>
 <div class="mb-4 flex items-center justify-between">
     <span class="text-[13px] font-semibold text-[#555] nums"><?= fa(count($items)) ?> بنر</span>

@@ -128,7 +128,7 @@ final class BannerController extends AdminController
     private function collect(Request $request): array
     {
         $placement = (string) $request->input('placement', 'hero');
-        if (!in_array($placement, ['hero', 'promo', 'strip', 'inline'], true)) {
+        if (!in_array($placement, ['hero', 'promo', 'strip', 'inline', 'poster'], true)) {
             $placement = 'hero';
         }
         $date = static function ($v): ?string {

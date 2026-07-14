@@ -7,7 +7,8 @@ $discount   = discount_percent($old, $price);
 $isNew      = !empty($p['is_new']);
 // Per-product stock model: اتمام موجودی is absolute; otherwise کنترل موجودی
 // makes the numeric count govern (shown + zero blocks); else free selling.
-$oos        = !empty($p['is_out_of_stock']);
+// A zero/unset price also blocks purchasing (WooCommerce-style).
+$oos        = !empty($p['is_out_of_stock']) || $price <= 0;
 $tracked    = !$oos && !empty($p['track_stock']);
 $available  = $oos ? 0 : ($tracked ? (int) $p['stock'] - (int) ($p['reserved'] ?? 0) : 9999);
 $showQty    = $tracked;
@@ -41,9 +42,11 @@ $inCompare  = (new \App\Services\CompareService())->has((int) $p['id']);
     <div class="flex flex-1 flex-col p-3">
         <div class="mb-1 text-[9.5px] text-mauve md:text-[10.5px]"><?= e($p['brand_name'] ?? '') ?></div>
         <a href="<?= e($href) ?>" class="clamp-2 min-h-[34px] text-[12px] font-semibold leading-6 text-[#333] md:min-h-[40px] md:text-[13.5px]"><?= e($p['name']) ?></a>
-        <div class="my-2 flex items-center gap-1.5">
-            <span class="text-[11px] text-star">★</span>
-            <span class="text-[10px] text-[#888] nums md:text-[11.5px]"><?= fa(number_format((float) $p['rating_avg'], 1)) ?></span>
+        <div class="my-2 flex min-h-[17px] items-center gap-1.5">
+            <?php if ((int) ($p['rating_count'] ?? 0) > 0 && (bool) setting('show_ratings', true)): ?>
+                <span class="text-[11px] text-star">★</span>
+                <span class="text-[10px] text-[#888] nums md:text-[11.5px]"><?= fa(number_format((float) $p['rating_avg'], 1)) ?></span>
+            <?php endif; ?>
             <?php if ($available > 0 && $showQty && $available <= $lowAt): ?>
                 <span class="me-1 text-[9.5px] text-warning">تنها <?= fa($available) ?> عدد</span>
             <?php elseif ($available <= 0): ?>

@@ -30,4 +30,13 @@ final class SeoController extends Controller
             ->header('Cache-Control', 'public, max-age=3600')
             ->body((new SitemapService())->robots());
     }
+
+    /** llms.txt — machine-readable site guide for AI assistants (llmstxt.org). */
+    public function llms(Request $request): Response
+    {
+        return (new Response())
+            ->header('Content-Type', 'text/plain; charset=utf-8')
+            ->header('Cache-Control', 'public, max-age=3600')
+            ->body((new SitemapService())->llms());
+    }
 }

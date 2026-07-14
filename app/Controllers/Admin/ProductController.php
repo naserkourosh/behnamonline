@@ -359,17 +359,20 @@ final class ProductController extends AdminController
     }
 
     /**
-     * Import media-library images queued as hidden library_paths[] inputs on
-     * the CREATE form (the edit form attaches them live via AJAX instead).
+     * Import media-library images queued on the CREATE form (each tile holds
+     * one queued_path[] + queued_alt[] pair, so indexes stay aligned). The
+     * edit form attaches images live via AJAX instead.
      */
     private function attachLibraryPaths(Request $request, int $productId): void
     {
+        $paths = array_values((array) $request->input('queued_path', []));
+        $alts  = array_values((array) $request->input('queued_alt', []));
         $media = new MediaService();
         $sort  = 40;
-        foreach (array_slice((array) $request->input('library_paths', []), 0, 20) as $p) {
+        foreach (array_slice($paths, 0, 20) as $i => $p) {
             $path = $media->importFromLibrary((string) $p, 'products');
             if ($path !== null) {
-                $this->products->addImage($productId, $path, '', '', false, false, $sort++);
+                $this->products->addImage($productId, $path, trim((string) ($alts[$i] ?? '')), '', false, false, $sort++);
             }
         }
     }

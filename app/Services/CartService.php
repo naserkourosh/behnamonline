@@ -36,8 +36,9 @@ final class CartService
             return ['ok' => false, 'message' => 'محصول یافت نشد.', 'summary' => $this->summary()];
         }
 
-        // Manual «اتمام موجودی» flag blocks the sale unconditionally.
-        if (!empty($product['is_out_of_stock'])) {
+        // «اتمام موجودی» blocks unconditionally; so does a zero/unset price
+        // (WooCommerce-style: no price → not purchasable).
+        if (!empty($product['is_out_of_stock']) || (int) $product['price'] <= 0) {
             return ['ok' => false, 'message' => 'موجودی این محصول به پایان رسیده است.', 'summary' => $this->summary()];
         }
 

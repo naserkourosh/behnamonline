@@ -182,6 +182,37 @@
     @apply cursor-not-allowed opacity-50;
   }
 
+  /* Infinite brand marquee (container is dir="ltr"; inner holds two copies
+     of the row, so translating -50% loops seamlessly). */
+  .marquee {
+    @apply overflow-hidden;
+  }
+  .marquee-inner {
+    display: flex;
+    width: max-content;
+    align-items: center;
+    animation: marquee 32s linear infinite;
+  }
+  .marquee:hover .marquee-inner {
+    animation-play-state: paused;
+  }
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  /* Footer trust badges (اینماد و…) — admin pastes the badge HTML; the badge
+     image must fit its fixed box no matter what size the provider serves. */
+  .trust-badge img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    cursor: pointer;
+  }
+
   /* Section heading with the little accent bar from the design */
   .section-title {
     @apply flex items-center gap-2 text-base font-bold text-secondary md:text-xl;

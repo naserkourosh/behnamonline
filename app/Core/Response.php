@@ -59,6 +59,12 @@ final class Response
     {
         if (!headers_sent()) {
             http_response_code($this->status);
+            // Dynamic output must never be served stale by the browser (admin
+            // lists, cart badge, review queue…). Static assets are served by
+            // Apache directly, so this only affects PHP responses.
+            if (!isset($this->headers['Cache-Control'])) {
+                header('Cache-Control: no-store, max-age=0');
+            }
             foreach ($this->headers as $name => $value) {
                 header("$name: $value");
             }

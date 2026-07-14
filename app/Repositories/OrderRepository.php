@@ -8,6 +8,17 @@ use App\Core\BaseRepository;
 
 final class OrderRepository extends BaseRepository
 {
+    /** Has this customer a PAID order containing the product? (buyer badge) */
+    public function userPurchasedProduct(int $userId, int $productId): bool
+    {
+        return (int) $this->scalar(
+            "SELECT COUNT(*) FROM orders o
+               JOIN order_items oi ON oi.order_id = o.id
+              WHERE o.user_id = ? AND o.payment_status = 'paid' AND oi.product_id = ?",
+            [$userId, $productId]
+        ) > 0;
+    }
+
     /** @param array<string,mixed> $data */
     public function create(array $data): int
     {

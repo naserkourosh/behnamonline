@@ -1,9 +1,10 @@
 <?php
 $categories = (new \App\Repositories\CategoryRepository())->allActiveWithCounts();
-// Admin-managed primary menu drives the nav; fall back to categories.
-$menuItems = (new \App\Repositories\MenuRepository())->primaryItems();
+// Admin-managed primary menu (nested tree: sub + mega) drives the nav;
+// falls back to top categories when the menu is empty.
+$menuItems = (new \App\Repositories\MenuRepository())->primaryTree();
 if ($menuItems === []) {
-    $menuItems = array_map(static fn ($c) => ['label' => $c['name'], 'url' => '/category/' . $c['slug']], $categories);
+    $menuItems = array_map(static fn ($c) => ['label' => $c['name'], 'url' => '/category/' . $c['slug'], 'children' => [], 'is_mega' => 0], $categories);
 }
 $menuHref = static fn (string $u): string => str_starts_with($u, 'http') ? $u : url($u);
 $cartCount  = (new \App\Services\CartService())->count();
@@ -79,8 +80,41 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round"/></svg>
                 همه دسته‌بندی‌ها
             </a>
-            <?php foreach (array_slice($menuItems, 0, 6) as $mi): ?>
-                <a href="<?= e($menuHref($mi['url'])) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary"><?= e($mi['label']) ?></a>
+            <?php foreach (array_slice($menuItems, 0, 6) as $mi): $kids = $mi['children'] ?? []; ?>
+                <?php if ($kids === []): ?>
+                    <a href="<?= e($menuHref($mi['url'])) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary"><?= e($mi['label']) ?></a>
+                <?php else: ?>
+                    <div class="group relative">
+                        <a href="<?= e($menuHref($mi['url'])) ?>" class="flex items-center gap-1 text-[13.5px] font-medium text-[#5a5a5a] transition group-hover:text-secondary">
+                            <?= e($mi['label']) ?>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        </a>
+                        <?php if (!empty($mi['is_mega'])): ?>
+                            <!-- mega panel: children = columns, grandchildren = links -->
+                            <div class="invisible absolute right-0 top-full z-40 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
+                                <div class="grid w-[600px] max-w-[82vw] grid-cols-3 gap-x-6 gap-y-4 rounded-2xl border border-line2 bg-white p-5 shadow-xl">
+                                    <?php foreach (array_slice($kids, 0, 9) as $col): ?>
+                                        <div>
+                                            <a href="<?= e($menuHref($col['url'])) ?>" class="mb-1.5 block border-b border-line2 pb-1.5 text-[12.5px] font-bold text-secondary hover:opacity-80"><?= e($col['label']) ?></a>
+                                            <?php foreach (array_slice($col['children'] ?? [], 0, 6) as $sub): ?>
+                                                <a href="<?= e($menuHref($sub['url'])) ?>" class="block py-1 text-[12px] text-[#666] transition hover:text-secondary"><?= e($sub['label']) ?></a>
+                                            <?php endforeach; ?>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <!-- simple dropdown -->
+                            <div class="invisible absolute right-0 top-full z-40 pt-3 opacity-0 transition duration-150 group-hover:visible group-hover:opacity-100">
+                                <div class="w-52 rounded-2xl border border-line2 bg-white p-2 shadow-xl">
+                                    <?php foreach ($kids as $sub): ?>
+                                        <a href="<?= e($menuHref($sub['url'])) ?>" class="block rounded-lg px-3 py-2 text-[12.5px] text-[#555] transition hover:bg-surface hover:text-secondary"><?= e($sub['label']) ?></a>
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             <?php endforeach; ?>
             <a href="<?= e(url('/blog')) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary">مجله</a>
             <a href="<?= e(url('/faq')) ?>" class="text-[13.5px] font-medium text-[#5a5a5a] transition hover:text-secondary">سوالات متداول</a>
@@ -98,11 +132,29 @@ $logo = '<a href="' . e(url('/')) . '" class="text-center leading-none">'
     </div>
     <nav class="flex flex-col py-2">
         <a href="<?= e(url('/')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">خانه</a>
-        <?php foreach ($menuItems as $mi): ?>
-            <a href="<?= e($menuHref($mi['url'])) ?>" class="flex items-center justify-between border-b border-line2 px-5 py-3.5 text-[14px] text-ink">
-                <span><?= e($mi['label']) ?></span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.7"><path d="M15 6l-6 6 6 6" stroke-linecap="round"/></svg>
-            </a>
+        <?php foreach ($menuItems as $mi): $kids = $mi['children'] ?? []; ?>
+            <?php if ($kids === []): ?>
+                <a href="<?= e($menuHref($mi['url'])) ?>" class="flex items-center justify-between border-b border-line2 px-5 py-3.5 text-[14px] text-ink">
+                    <span><?= e($mi['label']) ?></span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.7"><path d="M15 6l-6 6 6 6" stroke-linecap="round"/></svg>
+                </a>
+            <?php else: ?>
+                <details class="border-b border-line2">
+                    <summary class="flex cursor-pointer select-none items-center justify-between px-5 py-3.5 text-[14px] text-ink">
+                        <span><?= e($mi['label']) ?></span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.9"><path d="M6 9l6 6 6-6" stroke-linecap="round"/></svg>
+                    </summary>
+                    <div class="bg-surface/60 pb-2">
+                        <a href="<?= e($menuHref($mi['url'])) ?>" class="block px-7 py-2.5 text-[13px] font-semibold text-secondary">مشاهدهٔ همه</a>
+                        <?php foreach ($kids as $sub): ?>
+                            <a href="<?= e($menuHref($sub['url'])) ?>" class="block px-7 py-2.5 text-[13px] text-[#555]"><?= e($sub['label']) ?></a>
+                            <?php foreach ($sub['children'] ?? [] as $ssub): ?>
+                                <a href="<?= e($menuHref($ssub['url'])) ?>" class="block px-10 py-2 text-[12.5px] text-[#888]">– <?= e($ssub['label']) ?></a>
+                            <?php endforeach; ?>
+                        <?php endforeach; ?>
+                    </div>
+                </details>
+            <?php endif; ?>
         <?php endforeach; ?>
         <a href="<?= e(url('/blog')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">مجله</a>
         <a href="<?= e(url('/faq')) ?>" class="border-b border-line2 px-5 py-3.5 text-[14px] text-ink">سوالات متداول</a>

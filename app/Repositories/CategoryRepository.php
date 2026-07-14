@@ -35,7 +35,7 @@ final class CategoryRepository extends BaseRepository
     public function sitemapList(): array
     {
         return $this->selectAll(
-            'SELECT slug, created_at FROM categories WHERE is_active = 1 ORDER BY sort, id'
+            'SELECT name, slug, created_at FROM categories WHERE is_active = 1 ORDER BY sort, id'
         );
     }
 

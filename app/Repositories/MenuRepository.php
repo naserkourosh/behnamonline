@@ -49,13 +49,29 @@ final class MenuRepository extends BaseRepository
         );
     }
 
-    public function addItem(int $menuId, ?int $parentId, string $label, string $url, int $sort): int
+    public function addItem(int $menuId, ?int $parentId, string $label, string $url, int $sort, bool $isMega = false): int
     {
         $this->execute(
-            'INSERT INTO menu_items (menu_id, parent_id, label, url, sort, created_at) VALUES (?,?,?,?,?,?)',
-            [$menuId, $parentId, $label, $url, $sort, date('Y-m-d H:i:s')]
+            'INSERT INTO menu_items (menu_id, parent_id, label, url, is_mega, sort, created_at) VALUES (?,?,?,?,?,?,?)',
+            [$menuId, $parentId, $label, $url, $isMega ? 1 : 0, $sort, date('Y-m-d H:i:s')]
         );
         return $this->lastInsertId();
+    }
+
+    /** Depth of an item (0 = top level). Cycle-safe via a hop limit. */
+    public function itemDepth(int $id): int
+    {
+        $depth = 0;
+        for ($i = 0; $i < 5; $i++) {
+            $row = $this->findItem($id);
+            $parent = $row !== null ? (int) ($row['parent_id'] ?? 0) : 0;
+            if ($parent <= 0) {
+                break;
+            }
+            $depth++;
+            $id = $parent;
+        }
+        return $depth;
     }
 
     /** @return array<string,mixed>|null */
@@ -83,5 +99,39 @@ final class MenuRepository extends BaseRepository
               WHERE m.slug = 'primary' AND i.parent_id IS NULL
               ORDER BY i.sort, i.id"
         );
+    }
+
+    /**
+     * Primary menu as a nested tree (max 3 levels) for the storefront header:
+     * top items each carry 'children'; children carry their own 'children'.
+     * @return list<array<string,mixed>>
+     */
+    public function primaryTree(): array
+    {
+        $rows = $this->selectAll(
+            "SELECT i.id, i.parent_id, i.label, i.url, i.is_mega
+               FROM menu_items i
+               JOIN menus m ON m.id = i.menu_id
+              WHERE m.slug = 'primary'
+              ORDER BY i.sort, i.id"
+        );
+        return $this->buildTree($rows, null);
+    }
+
+    /**
+     * @param list<array<string,mixed>> $rows
+     * @return list<array<string,mixed>>
+     */
+    private function buildTree(array $rows, ?int $parent): array
+    {
+        $out = [];
+        foreach ($rows as $r) {
+            $pid = $r['parent_id'] !== null ? (int) $r['parent_id'] : null;
+            if ($pid === $parent) {
+                $r['children'] = $this->buildTree($rows, (int) $r['id']);
+                $out[] = $r;
+            }
+        }
+        return $out;
     }
 }

@@ -9,7 +9,7 @@ $lbl = 'mb-1.5 block text-[12px] font-semibold text-[#666]';
 $v = static fn (string $k, $d = '') => e($product[$k] ?? $d);
 $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ?? $default);
 ?>
-<form method="post" action="<?= e($action) ?>" enctype="multipart/form-data">
+<form method="post" action="<?= e($action) ?>" enctype="multipart/form-data" class="js-guard-unsaved">
     <?= csrf_field() ?>
     <div class="mb-4 flex items-center justify-between">
         <a href="<?= e(url('/admin/products')) ?>" class="text-[12px] text-mauve">‹ بازگشت به محصولات</a>
@@ -91,6 +91,36 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
                 </div>
             </div>
 
+            <!-- Images — WordPress-style: one button opens the library/upload modal -->
+            <div class="rounded-2xl border border-line2 bg-white p-5">
+                <h3 class="mb-3 text-[14px] font-bold text-[#333]">تصاویر محصول</h3>
+                <div id="js-image-list" class="mb-3 space-y-3 <?= $images === [] ? 'hidden' : '' ?>">
+                    <?php foreach ($images as $img): ?>
+                        <div class="js-image-tile flex gap-3 rounded-xl2 border border-line p-2.5" data-id="<?= (int) $img['id'] ?>">
+                            <img src="<?= e(asset((string) $img['path'])) ?>" alt="" class="h-16 w-16 flex-none rounded-lg bg-white object-contain">
+                            <div class="flex-1 space-y-1.5">
+                                <input name="img_alt[<?= (int) $img['id'] ?>]" value="<?= e($img['alt']) ?>" placeholder="متن جایگزین (alt)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">
+                                <input name="img_title[<?= (int) $img['id'] ?>]" value="<?= e($img['title']) ?>" placeholder="عنوان (title)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">
+                                <div class="flex items-center justify-between">
+                                    <label class="flex items-center gap-1.5 text-[11px] text-[#666]"><input type="radio" name="primary_image" value="<?= (int) $img['id'] ?>" class="accent-secondary" <?= (int) $img['is_primary'] ? 'checked' : '' ?>> تصویر اصلی</label>
+                                    <button type="button" class="js-del-image text-[11px] text-danger" data-url="<?= e(url('/admin/products/images/' . $img['id'] . '/delete')) ?>">حذف</button>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <div id="js-queued-list" class="mb-3 hidden space-y-3"></div>
+                <button type="button" class="js-lib-open btn-outline w-full py-2.5 text-[12.5px]"
+                        data-attach-url="<?= $isEdit ? e(url('/admin/products/' . $product['id'] . '/images/from-library')) : '' ?>"
+                        data-list-url="<?= e(url('/admin/products/library-images')) ?>"
+                        data-upload-url="<?= e(url('/admin/media/upload')) ?>">+ افزودن تصویر</button>
+                <p class="mt-2 text-[11px] leading-5 text-[#aaa]">
+                    آپلود یا انتخاب از کتابخانه — JPG, PNG, WEBP, GIF تا ۳ مگابایت.
+                    <?= $isEdit ? '' : 'تصاویر همراه «ایجاد محصول» ذخیره می‌شوند.' ?>
+                    <span id="js-img-status" class="font-bold text-secondary"></span>
+                </p>
+            </div>
+
             <div class="rounded-2xl border border-line2 bg-white p-5">
                 <h3 class="mb-3 text-[14px] font-bold text-[#333]">قیمت و انبار</h3>
                 <div class="mb-3"><label class="<?= $lbl ?>">قیمت (تومان) *</label><input name="price" value="<?= $v('price', '0') ?>" dir="ltr" class="<?= $inp ?> text-left" required></div>
@@ -168,36 +198,6 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
             </div>
             <?php endif; ?>
 
-            <!-- Images -->
-            <div class="rounded-2xl border border-line2 bg-white p-5">
-                <h3 class="mb-3 text-[14px] font-bold text-[#333]">تصاویر</h3>
-                <div id="js-image-list" class="mb-3 space-y-3 <?= $images === [] ? 'hidden' : '' ?>">
-                    <?php foreach ($images as $img): ?>
-                            <div class="js-image-tile flex gap-3 rounded-xl2 border border-line p-2.5" data-id="<?= (int) $img['id'] ?>">
-                                <img src="<?= e(asset((string) $img['path'])) ?>" alt="" class="h-16 w-16 flex-none rounded-lg bg-white object-contain">
-                                <div class="flex-1 space-y-1.5">
-                                    <input name="img_alt[<?= (int) $img['id'] ?>]" value="<?= e($img['alt']) ?>" placeholder="متن جایگزین (alt)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">
-                                    <input name="img_title[<?= (int) $img['id'] ?>]" value="<?= e($img['title']) ?>" placeholder="عنوان (title)" class="w-full rounded-lg border border-line bg-surface px-2 py-1.5 text-[11.5px] outline-none">
-                                    <div class="flex items-center justify-between">
-                                        <label class="flex items-center gap-1.5 text-[11px] text-[#666]"><input type="radio" name="primary_image" value="<?= (int) $img['id'] ?>" class="accent-secondary" <?= (int) $img['is_primary'] ? 'checked' : '' ?>> تصویر اصلی</label>
-                                        <button type="button" class="js-del-image text-[11px] text-danger" data-url="<?= e(url('/admin/products/images/' . $img['id'] . '/delete')) ?>">حذف</button>
-                                    </div>
-                                </div>
-                            </div>
-                    <?php endforeach; ?>
-                </div>
-                <div class="mb-2 flex items-center justify-between">
-                    <label class="<?= $lbl ?> !mb-0">افزودن تصویر</label>
-                    <button type="button" class="js-lib-open rounded-lg bg-pink px-3 py-1.5 text-[12px] font-semibold text-secondary" data-attach-url="<?= $isEdit ? e(url('/admin/products/' . $product['id'] . '/images/from-library')) : '' ?>" data-list-url="<?= e(url('/admin/products/library-images')) ?>">📁 انتخاب از کتابخانه</button>
-                </div>
-                <input type="file" name="images[]" accept="image/*" multiple class="js-img-upload w-full text-[12px] text-[#666] file:mr-2 file:rounded-lg file:border-0 file:bg-pink file:px-3 file:py-1.5 file:text-[12px] file:font-semibold file:text-secondary" <?= $isEdit ? 'data-url="' . e(url('/admin/products/' . $product['id'] . '/images')) . '"' : '' ?>>
-                <div id="js-new-previews" class="mt-2 flex flex-wrap gap-2"></div>
-                <p class="mt-1.5 text-[11px] text-[#aaa]">
-                    فرمت‌های مجاز: JPG, PNG, WEBP, GIF — حداکثر ۳ مگابایت.
-                    <?= $isEdit ? 'تصاویر بلافاصله پس از انتخاب آپلود و به فهرست بالا اضافه می‌شوند.' : 'تصاویر پس از «ایجاد محصول» ذخیره می‌شوند.' ?>
-                    <span id="js-img-status" class="font-bold text-secondary"></span>
-                </p>
-            </div>
         </div>
     </div>
 
@@ -206,17 +206,32 @@ $flag = static fn (string $k, int $default = 0): bool => (bool) ($product[$k] ??
     <template id="tpl-variant"><div class="js-row grid grid-cols-[1fr_1fr_1fr_auto] gap-2"><input name="var_label[]" placeholder="عنوان" class="<?= $inp ?>"><input name="var_sku[]" placeholder="SKU" dir="ltr" class="<?= $inp ?> text-left"><input name="var_price[]" placeholder="قیمت" dir="ltr" class="<?= $inp ?> text-left"><div class="flex gap-1"><input name="var_stock[]" placeholder="موجودی" dir="ltr" class="<?= $inp ?> w-20 text-left"><button type="button" class="js-del-row rounded-lg px-2 text-danger">✕</button></div></div></template>
 </form>
 
-<!-- Media-library picker modal (outside the form; buttons are type=button).
-     Edit mode attaches via AJAX; create mode adds hidden library_paths[]
-     inputs that store() imports after the product is created. -->
+<!-- Media modal (WordPress-style): tab 1 = library grid, tab 2 = upload.
+     Uploads land in the media library first, then get selected/attached.
+     Edit mode attaches via AJAX (copy into the product); create mode queues
+     tiles with hidden queued_path[]/queued_alt[] that store() imports. -->
 <div id="js-lib-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
-    <div class="flex max-h-[80vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
-        <div class="flex items-center justify-between border-b border-line2 p-4">
-            <h3 class="text-[14px] font-bold text-[#333]">انتخاب از کتابخانه تصاویر</h3>
+    <div class="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-xl">
+        <div class="flex items-center justify-between border-b border-line2 px-4 pt-2">
+            <div class="flex gap-1">
+                <button type="button" class="js-lib-tab border-b-2 border-secondary px-3 py-2.5 text-[13px] font-bold text-secondary" data-tab="library">کتابخانهٔ تصاویر</button>
+                <button type="button" class="js-lib-tab border-b-2 border-transparent px-3 py-2.5 text-[13px] font-bold text-[#888]" data-tab="upload">آپلود تصویر</button>
+            </div>
             <button type="button" class="js-lib-close px-1 text-[18px] leading-none text-[#999]">✕</button>
         </div>
-        <div id="js-lib-grid" class="grid flex-1 grid-cols-3 gap-2.5 overflow-y-auto p-4 sm:grid-cols-5">
-            <p class="col-span-full py-8 text-center text-[12px] text-[#999]">در حال بارگذاری…</p>
+        <div id="js-lib-pane-library" class="flex-1 overflow-y-auto p-4">
+            <div id="js-lib-grid" class="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
+                <p class="col-span-full py-8 text-center text-[12px] text-[#999]">در حال بارگذاری…</p>
+            </div>
+        </div>
+        <div id="js-lib-pane-upload" class="hidden flex-1 overflow-y-auto p-6">
+            <label class="block cursor-pointer rounded-2xl border-2 border-dashed border-line p-8 text-center transition hover:border-secondary hover:bg-pink/30">
+                <input type="file" id="js-lib-upload-input" accept="image/*" multiple class="hidden">
+                <div class="text-[34px]">🖼️</div>
+                <div class="mt-2 text-[13px] font-bold text-secondary">انتخاب فایل برای آپلود</div>
+                <div class="mt-1 text-[11px] leading-5 text-[#aaa]">JPG · PNG · WEBP · GIF — حداکثر ۳ مگابایت<br>پس از آپلود، به کتابخانه اضافه و به‌صورت انتخاب‌شده نمایش داده می‌شود.</div>
+            </label>
+            <div id="js-lib-upload-status" class="mt-3 text-center text-[12px] font-semibold text-[#888]"></div>
         </div>
         <div class="flex items-center justify-between border-t border-line2 p-4">
             <span id="js-lib-count" class="text-[12px] text-[#888]"></span>

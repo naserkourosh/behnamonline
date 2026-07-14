@@ -55,6 +55,7 @@ return static function (Router $router): void {
         $r->get('/category/{slug}', [CategoryController::class, 'show']);
 
         $r->get('/product/{slug}', [ProductController::class, 'show']);
+        $r->post('/product/{slug}/review', [ProductController::class, 'review'], [VerifyCsrf::class]);
 
         // Torob (ترب) product feed — register the URL in the Torob merchant panel.
         $r->get('/torob.json', [TorobController::class, 'feedJson']);
@@ -76,6 +77,12 @@ return static function (Router $router): void {
 
         // ── FAQ ──
         $r->get('/faq', [FaqController::class, 'index']);
+        $r->get('/about', [\App\Controllers\Storefront\PageController::class, 'about']);
+        $r->get('/contact', [\App\Controllers\Storefront\PageController::class, 'contact']);
+        $r->post('/contact', [\App\Controllers\Storefront\PageController::class, 'contactSubmit'], [VerifyCsrf::class]);
+        $r->get('/page/{slug}', [\App\Controllers\Storefront\PageController::class, 'show']);
+        // llms.txt — راهنمای سایت برای خزنده‌های هوش مصنوعی (ChatGPT و…)
+        $r->get('/llms.txt', [SeoController::class, 'llms']);
 
         // ── Checkout (no OTP — order placed directly, customer auto-signed-in) ──
         $r->get('/checkout', [CheckoutController::class, 'index']);
@@ -173,6 +180,14 @@ return static function (Router $router): void {
             $x->get('/admin/customers', [AdminCustomerController::class, 'index']);
             $x->get('/admin/customers/{id}', [AdminCustomerController::class, 'show']);
 
+            // Pages (مدیریت صفحات)
+            $x->get('/admin/pages', [\App\Controllers\Admin\PageController::class, 'index']);
+            $x->get('/admin/pages/create', [\App\Controllers\Admin\PageController::class, 'create']);
+            $x->post('/admin/pages', [\App\Controllers\Admin\PageController::class, 'store'], [VerifyCsrf::class]);
+            $x->get('/admin/pages/{id}/edit', [\App\Controllers\Admin\PageController::class, 'edit']);
+            $x->post('/admin/pages/{id}', [\App\Controllers\Admin\PageController::class, 'update'], [VerifyCsrf::class]);
+            $x->post('/admin/pages/{id}/delete', [\App\Controllers\Admin\PageController::class, 'destroy'], [VerifyCsrf::class]);
+
             // Menus
             $x->get('/admin/menus', [AdminMenuController::class, 'index']);
             $x->get('/admin/menus/{id}', [AdminMenuController::class, 'edit']);
@@ -268,6 +283,11 @@ return static function (Router $router): void {
             $x->post('/admin/accounting/api-key', [AdminAccountingController::class, 'regenerateKey'], [VerifyCsrf::class]);
             $x->post('/admin/accounting/torob', [AdminAccountingController::class, 'saveTorob'], [VerifyCsrf::class]);
             $x->post('/admin/accounting/sync', [AdminAccountingController::class, 'sync'], [VerifyCsrf::class]);
+
+            // Product reviews (moderation)
+            $x->get('/admin/reviews', [\App\Controllers\Admin\ReviewController::class, 'index']);
+            $x->post('/admin/reviews/{id}/status', [\App\Controllers\Admin\ReviewController::class, 'setStatus'], [VerifyCsrf::class]);
+            $x->post('/admin/reviews/{id}/delete', [\App\Controllers\Admin\ReviewController::class, 'destroy'], [VerifyCsrf::class]);
 
             // SMS
             $x->get('/admin/sms', [AdminSmsController::class, 'index']);

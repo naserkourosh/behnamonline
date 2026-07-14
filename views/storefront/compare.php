@@ -67,7 +67,7 @@ $label = 'border-b border-line2 bg-surface p-3 text-right text-[12px] font-bold 
                     <tr>
                         <td class="<?= $label ?>">موجودی</td>
                         <?php foreach ($products as $p):
-                            $avail = !empty($p['is_out_of_stock']) ? 0
+                            $avail = (!empty($p['is_out_of_stock']) || (int) $p['price'] <= 0) ? 0
                                 : (!empty($p['track_stock']) ? (int) $p['stock'] - (int) ($p['reserved'] ?? 0) : 1); ?>
                             <td class="<?= $cell ?>">
                                 <?php if ($avail > 0): ?><span class="font-semibold text-success">موجود</span><?php else: ?><span class="font-semibold text-danger">اتمام موجودی</span><?php endif; ?>

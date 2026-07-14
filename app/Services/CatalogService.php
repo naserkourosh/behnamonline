@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Repositories\BannerRepository;
+use App\Repositories\BlogPostRepository;
 use App\Repositories\BrandRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\ProductRepository;
@@ -56,11 +57,12 @@ final class CatalogService
             'sections'     => $sections,
             'brands'       => $this->brands->allActive(),
             'reviews'      => $this->reviews->latestApproved(6),
-            'posts'        => $this->demoPosts(),
+            'posts'        => (new BlogPostRepository())->published(null, 4, 0),
             'heroBanners'  => $banners->activeByPlacement('hero', 6),
             'promoBanners' => $banners->activeByPlacement('promo', 2),
             'stripBanners' => $banners->activeByPlacement('strip', 2),
             'inlineBanners' => $banners->activeByPlacement('inline', 4),
+            'posterBanners' => $banners->activeByPlacement('poster', 4),
         ];
     }
 
@@ -136,13 +138,4 @@ final class CatalogService
         ];
     }
 
-    /** @return list<array<string,mixed>> Demo blog teasers (real blog arrives in Phase 6). */
-    private function demoPosts(): array
-    {
-        return [
-            ['title' => '۷ گام طلایی برای روتین مراقبت پوست شبانه', 'date' => '۳ روز پیش', 'read' => '۵ دقیقه مطالعه'],
-            ['title' => 'چطور رنگ رژ لب مناسب پوستمان را انتخاب کنیم؟', 'date' => '۱ هفته پیش', 'read' => '۴ دقیقه مطالعه'],
-            ['title' => 'راهنمای انتخاب عطر بر اساس فصل', 'date' => '۲ هفته پیش', 'read' => '۶ دقیقه مطالعه'],
-        ];
-    }
 }

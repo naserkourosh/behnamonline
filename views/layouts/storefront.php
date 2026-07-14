@@ -30,18 +30,34 @@ $canonical   = $meta['canonical']   ?? strtok($currentUrl, '?');
     <meta property="og:description" content="<?= e($description) ?>">
     <meta property="og:image" content="<?= e($ogImage) ?>">
     <meta property="og:url" content="<?= e($canonical) ?>">
+    <meta property="og:locale" content="fa_IR">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<?= e($title) ?>">
+    <meta name="twitter:description" content="<?= e($description) ?>">
+    <meta name="twitter:image" content="<?= e($ogImage) ?>">
 
     <link rel="preload" href="<?= e(asset('assets/fonts/vazirmatn-400.woff2')) ?>" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>">
     <?= $this->stack('head') ?>
 
-    <script type="application/ld+json"><?= json_encode([
+    <?php
+    // Organization schema enriched from تنظیمات (تلفن/اینستاگرام) when filled.
+    $orgLd = [
         '@context' => 'https://schema.org',
-        '@type'    => 'Organization',
+        '@type'    => 'OnlineStore',
         'name'     => $brand,
         'url'      => base_url(),
-    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
+    ];
+    $orgPhone = trim((string) setting('contact_phone', ''));
+    if ($orgPhone !== '') {
+        $orgLd['contactPoint'] = ['@type' => 'ContactPoint', 'telephone' => en_num($orgPhone), 'contactType' => 'customer service'];
+    }
+    $orgInsta = ltrim(trim((string) setting('contact_instagram', '')), '@');
+    if ($orgInsta !== '') {
+        $orgLd['sameAs'] = ['https://www.instagram.com/' . $orgInsta];
+    }
+    ?>
+    <script type="application/ld+json"><?= json_encode($orgLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
     <?= $this->stack('json_ld') ?>
 </head>
 <body class="min-h-screen bg-white pb-[78px] md:pb-0">

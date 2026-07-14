@@ -8,8 +8,18 @@ $labels = [
     'show_announcement'       => 'نمایش نوار اعلان',
     'free_shipping_threshold' => 'حداقل مبلغ ارسال رایگان (تومان)',
     'low_stock_threshold'     => 'آستانه هشدار «تنها N عدد» (برای محصولات با کنترل موجودی)',
+    'show_ratings'            => 'نمایش امتیاز ستاره‌ای محصولات',
+    'about_text'              => 'متن صفحهٔ «درباره ما»',
+    'contact_phone'           => 'تلفن تماس',
+    'contact_email'           => 'ایمیل',
+    'contact_instagram'       => 'اینستاگرام (نام کاربری)',
+    'contact_address'         => 'آدرس فروشگاه',
     'flash_sale_ends_at'      => 'پایان پیشنهاد شگفت‌انگیز (YYYY-MM-DD HH:MM:SS)',
     'chat_enabled'            => 'فعال‌سازی گفتگوی آنلاین (چت پشتیبانی)',
+    'trust_badge_1_code'      => 'نماد اعتماد ۱ — کد HTML (مثلاً کد اینماد را اینجا بچسبانید)',
+    'trust_badge_2_code'      => 'نماد اعتماد ۲ — کد HTML (مثلاً ساماندهی)',
+    'trust_badge_3_code'      => 'نماد اعتماد ۳ — کد HTML (اختیاری)',
+    'trust_badge_4_code'      => 'نماد اعتماد ۴ — کد HTML (اختیاری)',
 ];
 ?>
 <form method="post" action="<?= e(url('/admin/settings')) ?>" class="max-w-2xl">
@@ -29,8 +39,8 @@ $labels = [
             <?php else: ?>
                 <div>
                     <label class="<?= $lbl ?>"><?= e($labels[$key] ?? $key) ?></label>
-                    <?php if ($key === 'announcement_text'): ?>
-                        <textarea name="<?= e($key) ?>" rows="2" class="<?= $inp ?>"><?= e((string) $current) ?></textarea>
+                    <?php if ($key === 'announcement_text' || $type === 'text'): ?>
+                        <textarea name="<?= e($key) ?>" rows="<?= $type === 'text' ? 4 : 2 ?>" class="<?= $inp ?>"><?= e((string) $current) ?></textarea>
                     <?php elseif ($key === 'flash_sale_ends_at'): ?>
                         <input name="<?= e($key) ?>" value="<?= e((string) $current) ?>" dir="ltr" class="js-jdatetime <?= $inp ?> text-left">
                     <?php else: ?>

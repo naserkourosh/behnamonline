@@ -62,8 +62,10 @@ final class AuthController extends Controller
         AuthService::login($userId);
         Session::forget('login_mobile');
 
+        // Only same-site paths: "//evil.com" and "/\evil.com" are protocol-
+        // relative URLs browsers would follow off-site (open redirect).
         $redirect = (string) $request->input('redirect', '/account');
-        if (!str_starts_with($redirect, '/')) {
+        if (!str_starts_with($redirect, '/') || str_starts_with($redirect, '//') || str_starts_with($redirect, '/\\')) {
             $redirect = '/account';
         }
 

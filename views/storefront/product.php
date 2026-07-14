@@ -14,7 +14,8 @@ $old       = (int) $p['old_price'];
 $discount  = discount_percent($old, $price);
 // Per-product stock model: اتمام موجودی is absolute; otherwise کنترل موجودی
 // makes the numeric count govern (shown + zero blocks); else free selling.
-$oos       = !empty($p['is_out_of_stock']);
+// A zero/unset price also blocks purchasing (WooCommerce-style).
+$oos       = !empty($p['is_out_of_stock']) || $price <= 0;
 $tracked   = !$oos && !empty($p['track_stock']);
 $available = $oos ? 0 : ($tracked ? (int) $p['stock'] - (int) $p['reserved'] : 9999);
 $showQty   = $tracked;
@@ -65,6 +66,18 @@ $this->push('json_ld', '<script type="application/ld+json">' . json_encode([
         'availability'  => $available > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         'url'           => abs_url('product/' . $p['slug']),
     ],
+], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>');
+
+// BreadcrumbList schema (خانه ← دسته ← محصول) for Google rich results.
+$crumbs = [['@type' => 'ListItem', 'position' => 1, 'name' => 'خانه', 'item' => base_url() . '/']];
+if (!empty($p['category_slug'])) {
+    $crumbs[] = ['@type' => 'ListItem', 'position' => 2, 'name' => (string) $p['category_name'], 'item' => abs_url('category/' . $p['category_slug'])];
+}
+$crumbs[] = ['@type' => 'ListItem', 'position' => count($crumbs) + 1, 'name' => (string) $p['name'], 'item' => abs_url('product/' . $p['slug'])];
+$this->push('json_ld', '<script type="application/ld+json">' . json_encode([
+    '@context' => 'https://schema.org',
+    '@type'    => 'BreadcrumbList',
+    'itemListElement' => $crumbs,
 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>');
 
 // Torob (ترب) crawler markup — lets Torob read this product reliably when it
@@ -149,11 +162,13 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
                 <a href="<?= e(url('/category/' . ($p['category_slug'] ?? ''))) ?>" class="text-[11px] font-medium text-mauve"><?= e($p['brand_name']) ?></a>
             </div>
             <h1 class="mb-2 mt-2.5 text-[20px] font-bold leading-relaxed text-[#2a2a2a] md:text-[26px]"><?= e($p['name']) ?></h1>
-            <div class="flex items-center gap-2">
-                <span class="text-[13px] text-star"><?= str_repeat('★', (int) round((float) $p['rating_avg'])) . str_repeat('☆', 5 - (int) round((float) $p['rating_avg'])) ?></span>
-                <span class="text-[11px] text-[#888] nums"><?= fa(number_format((float) $p['rating_avg'], 1)) ?></span>
-                <span class="text-[11px] text-mauve">(<?= fa((int) $p['rating_count']) ?> دیدگاه)</span>
-            </div>
+            <?php if ((int) $p['rating_count'] > 0 && (bool) setting('show_ratings', true)): ?>
+                <div class="flex items-center gap-2">
+                    <span class="text-[13px] text-star"><?= str_repeat('★', (int) round((float) $p['rating_avg'])) . str_repeat('☆', 5 - (int) round((float) $p['rating_avg'])) ?></span>
+                    <span class="text-[11px] text-[#888] nums"><?= fa(number_format((float) $p['rating_avg'], 1)) ?></span>
+                    <span class="text-[11px] text-mauve">(<?= fa((int) $p['rating_count']) ?> دیدگاه)</span>
+                </div>
+            <?php endif; ?>
 
             <?php if ($shortText !== ''): ?>
                 <div class="rich mt-4 border-s-2 border-primary ps-3 text-[#666]"><?= html_clean((string) $p['short_desc']) ?></div>
@@ -276,32 +291,62 @@ $stockBadge = static function (int $avail) use ($showQty, $lowAt): array {
     <?php endif; ?>
 
     <!-- reviews -->
-    <section class="mt-9">
+    <section class="mt-9" id="reviews">
         <div class="mb-4 flex items-center justify-between">
             <h2 class="section-title">دیدگاه مشتریان</h2>
-            <div class="flex items-center gap-1.5">
-                <span class="text-[20px] font-extrabold text-secondary nums"><?= fa(number_format((float) $p['rating_avg'], 1)) ?></span>
-                <span class="text-[12px] text-star">★★★★★</span>
-            </div>
+            <?php if ((int) $p['rating_count'] > 0 && (bool) setting('show_ratings', true)): ?>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[20px] font-extrabold text-secondary nums"><?= fa(number_format((float) $p['rating_avg'], 1)) ?></span>
+                    <span class="text-[12px] text-star">★★★★★</span>
+                </div>
+            <?php endif; ?>
         </div>
         <?php if ($reviews === []): ?>
-            <p class="text-[13px] text-[#999]">هنوز دیدگاهی ثبت نشده است.</p>
+            <p class="text-[13px] text-[#999]">هنوز دیدگاهی ثبت نشده است. اولین نفر باشید!</p>
         <?php else: ?>
             <div class="grid gap-3 md:grid-cols-2">
                 <?php foreach ($reviews as $r): ?>
                     <div class="rounded-2xl border border-line2 p-4">
                         <div class="mb-2.5 flex items-center gap-2.5">
-                            <div class="h-9 w-9 rounded-full bg-[#F3EBE2]"></div>
+                            <div class="flex h-9 w-9 items-center justify-center rounded-full bg-pink text-[13px] font-bold text-secondary"><?= e(mb_substr(trim((string) $r['author_name']), 0, 1)) ?></div>
                             <div class="flex-1">
                                 <div class="text-[12.5px] font-bold text-[#333]"><?= e($r['author_name']) ?></div>
                                 <div class="text-[11px] text-star"><?= str_repeat('★', (int) $r['rating']) . str_repeat('☆', 5 - (int) $r['rating']) ?></div>
                             </div>
-                            <?php if (!empty($r['is_verified'])): ?><span class="badge-verified">خرید تاییدشده</span><?php endif; ?>
+                            <?php if (!empty($r['is_verified'])): ?><span class="badge-verified">خریدار این محصول</span><?php endif; ?>
                         </div>
                         <p class="text-[12px] leading-7 text-[#666]"><?= e($r['body']) ?></p>
                     </div>
                 <?php endforeach; ?>
             </div>
+        <?php endif; ?>
+
+        <!-- submit a review -->
+        <?php if (\App\Services\AuthService::check()): ?>
+            <form method="post" action="<?= e(url('/product/' . $p['slug'] . '/review')) ?>" class="mt-6 max-w-lg rounded-2xl border border-line2 bg-white p-5">
+                <?= csrf_field() ?>
+                <h3 class="mb-3 text-[14px] font-bold text-[#333]">دیدگاه خود را بنویسید</h3>
+                <div class="mb-3">
+                    <label class="mb-1.5 block text-[12px] font-semibold text-[#666]">امتیاز شما</label>
+                    <select name="rating" class="w-full rounded-xl2 border border-line bg-white px-3.5 py-2.5 text-[13px] outline-none focus:border-secondary">
+                        <option value="5">★★★★★ — عالی</option>
+                        <option value="4">★★★★ — خوب</option>
+                        <option value="3">★★★ — متوسط</option>
+                        <option value="2">★★ — ضعیف</option>
+                        <option value="1">★ — خیلی ضعیف</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="mb-1.5 block text-[12px] font-semibold text-[#666]">متن دیدگاه</label>
+                    <textarea name="body" rows="3" required class="w-full rounded-xl2 border border-line bg-white px-3.5 py-2.5 text-[13px] outline-none focus:border-secondary" placeholder="تجربهٔ شما از این محصول…"></textarea>
+                </div>
+                <button class="btn-primary w-full py-2.5 text-[13px]">ثبت دیدگاه</button>
+                <p class="mt-2 text-[10.5px] text-[#aaa]">دیدگاه شما پس از تایید مدیر نمایش داده می‌شود.</p>
+            </form>
+        <?php else: ?>
+            <p class="mt-5 text-[12.5px] text-[#888]">
+                برای ثبت دیدگاه <a href="<?= e(url('/login?redirect=' . rawurlencode('/product/' . $p['slug']))) ?>" class="font-bold text-secondary underline">وارد حساب خود شوید</a>.
+            </p>
         <?php endif; ?>
     </section>
 

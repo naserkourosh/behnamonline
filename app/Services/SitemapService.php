@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Repositories\BlogPostRepository;
 use App\Repositories\CategoryRepository;
+use App\Repositories\PageRepository;
 use App\Repositories\ProductRepository;
 
 /**
@@ -25,6 +26,8 @@ final class SitemapService
             $this->url('category', null, 'daily', '0.9'),
             $this->url('blog', null, 'weekly', '0.6'),
             $this->url('faq', null, 'monthly', '0.4'),
+            $this->url('about', null, 'monthly', '0.4'),
+            $this->url('contact', null, 'monthly', '0.4'),
         ];
 
         foreach ((new CategoryRepository())->sitemapList() as $c) {
@@ -35,6 +38,13 @@ final class SitemapService
         }
         foreach ((new BlogPostRepository())->sitemapList() as $b) {
             $urls[] = $this->url('blog/' . $b['slug'], ($b['updated_at'] ?: $b['published_at']) ?? null, 'monthly', '0.5');
+        }
+        try {
+            foreach ((new PageRepository())->sitemapList() as $pg) {
+                $urls[] = $this->url('page/' . $pg['slug'], ($pg['updated_at'] ?: $pg['created_at']) ?? null, 'monthly', '0.4');
+            }
+        } catch (\Throwable) {
+            // pages table not migrated yet — sitemap must keep working.
         }
 
         return $urls;
@@ -71,9 +81,7 @@ final class SitemapService
 
     public function robots(): string
     {
-        $lines = [
-            'User-agent: *',
-            'Allow: /',
+        $disallow = [
             'Disallow: /admin',
             'Disallow: /account',
             'Disallow: /cart',
@@ -83,9 +91,68 @@ final class SitemapService
             'Disallow: /logout',
             'Disallow: /api/',
             'Disallow: /*?*sort=',
-            '',
-            'Sitemap: ' . abs_url('sitemap.xml'),
         ];
+
+        $lines = array_merge(['User-agent: *', 'Allow: /'], $disallow);
+
+        // خزنده‌های هوش مصنوعی (ChatGPT، Claude، Perplexity، Gemini) صریحاً
+        // مجازند تا فروشگاه در پاسخ‌های آن‌ها دیده شود؛ همان مسیرهای خصوصی بسته است.
+        $aiBots = ['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-Web', 'PerplexityBot', 'Google-Extended', 'Applebot-Extended'];
+        foreach ($aiBots as $bot) {
+            $lines[] = '';
+            $lines[] = 'User-agent: ' . $bot;
+            $lines[] = 'Allow: /';
+            $lines = array_merge($lines, $disallow);
+        }
+
+        $lines[] = '';
+        $lines[] = 'Sitemap: ' . abs_url('sitemap.xml');
+        return implode("\n", $lines) . "\n";
+    }
+
+    /**
+     * llms.txt — راهنمای ساخت‌یافتهٔ سایت برای دستیارهای هوش مصنوعی
+     * (llmstxt.org). خلاصهٔ فروشگاه + لینک بخش‌های اصلی و دسته‌بندی‌ها.
+     */
+    public function llms(): string
+    {
+        $brand = (string) setting('brand_name', 'بهنام');
+        $lines = [
+            '# ' . $brand,
+            '',
+            '> فروشگاه اینترنتی محصولات آرایشی، بهداشتی و شویندهٔ اصل در ایران؛ با ضمانت اصالت کالا و ارسال به سراسر کشور. قیمت‌ها به تومان است.',
+            '',
+            '## بخش‌های اصلی',
+            '',
+            '- [همهٔ محصولات](' . abs_url('category') . '): فهرست کامل محصولات با فیلتر برند و قیمت',
+            '- [مجلهٔ زیبایی](' . abs_url('blog') . '): مقالات آموزشی مراقبت از پوست و مو',
+            '- [سوالات متداول](' . abs_url('faq') . ')',
+            '- [درباره ما](' . abs_url('about') . ')',
+            '- [تماس با ما](' . abs_url('contact') . ')',
+            '',
+            '## دسته‌بندی‌های محصولات',
+            '',
+        ];
+        foreach ((new CategoryRepository())->sitemapList() as $c) {
+            $lines[] = '- [' . (string) ($c['name'] ?? $c['slug']) . '](' . abs_url('category/' . $c['slug']) . ')';
+        }
+        try {
+            $pages = (new PageRepository())->footerPages();
+            if ($pages !== []) {
+                $lines[] = '';
+                $lines[] = '## صفحات اطلاعاتی';
+                $lines[] = '';
+                foreach ($pages as $pg) {
+                    $lines[] = '- [' . (string) $pg['title'] . '](' . abs_url('page/' . $pg['slug']) . ')';
+                }
+            }
+        } catch (\Throwable) {
+        }
+        $lines[] = '';
+        $lines[] = '## داده‌های ساخت‌یافته';
+        $lines[] = '';
+        $lines[] = '- [نقشهٔ سایت XML](' . abs_url('sitemap.xml') . ')';
+        $lines[] = '- صفحات محصول دارای Schema.org Product (قیمت، موجودی، امتیاز) هستند.';
         return implode("\n", $lines) . "\n";
     }
 }

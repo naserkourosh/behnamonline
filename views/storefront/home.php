@@ -197,6 +197,34 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
 </section>
 <?php endif; ?>
 
+<!-- ── Ad posters (پوسترهای تبلیغاتی، admin-managed) ───────── -->
+<?php $posterBanners = $posterBanners ?? []; ?>
+<?php if ($posterBanners !== []): $pCount = count($posterBanners); ?>
+<section class="container-page pt-8 md:pt-12">
+    <div class="grid gap-4 md:gap-5 <?= $pCount === 3 ? 'md:grid-cols-3' : ($pCount > 1 ? 'md:grid-cols-2' : '') ?>">
+        <?php foreach ($posterBanners as $po): ?>
+            <a href="<?= e(url((string) ($po['link_url'] ?? '/category') ?: '/category')) ?>"
+               class="card-rise group relative block overflow-hidden rounded-2xl md:rounded-3xl">
+                <?php if (!empty($po['image'])): ?>
+                    <img src="<?= e(asset((string) $po['image'])) ?>" alt="<?= e($po['title']) ?>" loading="lazy" decoding="async"
+                         class="<?= $pCount === 1 ? 'h-44 md:h-72' : 'h-40 md:h-56' ?> w-full object-cover transition duration-500 group-hover:scale-[1.03]">
+                <?php else: ?>
+                    <div class="flex <?= $pCount === 1 ? 'h-44 md:h-72' : 'h-40 md:h-56' ?> w-full items-center justify-center"
+                         style="background:<?= (string) ($po['bg_color'] ?? '') ?: 'linear-gradient(135deg,#5C2D46,#8a5470)' ?>">
+                        <div class="px-6 text-center">
+                            <?php if (!empty($po['kicker'])): ?><div class="mb-1.5 text-[10px] font-bold tracking-wide text-white/80 md:text-[11px]"><?= e($po['kicker']) ?></div><?php endif; ?>
+                            <div class="text-[17px] font-extrabold text-white md:text-[24px]"><?= e($po['title']) ?></div>
+                            <?php if (!empty($po['subtitle'])): ?><div class="mt-1.5 text-[11.5px] text-white/85 md:text-[13px]"><?= e($po['subtitle']) ?></div><?php endif; ?>
+                            <?php if (!empty($po['cta_label'])): ?><span class="mt-3 inline-block rounded-full bg-white px-5 py-2 text-[11.5px] font-bold text-secondary"><?= e($po['cta_label']) ?> ›</span><?php endif; ?>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
+</section>
+<?php endif; ?>
+
 <!-- ── Per-category rails (بنرهای تصویری میان صفحه بین ردیف‌ها) ── -->
 <?php $inlineBanners = $inlineBanners ?? []; ?>
 <?php foreach ($sections as $si => $section): ?>
@@ -232,17 +260,38 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
 <?php endif; ?>
 <?php endforeach; ?>
 
-<!-- ── Brands ─────────────────────────────────────────────── -->
-<?php if ($brands !== []): ?>
+<!-- ── Brands (animated marquee of international wordmarks) ── -->
+<?php
+// Text "logos" with per-brand typography; an infinite CSS marquee.
+$brandMarks = [
+    ['Dove',           'font-serif italic text-[22px] md:text-[26px]'],
+    ['CLEAR',          'text-[16px] font-extrabold tracking-[0.18em] md:text-[19px]'],
+    ['Bioxcin',        'text-[17px] font-bold md:text-[20px]'],
+    ['Dafi',           'text-[18px] font-extrabold italic md:text-[21px]'],
+    ["L'ORÉAL",        'font-serif text-[16px] font-bold tracking-[0.22em] md:text-[19px]'],
+    ['NIVEA',          'text-[17px] font-extrabold tracking-[0.14em] md:text-[20px]'],
+    ['PANTENE',        'text-[15px] font-bold tracking-[0.2em] md:text-[18px]'],
+    ['CLINIQUE',       'font-serif text-[15px] font-light tracking-[0.3em] md:text-[18px]'],
+    ['Lancôme',        'font-serif text-[19px] md:text-[23px]'],
+    ['LA ROCHE-POSAY', 'text-[13px] font-bold tracking-[0.12em] md:text-[15px]'],
+    ['The Ordinary.',  'text-[15px] font-medium md:text-[17px]'],
+    ['ESTĒE LAUDER',   'font-serif text-[14px] font-semibold tracking-[0.24em] md:text-[17px]'],
+    ['OGX',            'text-[18px] font-extrabold tracking-[0.1em] md:text-[21px]'],
+];
+$brandRow = '';
+foreach ($brandMarks as [$mark, $cls]) {
+    $brandRow .= '<span class="mx-7 flex-none whitespace-nowrap text-secondary/80 transition hover:text-secondary md:mx-11 ' . $cls . '">' . e($mark) . '</span>';
+}
+?>
 <section class="mt-10 bg-surface py-7 text-center md:py-10">
     <div class="mb-5 text-[10px] tracking-[0.3em] text-mauve md:text-[12px]">برندهای معتبر</div>
-    <div class="hscroll mx-auto flex max-w-page items-center gap-7 overflow-x-auto px-6 md:justify-center md:gap-12">
-        <?php foreach ($brands as $b): ?>
-            <a href="<?= e(url('/category?brand[]=' . (int) $b['id'])) ?>" class="flex-none whitespace-nowrap text-[15px] font-light tracking-wide text-secondary transition hover:opacity-70 md:text-[18px]"><?= e($b['name']) ?></a>
-        <?php endforeach; ?>
+    <div class="marquee mx-auto max-w-page" dir="ltr">
+        <div class="marquee-inner">
+            <?= $brandRow ?>
+            <?= $brandRow /* second copy makes the -50% loop seamless */ ?>
+        </div>
     </div>
 </section>
-<?php endif; ?>
 
 <!-- ── Reviews ────────────────────────────────────────────── -->
 <?php if ($reviews !== []): ?>
@@ -268,26 +317,37 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
 </section>
 <?php endif; ?>
 
-<!-- ── Blog ───────────────────────────────────────────────── -->
+<!-- ── Blog (latest published posts) ──────────────────────── -->
+<?php if ($posts !== []): ?>
 <section class="pt-9 md:pt-12">
     <div class="container-page mb-4 flex items-baseline justify-between md:mb-6">
         <h2 class="section-title">مجله‌ی زیبایی</h2>
-        <span class="text-[11.5px] text-mauve md:text-[13px]">مشاهده همه ›</span>
+        <a href="<?= e(url('/blog')) ?>" class="text-[11.5px] text-mauve transition hover:text-secondary md:text-[13px]">مشاهده همه ›</a>
     </div>
     <div class="hscroll flex gap-3.5 overflow-x-auto px-4 pb-2 md:px-8 lg:px-16">
         <?php foreach ($posts as $post): ?>
             <article class="w-[230px] flex-none overflow-hidden rounded-2xl border border-line2 bg-white md:w-[300px]">
-                <div class="h-[120px] bg-[#F3EBE2] md:h-[160px]"></div>
-                <div class="p-3.5">
-                    <h3 class="clamp-2 text-[13px] font-bold leading-6 text-[#333]"><?= e($post['title']) ?></h3>
-                    <div class="mt-2 text-[10px] text-[#aaa]"><?= e($post['date']) ?> · <?= e($post['read']) ?></div>
-                </div>
+                <a href="<?= e(url('/blog/' . $post['slug'])) ?>" class="block">
+                    <div class="h-[120px] overflow-hidden bg-surface md:h-[160px]">
+                        <?php if (!empty($post['cover_image'])): ?>
+                            <img src="<?= e(asset((string) $post['cover_image'])) ?>" alt="<?= e($post['title']) ?>" loading="lazy" class="h-full w-full object-cover transition duration-500 hover:scale-105">
+                        <?php endif; ?>
+                    </div>
+                    <div class="p-3.5">
+                        <?php if (!empty($post['category_name'])): ?>
+                            <div class="mb-1 text-[10px] font-semibold text-mauve"><?= e($post['category_name']) ?></div>
+                        <?php endif; ?>
+                        <h3 class="clamp-2 text-[13px] font-bold leading-6 text-[#333]"><?= e($post['title']) ?></h3>
+                        <div class="mt-2 text-[10px] text-[#aaa] nums"><?= e(jdate((string) $post['published_at'], 'Y/m/d')) ?></div>
+                    </div>
+                </a>
             </article>
         <?php endforeach; ?>
     </div>
 </section>
+<?php endif; ?>
 
-<!-- ── Newsletter ─────────────────────────────────────────── -->
+<!-- ── Newsletter ─────────────────────────────────────────── 
 <section class="container-page pt-10 md:pt-12">
     <div class="rounded-4xl bg-gradient-to-br from-secondary to-secondary-light p-6 text-center text-white md:p-12">
         <h2 class="text-[16px] font-bold md:text-[24px]">عضویت در خبرنامه</h2>
@@ -297,4 +357,4 @@ $s = str_pad((string) ($remaining % 60), 2, '0', STR_PAD_LEFT);
             <button type="submit" class="rounded-xl bg-primary px-5 py-2.5 text-[12px] font-bold text-secondary md:text-[14px]">عضویت</button>
         </form>
     </div>
-</section>
+</section> -->
